@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<drjava version="drjava-20100913-r5387">
+  <project autorefresh="false" build="build/" main="" root="" work="">
+    <createjar file=""/>
+    <source>
+      <file active="true" name="com/tradebits/MtGox.java" package="com.tradebits" timestamp="10-Aug-2012 03:17:36">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/util/Charsetfunctions.java" package="org.java_websocket.util" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/util/Base64.java" package="org.java_websocket.util" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/server/WebSocketServer.java" package="org.java_websocket.server" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/ServerHandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/ServerHandshake.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/HandshakedataImpl1.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/Handshakedata.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/HandshakeImpl1Server.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/HandshakeImpl1Client.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/HandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/ClientHandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/handshake/ClientHandshake.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/framing/FramedataImpl1.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/framing/Framedata.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/framing/FrameBuilder.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/framing/CloseFrameBuilder.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/framing/CloseFrame.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/exceptions/NotSendableException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/exceptions/LimitExedeedException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/exceptions/InvalidHandshakeException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/exceptions/InvalidFrameException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/exceptions/InvalidDataException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/exceptions/IncompleteHandshakeException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/drafts/Draft_76.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/drafts/Draft_75.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/drafts/Draft_17.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/drafts/Draft_10.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/drafts/Draft.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/client/WebSocketClient.java" package="org.java_websocket.client" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/WebSocketListener.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/WebSocketImpl.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/WebSocketFactory.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/WebSocketAdapter.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/WebSocket.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/SocketChannelIOHelper.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="org/java_websocket/SSLSocketChannel.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+      <file name="com/tradebits/Trader.java" package="com.tradebits" timestamp="10-Aug-2012 03:17:47">
+        <select from="1446" to="1446"/>
+        <scroll column="193" row="0"/>
+      </file>
+    </source>
+    <included/>
+    <excluded/>
+    <collapsed/>
+    <classpath>
+      <file absolute="false" name="../../../../Downloads/kaazing-websocket-gateway-jms-3.3.0/lib/client/java/com.kaazing.gateway.jms.client.java.jar"/>
+    </classpath>
+    <breakpoints/>
+    <watches/>
+    <bookmarks/>
+  </project>
+</drjava>
