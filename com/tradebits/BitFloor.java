@@ -11,26 +11,25 @@ import org.java_websocket.handshake.*;
 import java.nio.ByteBuffer;
 
 
-public class BlockChain {
+public class BitFloor {
     
     WebSocketClient socket;
     
-    public BlockChain(){
+    public BitFloor(){
         try{
-            String wsURL = "ws://api.blockchain.info:8335/inv";
-            socket = new WebSocketClient(new URI(wsURL), new Draft_76()){
+            String wsURL = "ws://feed.bitfloor.com/1";
+            socket = new WebSocketClient(new URI(wsURL), new Draft_10()){
                 @Override
                 public void onOpen( ServerHandshake handshakedata ){
-//                    System.out.println("onOpen");
-                    this.send("{\"op\":\"unconfirmed_sub\"}");
+                    System.out.println("onOpen");
                 }
                 @Override
                 public void onMessage( String message ){
-//                    System.out.println("onMessage: " + message);
+                    System.out.println("onMessage: " + message);
                 }
                 @Override
                 public void onClose( int code, String reason, boolean remote ){
-//                    System.out.println("onClose");
+                    System.out.println("onClose");
                 }
                 @Override
                 public void onError( Exception ex ){
@@ -39,7 +38,7 @@ public class BlockChain {
                 }
                 @Override
                 public void onMessage( ByteBuffer bytes ) {
-//                    System.out.println("onMessage");
+                    System.out.println("onMessage");
                 }
             };
         }catch(Exception e){
