@@ -17,8 +17,8 @@ public class BitFloor {
     
     public BitFloor(){
         try{
-            String wsURL = "ws://feed.bitfloor.com/1";
-            socket = new WebSocketClient(new URI(wsURL), new Draft_10()){
+            String wsURL = "wss://api.icbit.se/socket.io/1/?t=1344639635054";
+            socket = new WebSocketClient(new URI(wsURL), new Draft_76()){
                 @Override
                 public void onOpen( ServerHandshake handshakedata ){
                     System.out.println("onOpen");

@@ -33,16 +33,23 @@ public class Trader{
          
          
 
-         MtGox mtgox = new MtGox();
-         mtgox.connect();
+//         MtGox mtgox = new MtGox();
+//         mtgox.connect();
          
-         BlockChain block = new BlockChain();
-         block.connect();
+//         BlockChain block = new BlockChain();
+//         block.connect();
          
 //         BitFloor bitfloor = new BitFloor();
 //         bitfloor.connect();
          
-         ICBit icbit = new ICBit();
-         icbit.connect();
+//         ICBit icbit = new ICBit();
+//         icbit.connect();
+         
+         BitFloor2 bitfloor2 = new BitFloor2();
+         bitfloor2.connect();
+
+         ICBit2 icbit2 = new ICBit2();
+         icbit2.connect();
+         
      }
 }

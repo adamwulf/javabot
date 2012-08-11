@@ -95,7 +95,7 @@ public class WebSocketConnection
             
             boolean handshakeComplete = false;
             boolean header = true;
-            int len = 20000;
+            int len = 2000;
             byte[] buffer = new byte[len];
             int pos = 0;
             ArrayList<String> handshakeLines = new ArrayList<String>();
@@ -104,6 +104,9 @@ public class WebSocketConnection
             
             while (!handshakeComplete) {
                 int b = input.read();
+                if(pos >= len){
+                    System.out.println(new String(buffer));
+                }
                 buffer[pos] = (byte) b;
                 pos += 1;
                 

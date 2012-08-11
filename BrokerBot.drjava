@@ -3,211 +3,469 @@
   <project autorefresh="false" build="build/" main="com.tradebits.Trader" root="" work="">
     <createjar file=""/>
     <source>
-      <file active="true" name="com/tradebits/ICBit.java" package="com.tradebits" timestamp="10-Aug-2012 05:20:17">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+      <file active="true" name="com/tradebits/BlockChain.java" package="com.tradebits" timestamp="10-Aug-2012 03:45:20">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/util/Charsetfunctions.java" package="org.java_websocket.util" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/util/Base64.java" package="org.java_websocket.util" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/server/WebSocketServer.java" package="org.java_websocket.server" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/ServerHandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/ServerHandshake.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/HandshakedataImpl1.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/Handshakedata.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/HandshakeImpl1Server.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/HandshakeImpl1Client.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/HandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/ClientHandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/ClientHandshake.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/framing/FramedataImpl1.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/framing/Framedata.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/framing/FrameBuilder.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/framing/CloseFrameBuilder.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/framing/CloseFrame.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/NotSendableException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/LimitExedeedException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/InvalidHandshakeException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/InvalidFrameException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/InvalidDataException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/IncompleteHandshakeException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft_76.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft_75.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft_17.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft_10.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/client/WebSocketClient.java" package="org.java_websocket.client" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocketListener.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocketImpl.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocketFactory.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocketAdapter.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocket.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/SocketChannelIOHelper.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="org/java_websocket/SSLSocketChannel.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
-      </file>
-      <file name="com/tradebits/MtGox.java" package="com.tradebits" timestamp="10-Aug-2012 03:24:35">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
-      </file>
-      <file name="com/tradebits/BlockChain.java" package="com.tradebits" timestamp="10-Aug-2012 03:45:20">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
-      </file>
-      <file name="com/tradebits/BitFloor.java" package="com.tradebits" timestamp="10-Aug-2012 04:24:40">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocketReceiver.java" package="de.roderick.weberknecht" timestamp="10-Aug-2012 04:55:17">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocketMessage.java" package="de.roderick.weberknecht" timestamp="10-Aug-2012 04:55:17">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocketException.java" package="de.roderick.weberknecht" timestamp="10-Aug-2012 04:55:17">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocketEventHandler.java" package="de.roderick.weberknecht" timestamp="10-Aug-2012 04:55:17">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocket.java" package="de.roderick.weberknecht" timestamp="10-Aug-2012 04:55:17">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocketHandshake.java" package="de.roderick.weberknecht" timestamp="10-Aug-2012 04:57:09">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
-      </file>
-      <file name="com/tradebits/Trader.java" package="com.tradebits" timestamp="10-Aug-2012 05:04:51">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
       <file name="com/aw/ad/util/InstallCert.java" package="com.aw.ad.util" timestamp="10-Aug-2012 05:11:16">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
-      <file name="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocketConnection.java" package="de.roderick.weberknecht" timestamp="10-Aug-2012 05:19:10">
-        <select from="560" to="560"/>
-        <scroll column="81" row="84"/>
+      <file name="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocketConnection.java" package="de.roderick.weberknecht" timestamp="10-Aug-2012 17:33:20">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="com/tradebits/MtGox.java" package="com.tradebits" timestamp="10-Aug-2012 17:44:29">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="com/tradebits/ICBit.java" package="com.tradebits" timestamp="10-Aug-2012 17:59:27">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="com/tradebits/BitFloor.java" package="com.tradebits" timestamp="10-Aug-2012 18:03:35">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/util/Web.java" package="com.glines.socketio.util" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/util/URI.java" package="com.glines.socketio.util" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/util/ServiceClassLoader.java" package="com.glines.socketio.util" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/util/Loader.java" package="com.glines.socketio.util" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/util/JdkOverLog4j.java" package="com.glines.socketio.util" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/util/JSON.java" package="com.glines.socketio.util" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/util/IO.java" package="com.glines.socketio.util" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/util/DefaultLoader.java" package="com.glines.socketio.util" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/XHRPollingTransport.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/XHRPollingDataHandler.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/XHRMultipartTransport.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/XHRMultipartDataHandler.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/JSONPPollingTransport.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/JSONPPollingDataHandler.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/HTMLFileTransport.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/HTMLFileDataHandler.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/FlashSocketTransport.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/DataHandler.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/AbstractHttpTransport.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/AbstractDataHandler.java" package="com.glines.socketio.server.transport" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/TransportType.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/TransportInitializationException.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/TransportHandlerProvider.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/TransportHandler.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/TransportDiscovery.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/Transport.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SocketIOSessionManager.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SocketIOSession.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SocketIOServlet.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SocketIOOutbound.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SocketIOInbound.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SocketIOFrame.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SocketIOConfig.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SocketIOClosedException.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/SessionManager.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/ServletBasedSocketIOConfig.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/DefaultSession.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/ConnectableTransportHandler.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/ClasspathTransportDiscovery.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/AnnotationTransportHandlerProvider.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/AbstractTransportHandler.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/server/AbstractTransport.java" package="com.glines.socketio.server" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/common/SocketIOException.java" package="com.glines.socketio.common" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/common/DisconnectReason.java" package="com.glines.socketio.common" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/common/ConnectionState.java" package="com.glines.socketio.common" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/client/common/SocketIOConnectionListener.java" package="com.glines.socketio.client.common" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/client/common/SocketIOConnection.java" package="com.glines.socketio.client.common" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/core/src/main/java/com/glines/socketio/annotation/Handle.java" package="com.glines.socketio.annotation" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/extension/jre/src/main/java/com/glines/socketio/client/jre/SocketIOConnectionImpl.java" package="com.glines.socketio.client.jre" timestamp="10-Aug-2012 18:04:19">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="ext/java-socketio/extension/jre/src/main/java/com/glines/socketio/client/jre/SocketIOConnectionXHRBase.java" package="com.glines.socketio.client.jre" timestamp="10-Aug-2012 18:38:38">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="com/tradebits/ICBit2.java" package="com.tradebits" timestamp="10-Aug-2012 19:31:31">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="com/tradebits/BitFloor2.java" package="com.tradebits" timestamp="10-Aug-2012 19:36:30">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
+      </file>
+      <file name="com/tradebits/Trader.java" package="com.tradebits" timestamp="10-Aug-2012 19:40:11">
+        <select from="1452" to="1452"/>
+        <scroll column="209" row="0"/>
       </file>
     </source>
     <included/>
     <excluded/>
-    <collapsed/>
+    <collapsed>
+      <path name="./[ Source Files ]/ext/java-socketio/core/src/main/java/com/glines/socketio/server/transport/"/>
+      <path name="./[ Source Files ]/ext/java-socketio/core/src/main/java/com/glines/socketio/server/"/>
+    </collapsed>
     <classpath>
       <file absolute="false" name="jars/"/>
       <file absolute="false" name="jars/com.kaazing.gateway.jms.client.java.jar"/>
+      <file absolute="false" name="jars/log4j-1.2.17.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/annotations-api.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/catalina-ant.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/catalina-ha.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/catalina-tribes.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/catalina.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/ecj-3.7.2.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/el-api.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/jasper-el.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/jasper.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/jsp-api.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/servlet-api.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/tomcat-api.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/tomcat-coyote.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/tomcat-dbcp.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/tomcat-i18n-es.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/tomcat-i18n-fr.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/tomcat-i18n-ja.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/tomcat-jdbc.jar"/>
+      <file absolute="false" name="../../apache-tomcat-7.0.29/lib/tomcat-util.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-ajp-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-annotations-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-client-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-continuation-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-deploy-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-http-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-io-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-jmx-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-jndi-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-overlay-deployer-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-plus-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-policy-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-rewrite-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-security-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-server-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-servlet-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-servlets-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-util-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-webapp-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-websocket-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-xml-8.1.5.v20120716.jar"/>
+      <file absolute="false" name="ext/google-gson-2.2.2/gson-2.2.2.jar"/>
     </classpath>
-    <breakpoints/>
+    <breakpoints>
+      <breakpoint enabled="true" file="tmp/weberknecht-read-only/src/main/de/roderick/weberknecht/WebSocketConnection.java" line="148"/>
+      <breakpoint enabled="true" file="ext/java-socketio/extension/jre/src/main/java/com/glines/socketio/client/jre/SocketIOConnectionImpl.java" line="49"/>
+      <breakpoint enabled="true" file="ext/java-socketio/extension/jre/src/main/java/com/glines/socketio/client/jre/SocketIOConnectionImpl.java" line="53"/>
+    </breakpoints>
     <watches/>
     <bookmarks/>
   </project>

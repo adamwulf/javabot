@@ -14,8 +14,9 @@ public class ICBit {
     
     public ICBit(){
         try {
-            String wsURL = "wss://api.icbit.se:443/icbit?AuthKey=X4Rtx6lhFfexnPsibvwQzwx7OInx9swOoJW1MUbcp13Pz3jTZGOAuSvkSgqGfGpHbcWDiAOAqbwh3gB6FOxWwfURmfaV6fZjMVaw4MNeJZcOgZiDdD4rUr5OtNOQJaLO&UserId=743";
-            wsURL = "wss://feed.bitfloor.com/1";
+            String wsURL = "wss://api.icbit.se/icbit?AuthKey=X4Rtx6lhFfexnPsibvwQzwx7OInx9swOoJW1MUbcp13Pz3jTZGOAuSvkSgqGfGpHbcWDiAOAqbwh3gB6FOxWwfURmfaV6fZjMVaw4MNeJZcOgZiDdD4rUr5OtNOQJaLO&UserId=743";
+
+            wsURL = "wss://api.icbit.se/icbit/socket.io";
             URI url = new URI(wsURL);
             WebSocket websocket = new WebSocketConnection(url);
             

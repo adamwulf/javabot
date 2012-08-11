@@ -21,16 +21,16 @@ public class BlockChain {
             socket = new WebSocketClient(new URI(wsURL), new Draft_76()){
                 @Override
                 public void onOpen( ServerHandshake handshakedata ){
-//                    System.out.println("onOpen");
+                    System.out.println("onOpen");
                     this.send("{\"op\":\"unconfirmed_sub\"}");
                 }
                 @Override
                 public void onMessage( String message ){
-//                    System.out.println("onMessage: " + message);
+                    System.out.println("onMessage: " + message);
                 }
                 @Override
                 public void onClose( int code, String reason, boolean remote ){
-//                    System.out.println("onClose");
+                    System.out.println("onClose");
                 }
                 @Override
                 public void onError( Exception ex ){
@@ -39,7 +39,7 @@ public class BlockChain {
                 }
                 @Override
                 public void onMessage( ByteBuffer bytes ) {
-//                    System.out.println("onMessage");
+                    System.out.println("onMessage");
                 }
             };
         }catch(Exception e){
