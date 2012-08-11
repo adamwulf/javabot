@@ -25,30 +25,55 @@ public class ICBit2{
     public ICBit2(){
         
         try{
+            String topLine = "";
+
+            URL url = new URL("https://api.icbit.se/socket.io/1/?t=1344644213395");
+            URLConnection connection = url.openConnection();
+            connection.addRequestProperty("Connection", "Upgrade");
+            connection.addRequestProperty("Upgrade", "websocket");
+            connection.addRequestProperty("Sec-WebSocket-Extensions", "x-webkit-deflate-frame");
+            connection.addRequestProperty("Sec-WebSocket-Key", "FjPYWY3tVVrz8ls+HL9rdQ==");
+            connection.addRequestProperty("Sec-WebSocket-Version", "13");
+//            connection.addRequestProperty("(Key3)", "00:00:00:00:00:00:00:00");
+  //          connection.addRequestProperty("Origin", "null");
             
-            
-            
-            URL icbitSite = new URL("https://api.icbit.se/socket.io/1/?t=1344644213395");
-            BufferedReader in = new BufferedReader(
-                                                   new InputStreamReader(
-                                                                         icbitSite.openStream()));
-            
-            String topLine = null;
-            String inputLine;
-            while ((inputLine = in.readLine()) != null){
-                topLine = inputLine;
+            for(int i=0;;i++){
+                String headerName = connection.getHeaderField(i);
+                if(headerName == null) break;
+                String headerValue = connection.getHeaderField(headerName);
+                System.out.println(headerName + " " + headerValue);
+                topLine += headerName + " " + headerValue + "\r\n";
             }
-            in.close();
+            
+            topLine = "HTTP/1.1 101 OK null\r\n";
+            topLine += "Connection:Upgrade\r\n";
+            topLine += "Sec-WebSocket-Accept:+IA3T46RtrlXofloaPFyGv7tZ30=\r\n";
+            topLine += "Upgrade:websocket\r\n";
+            topLine += "(Challenge Response):00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00\r\n";
+            
+            topLine += "\r\n";
+            
+            InputStream response = connection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response));
+            for (String line; (line = reader.readLine()) != null;) {
+                topLine += line + "\r\n";
+            }
+            reader.close();
+            
+            System.out.println("done");
             
             System.out.println(topLine);
             
+            topLine = topLine.replace("200", "101");
+            
             String foo = topLine.substring(0, topLine.indexOf(":"));
                                             
-            System.out.println(foo);
+            System.out.println(topLine);
+                                          
                                             
                                             
-                                            
-            socket2 = new de.roderick.weberknecht.WebSocketConnection(new URI("wss://api.icbit.se/socket.io/1/websocket/" + foo));
+            Long dt = new Long((new Date()).getTime() / 1000);
+            socket2 = new de.roderick.weberknecht.WebSocketConnection(new URI("wss://api.icbit.se/socket.io/1/?t=" + dt.toString()));
             de.roderick.weberknecht.WebSocketEventHandler handler = new de.roderick.weberknecht.WebSocketEventHandler(){
                 public void onOpen(){
                     System.out.println("--open");
@@ -69,6 +94,10 @@ public class ICBit2{
                 }
             };
             socket2.setEventHandler(handler);
+            
+            //
+            // hoping this'll work
+//            socket2.setLie(topLine + "\r\n");
         }catch(Exception e){
             e.printStackTrace();
         }

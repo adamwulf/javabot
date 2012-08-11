@@ -51,6 +51,12 @@ public class WebSocketConnection
     private WebSocketHandshake handshake = null;
     
     
+    private String lie;
+    
+    public void setLie(String lie){
+        this.lie = lie;
+    }
+    
     public WebSocketConnection(URI url)
         throws WebSocketException
     {
@@ -102,8 +108,17 @@ public class WebSocketConnection
             
             byte[] serverResponse = new byte[16];
             
+            InputStream lieInputStream = null;
+            if(this.lie != null){
+                lieInputStream = new ByteArrayInputStream(lie.getBytes());
+            }
+            
             while (!handshakeComplete) {
-                int b = input.read();
+                int b;
+                if(lieInputStream == null || (b = lieInputStream.read()) == -1){
+                    b = input.read();
+                    lieInputStream = null;
+                }
                 if(pos >= len){
                     System.out.println(new String(buffer));
                 }

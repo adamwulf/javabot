@@ -5,7 +5,7 @@
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *  
- *  	http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *  
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,20 +19,21 @@ package de.roderick.weberknecht;
 
 public interface WebSocket
 {
-	public void setEventHandler(WebSocketEventHandler eventHandler);
-	
-	
-	public WebSocketEventHandler getEventHandler();
-	
+ public void setEventHandler(WebSocketEventHandler eventHandler);
+ 
+ 
+ public WebSocketEventHandler getEventHandler();
+ 
+ public void setLie(String lie);
 
-	public void connect()
-			throws WebSocketException;
-	
+ public void connect()
+   throws WebSocketException;
+ 
 
-	public void send(String data)
-			throws WebSocketException;
-	
+ public void send(String data)
+   throws WebSocketException;
+ 
 
-	public void close()
-			throws WebSocketException;
+ public void close()
+   throws WebSocketException;
 }
