@@ -8,11 +8,12 @@ import org.eclipse.jetty.websocket.*;
 import java.nio.ByteBuffer;
 
 
-public class ICBit {
+public class ICBit extends AExchange {
     
     WebSocketClient socket;
     
     public ICBit(){
+        super("ICBit");
         try{
             
             //

@@ -11,11 +11,12 @@ import org.java_websocket.handshake.*;
 import java.nio.ByteBuffer;
 
 
-public class BlockChain {
+public class BlockChain extends AExchange {
     
     WebSocketClient socket;
     
     public BlockChain(){
+        super("BlockChain");
         try{
             String wsURL = "ws://api.blockchain.info:8335/inv";
             socket = new WebSocketClient(new URI(wsURL), new Draft_76()){

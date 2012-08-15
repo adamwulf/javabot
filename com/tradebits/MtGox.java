@@ -11,11 +11,12 @@ import org.java_websocket.handshake.*;
 import java.nio.ByteBuffer;
 
 
-public class MtGox {
+public class MtGox extends AExchange {
     
     WebSocketClient socket;
     
     public MtGox(){
+        super("MtGox");
         try{
             String wsURL = "ws://websocket.mtgox.com/mtgox";
             socket = new WebSocketClient(new URI(wsURL), new Draft_76()){
@@ -25,7 +26,7 @@ public class MtGox {
                 }
                 @Override
                 public void onMessage( String message ){
-//                    System.out.println("onMessage: " + message);
+                    MtGox.this.log(message);
                 }
                 @Override
                 public void onClose( int code, String reason, boolean remote ){

@@ -42,29 +42,23 @@ public class Trader{
         
         
         
-         MtGox mtgox = new MtGox();
-         mtgox.connect();
+//         BitFloor bitfloor = new BitFloor();
+//         bitfloor.connect();
         
 //         BlockChain block = new BlockChain();
 //         block.connect();
         
-//         BitFloor3 bitfloor3 = new BitFloor3();
-//         bitfloor3.connect();
+//         ICBit icbit = new ICBit();
+//         icbit.connect();
         
-         ICBit icbit = new ICBit();
-         icbit.connect();
+        Intersango intersango = new Intersango();
+        intersango.connect();
         
-//         ICBit2 icbit2 = new ICBit2();
-//         icbit2.connect();
+        MtGox mtgox = new MtGox();
+        mtgox.connect();
         
-//         ICBit3 icbit3 = new ICBit3();
-//         icbit3.connect();
-        
-//        Intersango intersango = new Intersango();
-//        intersango.connect();
-        
-//        Intersango2 intersango2 = new Intersango2();
-//        intersango2.connect();
-        
+        System.out.println("sleeping");
+        Thread.sleep(600000);
+        System.out.println("sleeping2");
     }
 }
