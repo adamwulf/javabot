@@ -37,10 +37,10 @@ public class Intersango2 {
             System.out.println("1344970658118");
             System.out.println(time);
             String socketInfo = "";
+            String authKey = "uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO";
+            String userID = "743";
             
             try {
-                String authKey = "uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO";
-                String userID = "743";
 
                 // Construct data
                 String data = URLEncoder.encode("AuthKey", "UTF-8") + "=" + URLEncoder.encode(authKey, "UTF-8");
@@ -120,12 +120,32 @@ public class Intersango2 {
             }).get(5, TimeUnit.SECONDS);
 //            connection.sendMessage("Hello World");
 
+            Timer foo = new Timer();
+            foo.scheduleAtFixedRate(new TimerTask(){
+                public boolean cancel(){
+                    return false;
+                }
+                public void run(){
+                    String msg = "2::";
+                    System.out.println("~h~");
+                    try{
+                        socketConnection.sendMessage(msg);
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                public long scheduledExecutionTime(){
+                    return 0;
+                }
+            }, 1000, 15000);
+            
+            
             // /icbit
             System.out.println("sleeping");
             Thread.sleep(1000);
             System.out.println("sleeping2");
             System.out.println("should have 1:: by now");
-            String msg = "1::/icbit";
+            String msg = "1::/icbit?AuthKey=" + authKey + "&UserId="+userID;
             System.out.println("sending: " + msg);
             socketConnection.sendMessage(msg);
 
@@ -141,7 +161,7 @@ public class Intersango2 {
             System.out.println("sending: " + msg);
             socketConnection.sendMessage(msg);
             System.out.println("sleeping");
-            Thread.sleep(60000);
+            Thread.sleep(600000);
             System.out.println("sleeping2");
 
         }catch(Exception e){
