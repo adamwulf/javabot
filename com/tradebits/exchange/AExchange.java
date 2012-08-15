@@ -1,7 +1,7 @@
 /**
  * a generic bitcoin exchange
  */
-package com.tradebits;
+package com.tradebits.exchange;
 
 
 public abstract class AExchange{

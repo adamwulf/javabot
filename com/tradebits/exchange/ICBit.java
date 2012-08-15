@@ -1,4 +1,4 @@
-package com.tradebits;
+package com.tradebits.exchange;
 
 import java.io.*;
 import java.net.*;
