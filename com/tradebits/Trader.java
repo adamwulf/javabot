@@ -48,17 +48,11 @@ public class Trader{
 //         BlockChain block = new BlockChain();
 //         block.connect();
         
-//         BitFloor bitfloor = new BitFloor();
-//         bitfloor.connect();
+//         BitFloor3 bitfloor3 = new BitFloor3();
+//         bitfloor3.connect();
         
-         BitFloor3 bitfloor3 = new BitFloor3();
-         bitfloor3.connect();
-        
-//         ICBit icbit = new ICBit();
-//         icbit.connect();
-        
-//         BitFloor2 bitfloor2 = new BitFloor2();
-//         bitfloor2.connect();
+         ICBit icbit = new ICBit();
+         icbit.connect();
         
 //         ICBit2 icbit2 = new ICBit2();
 //         icbit2.connect();

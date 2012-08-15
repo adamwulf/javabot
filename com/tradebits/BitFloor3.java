@@ -7,32 +7,20 @@ import java.util.concurrent.*;
 import org.eclipse.jetty.websocket.*;
 import java.nio.ByteBuffer;
 
-
+/**
+ * The BitFloor api doesn't let me subscribe to the market data, so i need to 
+ * actually request it every X seconds.
+ * 
+ * REST should be used to place orders: https://bitfloor.com/docs/api
+ * 
+ * these orders will show up as order_open and order_done events
+ */
 public class BitFloor3 {
     
     WebSocketClient socket;
     
     public BitFloor3(){
         try{
-            
-            //
-            // i loaded this in the web browser. to help find urls
-            //
-            // i had to get a fresh API key, they seem to be for single sessions only
-            //
-            // i also had to find the tKCAqhf-N03a546H1WOp of the url below through the web browser.
-            // this can hopefully be found by GETing a url from the web server.
-            //
-            // that url fragment can be fetched from:
-            // https://api.icbit.se/socket.io/1/?AuthKey=uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO&UserId=743&t=1344970658118
-            // with the current timestamp.
-            //
-            // i should test this with my browser off in case the browser + this client interfere with each other.
-            //
-            // these may only stay alive for ~30s or so before the connection dies.
-            //
-            // especially if the browser is dead, it resets the connection and it closes immediately
-            
             String time = new Long(new Date().getTime() + 30000).toString();
             System.out.println("1344970658118");
             System.out.println(time);
@@ -129,9 +117,11 @@ public class BitFloor3 {
                     return false;
                 }
                 public void run(){
-                    String msg = "2::";
                     System.out.println("~h~");
                     try{
+                        String msg = "2::";
+                        socketConnection.sendMessage(msg);
+                        msg = "5::/1:{\"name\":\"book\"}";
                         socketConnection.sendMessage(msg);
                     }catch(Exception e){
                         e.printStackTrace();

@@ -1,96 +1,186 @@
 package com.tradebits;
 
+import java.io.*;
 import java.net.*;
 import java.util.*;
-import org.java_websocket.client.*;
-import org.java_websocket.drafts.*;
-import org.java_websocket.handshake.*;
+import java.util.concurrent.*;
+import org.eclipse.jetty.websocket.*;
 import java.nio.ByteBuffer;
-import de.roderick.weberknecht.*;
+
 
 public class ICBit {
     
     WebSocketClient socket;
     
     public ICBit(){
-        try {
-            String wsURL = "wss://api.icbit.se/icbit?AuthKey=X4Rtx6lhFfexnPsibvwQzwx7OInx9swOoJW1MUbcp13Pz3jTZGOAuSvkSgqGfGpHbcWDiAOAqbwh3gB6FOxWwfURmfaV6fZjMVaw4MNeJZcOgZiDdD4rUr5OtNOQJaLO&UserId=743";
-
-            wsURL = "wss://api.icbit.se/icbit/socket.io";
-            URI url = new URI(wsURL);
-            WebSocket websocket = new WebSocketConnection(url);
-            
-            // Register Event Handlers
-            websocket.setEventHandler(new WebSocketEventHandler() {
-                public void onOpen()
-                {
-                    System.out.println("--open");
-                }
-                
-                public void onMessage(WebSocketMessage message)
-                {
-                    System.out.println("--received message: " + message.getText());
-                }
-                
-                public void onClose()
-                {
-                    System.out.println("--close");
-                }
-            });
-            
-            // Establish WebSocket Connection
-            websocket.connect();
-            
-            // Send UTF-8 Text
-            websocket.send("hello world");
-            
-            // Close WebSocket Connection
-            websocket.close();
-        }
-        catch (WebSocketException wse) {
-            wse.printStackTrace();
-        }
-        catch (URISyntaxException use) {
-            use.printStackTrace();
-        }
-        /*
         try{
-        
-        final WebSocket ws = new WebSocket();
-        String wsURL = "ws://api.icbit.se/icbit/?AuthKey=X4Rtx6lhFfexnPsibvwQzwx7OInx9swOoJW1MUbcp13Pz3jTZGOAuSvkSgqGfGpHbcWDiAOAqbwh3gB6FOxWwfURmfaV6fZjMVaw4MNeJZcOgZiDdD4rUr5OtNOQJaLO&UserId=74";
-        
-         
-            socket = new WebSocketClient(new URI(wsURL), new Draft_76()){
-                @Override
-                public void onOpen( ServerHandshake handshakedata ){
-                    System.out.println("onOpen");
+            
+            //
+            // i loaded this in the web browser. to help find urls
+            //
+            // i had to get a fresh API key, they seem to be for single sessions only
+            //
+            // i also had to find the tKCAqhf-N03a546H1WOp of the url below through the web browser.
+            // this can hopefully be found by GETing a url from the web server.
+            //
+            // that url fragment can be fetched from:
+            // https://api.icbit.se/socket.io/1/?AuthKey=uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO&UserId=743&t=1344970658118
+            // with the current timestamp.
+            //
+            // i should test this with my browser off in case the browser + this client interfere with each other.
+            //
+            // these may only stay alive for ~30s or so before the connection dies.
+            //
+            // especially if the browser is dead, it resets the connection and it closes immediately
+            
+            String time = new Long(new Date().getTime() + 30000).toString();
+            System.out.println("1344970658118");
+            System.out.println(time);
+            String socketInfo = "";
+            final String authKey = "uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO";
+            final String userID = "743";
+            
+            try {
+
+                // Construct data
+                String data = URLEncoder.encode("AuthKey", "UTF-8") + "=" + URLEncoder.encode(authKey, "UTF-8");
+                data += "&" + URLEncoder.encode("UserId", "UTF-8") + "=" + URLEncoder.encode(userID, "UTF-8");
+                data += "&" + URLEncoder.encode("t", "UTF-8") + "=" + URLEncoder.encode(time, "UTF-8");
+                
+                // Send data
+                URL url = new URL("https://api.icbit.se/socket.io/1/");
+                URLConnection conn = url.openConnection();
+                conn.setDoOutput(true);
+                OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+                wr.write(data);
+                wr.flush();
+                
+                // Get the response
+                BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line;
+                while ((line = rd.readLine()) != null) {
+                    // Process line...
+                    socketInfo += line + "\n";
                 }
-                @Override
-                public void onMessage( String message ){
-                    System.out.println("onMessage: " + message);
+                wr.close();
+                rd.close();
+            } catch (Exception e) {
+            }
+            /*
+            URL url = new URL("https://api.icbit.se/socket.io/1/?AuthKey=uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO&UserId=743&t=" + time);
+            URLConnection connection2 = url.openConnection();
+
+            String socketInfo = null;
+            try {
+                socketInfo = new java.util.Scanner(connection2.getInputStream()).useDelimiter("\\A").next();
+            } catch (java.util.NoSuchElementException e) {
+                socketInfo = "";
+            }
+            */
+            
+            System.out.println("output: " + socketInfo);
+            
+            String urlFragment = socketInfo.substring(0, socketInfo.indexOf(":"));
+            System.out.println(urlFragment);
+            
+            System.out.println("sleeping");
+            Thread.sleep(3000);
+            System.out.println("sleeping2");
+            
+            String wsURL = "wss://api.icbit.se:443/socket.io/1/websocket/" + urlFragment + "?AuthKey=uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO&UserId=743";
+//            wsURL = "wss://api.icbit.se/socket.io/1/websocket/54-l-ILG0xGMm41h1WQX?AuthKey=uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO&UserId=743";
+
+            System.out.println(wsURL);
+            
+            WebSocketClientFactory factory = new WebSocketClientFactory();
+            factory.start();
+            
+            WebSocketClient client = factory.newWebSocketClient();
+            // Configure the client
+            
+            final WebSocket.Connection socketConnection = client.open(new URI(wsURL), new WebSocket.OnTextMessage(){
+                
+                
+                protected Connection foobar;
+                
+                public void onOpen(Connection socketConnection)
+                {
+                    System.out.println("open");
+                    // open notification
+                    foobar = socketConnection;
                 }
-                @Override
-                public void onClose( int code, String reason, boolean remote ){
-                    System.out.println("onClose");
+                
+                public void onClose(int closeCode, String message)
+                {
+                    System.out.println("close");
+                    // close notification
                 }
-                @Override
-                public void onError( Exception ex ){
-                    System.out.println("onError");
-                    ex.printStackTrace();
+                
+                public void onMessage(String data)
+                {
+                    System.out.println("message: " + data);
+                    // handle incoming message
+                    
+                    if(data.equals("1::")){
+                        try{
+                            System.out.println("just got 1::");
+                            String msg = "1::/icbit";
+                            System.out.println("sending: " + msg);
+                            foobar.sendMessage(msg);
+                        }catch(Exception e){
+                            e.printStackTrace();
+                        }
+                    }
                 }
-                @Override
-                public void onMessage( ByteBuffer bytes ) {
-                    System.out.println("onMessage");
+            }).get(5, TimeUnit.SECONDS);
+//            connection.sendMessage("Hello World");
+
+            Timer foo = new Timer();
+            foo.scheduleAtFixedRate(new TimerTask(){
+                public boolean cancel(){
+                    return false;
                 }
-            };
+                public void run(){
+                    String msg = "2::";
+                    System.out.println("~h~");
+                    try{
+                        socketConnection.sendMessage(msg);
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                public long scheduledExecutionTime(){
+                    return 0;
+                }
+            }, 1000, 15000);
+            
+            
+            // /icbit
+            System.out.println("sleeping");
+            Thread.sleep(1000);
+            System.out.println("sleeping2");
+
+            // wait for confirm of /icbit
+            System.out.println("sleeping");
+            Thread.sleep(1000);
+            System.out.println("sleeping2");
+            
+            // subscribe
+            String msg = "5::/icbit:{\"name\":\"message\",\"args\":[" +
+                                         "{\"op\":\"subscribe\",\"channel\":\"orderbook_3\"}" +
+                                         "]}";
+            System.out.println("sending: " + msg);
+            socketConnection.sendMessage(msg);
+            System.out.println("sleeping");
+            Thread.sleep(600000);
+            System.out.println("sleeping2");
+
         }catch(Exception e){
-            throw new RuntimeException(e);
         }
-        */
     }
     
     public void connect(){
-        socket.connect();
+//        socket.connect();
     }
     
 }
