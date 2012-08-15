@@ -10,13 +10,14 @@ import org.java_websocket.drafts.*;
 import org.java_websocket.handshake.*;
 import java.nio.ByteBuffer;
 
-
-public class BlockChain extends AExchange {
+/**
+ * this is info about bitcoin as a currency, but not an exchange of itself
+ */
+public class BlockChain{
     
     WebSocketClient socket;
     
     public BlockChain(){
-        super("BlockChain");
         try{
             String wsURL = "ws://api.blockchain.info:8335/inv";
             socket = new WebSocketClient(new URI(wsURL), new Draft_76()){

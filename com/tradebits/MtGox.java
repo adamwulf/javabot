@@ -50,4 +50,25 @@ public class MtGox extends AExchange {
         socket.connect();
     }
     
+    /** AExchange **/
+    
+    public boolean isCurrencySupported(CURRENCY curr){
+        return curr == CURRENCY.BTC ||
+            curr == CURRENCY.USD ||
+            curr == CURRENCY.AUD ||
+            curr == CURRENCY.CAD ||
+            curr == CURRENCY.CHF ||
+            curr == CURRENCY.CNY ||
+            curr == CURRENCY.DKK ||
+            curr == CURRENCY.EUR ||
+            curr == CURRENCY.GBP ||
+            curr == CURRENCY.HKD ||
+            curr == CURRENCY.JPY ||
+            curr == CURRENCY.NZD ||
+            curr == CURRENCY.PLN ||
+            curr == CURRENCY.RUB ||
+            curr == CURRENCY.SEK ||
+            curr == CURRENCY.SGD ||
+            curr == CURRENCY.THB;
+    }
 }

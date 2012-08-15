@@ -54,11 +54,8 @@ public class Trader{
         Intersango intersango = new Intersango();
         intersango.connect();
         
-        MtGox mtgox = new MtGox();
-        mtgox.connect();
+//        MtGox mtgox = new MtGox();
+//        mtgox.connect();
         
-        System.out.println("sleeping");
-        Thread.sleep(600000);
-        System.out.println("sleeping2");
     }
 }

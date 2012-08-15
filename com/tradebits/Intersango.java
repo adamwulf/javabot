@@ -70,7 +70,7 @@ public class Intersango extends AExchange {
             this.log(urlFragment);
             
             this.log("sleeping");
-            Thread.sleep(3000);
+            Thread.sleep(300);
             this.log("sleeping2");
             
             String wsURL = "wss://socketio.intersango.com:8080/socket.io/1/websocket/" + urlFragment;
@@ -129,24 +129,33 @@ public class Intersango extends AExchange {
                 }
             }, 1000, 15000);
             
-            
+            /*
             // /icbit
             this.log("sleeping");
             Thread.sleep(1000);
             this.log("sleeping2");
 
-            // wait for confirm of /icbit
-            this.log("sleeping");
-            Thread.sleep(15000);
-            this.log("sleeping2");
-            
             // subscribe
+            //
+            // this guy doesn't seem to work, i get all currency pairs back
+            // all the time :(
+            //
+            // i'll have to filter them according to:
+            // https://intersango.com/api.php
+            //
+            // 1 = BTC:GBP
+            // 2 = BTC:EUR
+            // 3 = BTC:USD
+            // 4 = BTC:PLN
+            //
+            // https://intersango.com/orderbook.php?currency_pair_id=3
+            // has a good graph on how to interpret the data
             String msg = "5:::{\"name\":\"depth\",\"args\":[" +
                                          "{\"currency_pair_id\":\"3\"}" +
                                          "]}";
             this.log("sending: " + msg);
             socketConnection.sendMessage(msg);
-
+            */
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -156,4 +165,13 @@ public class Intersango extends AExchange {
 //        socket.connect();
     }
     
+    /** AExchange **/
+    
+    public boolean isCurrencySupported(CURRENCY curr){
+        return curr == CURRENCY.BTC || 
+            curr == CURRENCY.EUR ||
+            curr == CURRENCY.GBP ||
+            curr == CURRENCY.USD ||
+            curr == CURRENCY.PLN;
+    }
 }

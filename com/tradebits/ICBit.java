@@ -184,4 +184,9 @@ public class ICBit extends AExchange {
 //        socket.connect();
     }
     
+    /** AExchange **/
+    
+    public boolean isCurrencySupported(CURRENCY curr){
+        return curr == CURRENCY.BTC || curr == CURRENCY.USD;
+    }
 }

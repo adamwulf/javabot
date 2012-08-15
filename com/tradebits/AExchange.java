@@ -6,6 +6,11 @@ package com.tradebits;
 
 public abstract class AExchange{
     
+    public enum CURRENCY {
+        BTC, USD, PLN, EUR, GBP, AUD, CAD, CHF, CNY, DKK, HKD, JPY, NZD, RUB, SEK, SGD, THB
+    }
+
+    
     private String name;
     
     public AExchange(String name){
@@ -19,5 +24,7 @@ public abstract class AExchange{
     protected void log(String log){
         System.out.println(this.getName() + ": " + log);
     }
+    
+    abstract public boolean isCurrencySupported(CURRENCY curr);
     
 }

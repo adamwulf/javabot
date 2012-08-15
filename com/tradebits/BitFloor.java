@@ -160,4 +160,11 @@ public class BitFloor extends AExchange {
 //        socket.connect();
     }
     
+    
+    /** AExchange **/
+    
+    public boolean isCurrencySupported(CURRENCY curr){
+        return curr == CURRENCY.BTC || curr == CURRENCY.USD;
+    }
+    
 }
