@@ -51,6 +51,9 @@ public class Trader{
 //         BitFloor bitfloor = new BitFloor();
 //         bitfloor.connect();
         
+         BitFloor3 bitfloor3 = new BitFloor3();
+         bitfloor3.connect();
+        
 //         ICBit icbit = new ICBit();
 //         icbit.connect();
         
@@ -66,8 +69,8 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
-        Intersango2 intersango2 = new Intersango2();
-        intersango2.connect();
+//        Intersango2 intersango2 = new Intersango2();
+//        intersango2.connect();
         
     }
 }

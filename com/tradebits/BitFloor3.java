@@ -8,11 +8,11 @@ import org.eclipse.jetty.websocket.*;
 import java.nio.ByteBuffer;
 
 
-public class Intersango2 {
+public class BitFloor3 {
     
     WebSocketClient socket;
     
-    public Intersango2(){
+    public BitFloor3(){
         try{
             
             //
@@ -43,12 +43,10 @@ public class Intersango2 {
             try {
 
                 // Construct data
-                String data = URLEncoder.encode("AuthKey", "UTF-8") + "=" + URLEncoder.encode(authKey, "UTF-8");
-                data += "&" + URLEncoder.encode("UserId", "UTF-8") + "=" + URLEncoder.encode(userID, "UTF-8");
-                data += "&" + URLEncoder.encode("t", "UTF-8") + "=" + URLEncoder.encode(time, "UTF-8");
+                String data = URLEncoder.encode("t", "UTF-8") + "=" + URLEncoder.encode(time, "UTF-8");
                 
                 // Send data
-                URL url = new URL("https://api.icbit.se/socket.io/1/");
+                URL url = new URL("https://feed.bitfloor.com/socket.io/1/");
                 URLConnection conn = url.openConnection();
                 conn.setDoOutput(true);
                 OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
@@ -65,18 +63,8 @@ public class Intersango2 {
                 wr.close();
                 rd.close();
             } catch (Exception e) {
+                e.printStackTrace();
             }
-            /*
-            URL url = new URL("https://api.icbit.se/socket.io/1/?AuthKey=uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO&UserId=743&t=" + time);
-            URLConnection connection2 = url.openConnection();
-
-            String socketInfo = null;
-            try {
-                socketInfo = new java.util.Scanner(connection2.getInputStream()).useDelimiter("\\A").next();
-            } catch (java.util.NoSuchElementException e) {
-                socketInfo = "";
-            }
-            */
             
             System.out.println("output: " + socketInfo);
             
@@ -87,7 +75,7 @@ public class Intersango2 {
             Thread.sleep(3000);
             System.out.println("sleeping2");
             
-            String wsURL = "wss://api.icbit.se:443/socket.io/1/websocket/" + urlFragment + "?AuthKey=uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO&UserId=743";
+            String wsURL = "wss://bitfloor.com/socket.io/1/websocket/" + urlFragment;
 //            wsURL = "wss://api.icbit.se/socket.io/1/websocket/54-l-ILG0xGMm41h1WQX?AuthKey=uCCpUYpoecNEWoCyMxsTdAcjHbw7EcQW8gMrtrF8xFagutAjnNFQT8Hb2Jcu5GDUJvJsRP8uSmKo6mhetr1q2OSXkpxlOj6SDJbabqwzcMXtEbBuHoN4GIpvnMPYbutO&UserId=743";
 
             System.out.println(wsURL);
@@ -124,7 +112,7 @@ public class Intersango2 {
                     if(data.equals("1::")){
                         try{
                             System.out.println("just got 1::");
-                            String msg = "1::/icbit";
+                            String msg = "1::/1";
                             System.out.println("sending: " + msg);
                             foobar.sendMessage(msg);
                         }catch(Exception e){
@@ -166,9 +154,7 @@ public class Intersango2 {
             System.out.println("sleeping2");
             
             // subscribe
-            String msg = "5::/icbit:{\"name\":\"message\",\"args\":[" +
-                                         "{\"op\":\"subscribe\",\"channel\":\"orderbook_3\"}" +
-                                         "]}";
+            String msg = "5::/1:{\"name\":\"book\"}";
             System.out.println("sending: " + msg);
             socketConnection.sendMessage(msg);
             System.out.println("sleeping");
