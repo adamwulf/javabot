@@ -5,6 +5,7 @@ import java.net.*;
 import java.util.*;
 import javax.net.ssl.*;
 import java.security.cert.*;
+import com.tradebits.exchange.*;
 
 public class Trader{
     
@@ -51,11 +52,11 @@ public class Trader{
 //         ICBit icbit = new ICBit();
 //         icbit.connect();
         
-        Intersango intersango = new Intersango();
-        intersango.connect();
+//        Intersango intersango = new Intersango();
+//        intersango.connect();
         
-//        MtGox mtgox = new MtGox();
-//        mtgox.connect();
+        MtGox mtgox = new MtGox();
+        mtgox.connect();
         
     }
 }
