@@ -81,13 +81,13 @@ public class MtGoxLive extends AExchange {
                                     JSONArray ask = asks.getJSONArray(i);
                                     JSONObject cachedData = new JSONObject();
                                     cachedData.put("price", ask.getDouble(0));
-                                    cachedData.put("volume", ask.getDouble(1));
+                                    cachedData.put("volume_int", ask.getDouble(1));
                                     cachedData.put("stamp",new Date(ask.getLong(2) / 1000));
                                     JSONObject formerlyCachedData = MtGoxLive.this.getAskData(ask.getDouble(0));
                                     if(hasEverLoadedData){
                                         if(formerlyCachedData == null){
                                             System.out.println("ASK: price was null: " + ask.getDouble(0));
-                                        }else if(formerlyCachedData.getDouble("volume") != cachedData.getDouble("volume")){
+                                        }else if(formerlyCachedData.getDouble("volume_int") != cachedData.getDouble("volume_int")){
                                             System.out.println("ASK: updated volume for price: " + ask.getDouble(0));
                                         }else if(((Date)formerlyCachedData.get("stamp")).after(((Date)cachedData.get("stamp")))){
                                             System.out.println("ASK: updated stamp for price: " + ask.getDouble(0));
@@ -101,13 +101,13 @@ public class MtGoxLive extends AExchange {
                                     JSONArray bid = bids.getJSONArray(i);
                                     JSONObject cachedData = new JSONObject();
                                     cachedData.put("price", bid.getDouble(0));
-                                    cachedData.put("volume", bid.getDouble(1));
+                                    cachedData.put("volume_int", bid.getDouble(1));
                                     cachedData.put("stamp",new Date(bid.getLong(2) / 1000));
                                     JSONObject formerlyCachedData = MtGoxLive.this.getBidData(bid.getDouble(0));
                                     if(hasEverLoadedData){
                                         if(formerlyCachedData == null){
                                             System.out.println("BID: price was null: " + bid.getDouble(0));
-                                        }else if(formerlyCachedData.getDouble("volume") != cachedData.getDouble("volume")){
+                                        }else if(formerlyCachedData.getDouble("volume_int") != cachedData.getDouble("volume_int")){
                                             System.out.println("BID: updated volume for price: " + bid.getDouble(0));
                                         }else if(((Date)formerlyCachedData.get("stamp")).after(((Date)cachedData.get("stamp")))){
                                             System.out.println("BID: updated stamp for price: " + bid.getDouble(0));

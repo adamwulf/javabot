@@ -52,28 +52,29 @@ public abstract class AExchange{
     private void setBidAskData(JSONObject obj, TreeMap<Double, JSONObject> treeMap) throws ExchangeException{
         try{
             obj.get("price");
-            obj.get("volume");
             obj.get("volume_int");
             obj.get("stamp");
             
             if(!obj.has("log")){
                 JSONArray arr = new JSONArray();
                 JSONObject firstLog = new JSONObject();
-                firstLog.put("volume", obj.getDouble("volume"));
                 firstLog.put("volume_int", obj.getDouble("volume_int"));
                 firstLog.put("stamp", obj.get("stamp"));
                 firstLog.put("first", true);
                 arr.put(firstLog);
                 obj.put("log", arr);
+            }else{
+                JSONArray log = obj.getJSONArray("log");
+                JSONObject logItem = new JSONObject();
+                logItem.put("volume_int", obj.getDouble("volume_int"));
+                logItem.put("stamp", obj.get("stamp"));
+                logItem.put("diff", true);
+                log.put(logItem);
+                obj.put("log", log);
             }
         
-//            if(obj.getDouble("volume") < 0){
-//                // noop
-//            }else{
-            // allow less than zero volumes (possibly just rounding error)
                 treeMap.put(obj.getDouble("price"), obj);
-//            }
-                this.log("set data for " + obj.getDouble("price") + " to vol " + obj.getDouble("volume"));
+//                this.log("set data for " + obj.getDouble("price") + " to vol " + obj.getDouble("volume_int"));
         }catch(JSONException e){
             throw new ExchangeException(e);
         }
@@ -94,7 +95,6 @@ public abstract class AExchange{
     private void updateBidAskData(JSONObject obj, TreeMap<Double, JSONObject> treeMap) throws ExchangeException{
         try{
             obj.getDouble("price");
-            obj.getDouble("volume");
             obj.getDouble("volume_int");
             obj.get("stamp");
             
@@ -104,7 +104,6 @@ public abstract class AExchange{
                 this.setBidAskData(obj, treeMap);
             }else{
                 // update
-                double cachedVolume = cachedObj.getDouble("volume");
                 long cachedVolumeInt = cachedObj.getLong("volume_int");
                 Date cachedStamp = (Date) cachedObj.get("stamp");
                 
@@ -112,44 +111,24 @@ public abstract class AExchange{
                     // the cached data is earlier than the input data
                     JSONObject newCachedObj = new JSONObject();
                     double price = obj.getDouble("price");
-                    double newVolume;
-                    long newVolumeInt;
-//                    if(obj.getDouble("volume") == 0){
-//                        //
-//                        // if we were told about a zero volume,
-//                        // the zero out the value. otherwise
-//                        // it's a sum
-//                        newVolume = 0;
-//                    }else{
-                        newVolume = cachedVolume + obj.getDouble("volume");
-                        newVolumeInt = cachedVolumeInt + obj.getLong("volume_int");
-//                    }
+                    long newVolumeInt = cachedVolumeInt + obj.getLong("volume_int");
                     
                     
                     newCachedObj.put("price", price);
-                    newCachedObj.put("volume", newVolume);
-                    newCachedObj.put("volume_int", newVolume);
+                    newCachedObj.put("volume_int", newVolumeInt);
                     newCachedObj.put("stamp", obj.get("stamp"));
-                    
-                    JSONArray log = cachedObj.getJSONArray("log");
-                    JSONObject logItem = new JSONObject();
-                    logItem.put("volume", obj.getDouble("volume"));
-                    logItem.put("volume_int", obj.getDouble("volume_int"));
-                    logItem.put("stamp", obj.get("stamp"));
-                    logItem.put("diff", true);
-                    log.put(logItem);
-                    newCachedObj.put("log", log);
-                    
-                    if(cachedVolume < 0){
-                        this.log("WAS negative volume " + cachedVolume + ", now" + newVolume + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
-                    }else if(newVolume < 0){
-                        this.log("negative volume data " + newVolume + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
-                    }
                     
                     //
                     // update the data
                     this.setBidAskData(newCachedObj, treeMap);
-                    this.log("updating data for " + newCachedObj.getDouble("price") + " to vol " + newCachedObj.getDouble("volume"));
+
+                    if(cachedVolumeInt < 0){
+                        this.log("WAS negative volume " + cachedVolumeInt + ", now" + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
+                    }else if(newVolumeInt < 0){
+                        this.log("negative volume data " + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
+                    }
+
+                    this.log("updating data for " + newCachedObj.getDouble("price") + " to vol " + newCachedObj.getLong("volume_int"));
                 }else{
                     // the input data is earlier than the cached data
                     //

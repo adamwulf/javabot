@@ -92,7 +92,7 @@ public class MtGoxProper extends AExchange {
                 return 0;
             }
 //        }, 15000, 240000);
-        }, 480000, 10000);
+        }, 120000, 10000);
     }
     
 
@@ -158,7 +158,6 @@ public class MtGoxProper extends AExchange {
                                 JSONObject ask = asks.getJSONObject(i);
                                 JSONObject cachedData = new JSONObject();
                                 cachedData.put("price", ask.getDouble("price"));
-                                cachedData.put("volume", ask.getDouble("amount"));
                                 cachedData.put("volume_int", ask.getDouble("amount_int"));
                                 cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
                                 JSONObject formerlyCached = MtGoxProper.this.getAskData(ask.getDouble("price"));
@@ -167,7 +166,6 @@ public class MtGoxProper extends AExchange {
                                 }else{
                                     JSONArray log = formerlyCached.getJSONArray("log");
                                     JSONObject logItem = new JSONObject();
-                                    logItem.put("volume", cachedData.getDouble("volume"));
                                     logItem.put("volume_int", cachedData.getDouble("volume_int"));
                                     logItem.put("stamp", cachedData.get("stamp"));
                                     logItem.put("check", true);
@@ -176,10 +174,10 @@ public class MtGoxProper extends AExchange {
                                 }
                                 if(depthDataIsInitialized){
                                     if(formerlyCached != null){
-                                        if(formerlyCached.getDouble("volume") != cachedData.getDouble("volume")){
+                                        if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
                                             MtGoxProper.this.log("Different volume for " + cachedData.getDouble("price")
-                                                                     + ": " + formerlyCached.getDouble("volume")
-                                                                     + " vs " + cachedData.getDouble("volume") + " with log "
+                                                                     + ": " + formerlyCached.getDouble("volume_int")
+                                                                     + " vs " + cachedData.getDouble("volume_int") + " with log "
                                                                      + formerlyCached.get("log"));
                                         }
                                     }
@@ -193,7 +191,6 @@ public class MtGoxProper extends AExchange {
                                     JSONObject bid = bids.getJSONObject(i);
                                     JSONObject cachedData = new JSONObject();
                                     cachedData.put("price", bid.getDouble("price"));
-                                    cachedData.put("volume", bid.getDouble("amount"));
                                     cachedData.put("volume_int", bid.getDouble("amount_int"));
                                     cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
                                     MtGoxProper.this.setBidData(cachedData);
@@ -253,19 +250,19 @@ public class MtGoxProper extends AExchange {
         synchronized(this){
             String type = depthMessage.getJSONObject("depth").getString("type_str");
             JSONObject depthData = depthMessage.getJSONObject("depth");
+            long totalVolInt = depthData.getLong("total_volume_int");
+
             JSONObject cachableData = new JSONObject();
             cachableData.put("price", depthData.getDouble("price"));
-            cachableData.put("volume", depthData.getDouble("volume"));
-            cachableData.put("volume_int", depthData.getDouble("volume_int"));
-            long totalVol = depthData.getLong("total_volume_int");
+            cachableData.put("volume_int", totalVolInt);
             cachableData.put("stamp",new Date(depthData.getLong("now") / 1000));
             if(depthDataIsInitialized){
 //                this.log("processing depth data" + "\n" + depthMessage);
-                this.log("expecting new vol for " + depthData.getDouble("price") + " to be " + totalVol);
+                this.log("expecting new vol for " + depthData.getDouble("price") + " to be " + totalVolInt);
                 if(type.equals("ask")){
-                    this.updateAskData(cachableData);
+                    this.setAskData(cachableData);
                 }else if(type.equals("bid")){
-                    this.updateBidData(cachableData);
+                    this.setBidData(cachableData);
                 }else{
                     throw new RuntimeException("unknown depth type: " + type);
                 }

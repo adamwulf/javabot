@@ -131,7 +131,7 @@ public class MtGox extends AExchange {
                                 JSONObject ask = asks.getJSONObject(i);
                                 JSONObject cachedData = new JSONObject();
                                 cachedData.put("price", ask.getDouble("price"));
-                                cachedData.put("volume", ask.getDouble("amount"));
+                                cachedData.put("volume_int", ask.getDouble("amount_int"));
                                 cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
                                 MtGox.this.setAskData(cachedData);
                             }
@@ -140,7 +140,7 @@ public class MtGox extends AExchange {
                                 JSONObject bid = bids.getJSONObject(i);
                                 JSONObject cachedData = new JSONObject();
                                 cachedData.put("price", bid.getDouble("price"));
-                                cachedData.put("volume", bid.getDouble("amount"));
+                                cachedData.put("volume_int", bid.getDouble("amount_int"));
                                 cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
                                 MtGox.this.setBidData(cachedData);
                             }
@@ -197,7 +197,7 @@ public class MtGox extends AExchange {
             JSONObject depthData = depthMessage.getJSONObject("depth");
             JSONObject cachableData = new JSONObject();
             cachableData.put("price", depthData.getDouble("price"));
-            cachableData.put("volume", depthData.getDouble("volume"));
+            cachableData.put("volume_int", depthData.getDouble("volume_int"));
             cachableData.put("stamp",new Date(depthData .getLong("now") / 1000));
             if(depthDataIsInitialized){
 //                this.log("processing depth data" + "\n" + depthMessage);
