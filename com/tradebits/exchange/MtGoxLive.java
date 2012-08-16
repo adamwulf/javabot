@@ -46,37 +46,27 @@ public class MtGoxLive extends AExchange {
                 if(data.indexOf(":::") > -1){
                     data = data.substring(data.indexOf(":::") + 3);
                 }
-                if(data.indexOf("\\n") > -1){
-                    data = data.substring(data.indexOf("\\n") + 2);
-                    try{
-                        data = URLDecoder.decode(data, "UTF-8");
-                    }catch(UnsupportedEncodingException e){
-                    }
-                    data = data.substring(0, data.lastIndexOf("\\n"));
-                    data = "{ \"data\" : " + data + "}";
-                }
                 
-                System.out.println(data.substring(0, Math.min(300, data.length())));
-                
-                if(data.startsWith("[")){
-                    data = "{ \"data\" : " + data + "}";
-                }
                 
                 try{
-                    JSONObject returnData = new JSONObject(data);
-                    Object arrOrObj;
-                    if(returnData.has("data") && (arrOrObj = returnData.get("data")) != null){
-                        if(arrOrObj instanceof JSONObject){
-                            JSONObject dataObj = returnData.getJSONObject("data");
-                            if(dataObj.has("asks")){
-                                System.out.println("DEPTH: asks");
-                            }else{
-                                System.out.println("something else");
-                            }
-                        }else if(arrOrObj instanceof JSONArray){
-                            // it's trade data or metadata about MtGox, ignore it
-                        }
+                    System.out.println(data.substring(0, Math.min(300, data.length())));
+
+                    JSONArray arrData = new JSONArray(data);
+                    System.out.println("length of data " + arrData.length());
+                    
+                    if(arrData.getString(0).equals("depth")){
+                        String depthData = arrData.getString(1);
+                        depthData = URLDecoder.decode(depthData, "UTF-8");
+                        depthData = depthData.substring(depthData.indexOf("{"));
+                        originalData = depthData;
+                        System.out.println(depthData.substring(0, Math.min(300, depthData.length())));
+
+                        JSONObject depthObj = new JSONObject(depthData);
+                        
                     }
+                    
+                    
+                    
                 }catch(Exception e){
                     e.printStackTrace();
                     System.out.println("========");
