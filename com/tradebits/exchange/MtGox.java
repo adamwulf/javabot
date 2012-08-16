@@ -67,89 +67,104 @@ public class MtGox extends AExchange {
     private void loadInitialDepthData(CURRENCY curr){
         (new Thread(this.getName() + " First Depth Fetch"){
             public void run(){
-                try 
-                {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) 
-                {
-                    // noop
-                }
-                JSONObject depthData = null;
-                while(depthData == null){
-                    try {
-                        
-                        String depthString = "";
-                        // Send data
-                        URL url = new URL("https://mtgox.com/api/1/BTCUSD/fulldepth");
-                        URLConnection conn = url.openConnection();
-                        
-                        // Get the response
-                        BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                        String line;
-                        while ((line = rd.readLine()) != null) {
-                            // Process line...
-                            depthString += line + "\n";
-                        }
-                        rd.close();
-                        
-                        //
-                        // ok, we have the string data,
-                        // now parse it
-                        if(depthString.length() > 0){
-                            JSONObject parsedDepthData = new JSONObject(depthString);
-                            if(parsedDepthData != null &&
-                               parsedDepthData.getString("result").equals("success")){
-                                depthData = parsedDepthData;
+                //
+                // ok
+                // we're going to download the dept data 5 times
+                //
+                // and only after that we're going to re-run the
+                // realtime data on top of it
+                for(int j=0;j<5;j++){
+                    
+                    
+                    try 
+                    {
+                        Thread.sleep(11000);
+                    } catch (InterruptedException e) 
+                    {
+                        // noop
+                    }
+                    JSONObject depthData = null;
+                    while(depthData == null){
+                        try {
+                            
+                            String depthString = "";
+                            // Send data
+                            URL url = new URL("https://mtgox.com/api/1/BTCUSD/fulldepth");
+                            URLConnection conn = url.openConnection();
+                            
+                            // Get the response
+                            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                            String line;
+                            while ((line = rd.readLine()) != null) {
+                                // Process line...
+                                depthString += line + "\n";
                             }
+                            rd.close();
+                            
+                            //
+                            // ok, we have the string data,
+                            // now parse it
+                            if(depthString.length() > 0){
+                                JSONObject parsedDepthData = new JSONObject(depthString);
+                                if(parsedDepthData != null &&
+                                   parsedDepthData.getString("result").equals("success")){
+                                    depthData = parsedDepthData;
+                                }
+                            }
+                            
+                        }catch (Exception e) {
+                            e.printStackTrace();
                         }
+                    }
+                    
+                    
+                    try{
                         
-                    }catch (Exception e) {
+                        JSONArray asks = depthData.getJSONObject("return").getJSONArray("asks");
+                        JSONArray bids = depthData.getJSONObject("return").getJSONArray("bids");
+                        MtGox.this.log("got ask data " + asks.length());
+                        MtGox.this.log("got bid data " + bids.length());
+                        
+                        synchronized(MtGox.this){
+                            MtGox.this.log("-- Processing Depth Data");
+                            for(int i=0;i<asks.length();i++){
+                                JSONObject ask = asks.getJSONObject(i);
+                                JSONObject cachedData = new JSONObject();
+                                cachedData.put("price", ask.getDouble("price"));
+                                cachedData.put("volume", ask.getDouble("amount"));
+                                cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
+                                MtGox.this.setAskData(cachedData);
+                            }
+                            
+                            for(int i=0;i<bids.length();i++){
+                                JSONObject bid = bids.getJSONObject(i);
+                                JSONObject cachedData = new JSONObject();
+                                cachedData.put("price", bid.getDouble("price"));
+                                cachedData.put("volume", bid.getDouble("amount"));
+                                cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
+                                MtGox.this.setBidData(cachedData);
+                            }
+                            MtGox.this.log("Done Processing Depth Data --");
+                        }  
+                    }catch(Exception e){
                         e.printStackTrace();
                     }
                 }
                 
-                
-                try{
-                    
-                    JSONArray asks = depthData.getJSONObject("return").getJSONArray("asks");
-                    JSONArray bids = depthData.getJSONObject("return").getJSONArray("bids");
-                    MtGox.this.log("got ask data " + asks.length());
-                    MtGox.this.log("got bid data " + bids.length());
-                    
-                    synchronized(MtGox.this){
-                        MtGox.this.log("-- Processing Depth Data");
-                        for(int i=0;i<asks.length();i++){
-                            JSONObject ask = asks.getJSONObject(i);
-                            JSONObject cachedData = new JSONObject();
-                            cachedData.put("price", ask.getDouble("price"));
-                            cachedData.put("volume", ask.getDouble("amount"));
-                            cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
-                            MtGox.this.setAskData(cachedData);
-                        }
-                        
-                        for(int i=0;i<bids.length();i++){
-                            JSONObject bid = bids.getJSONObject(i);
-                            JSONObject cachedData = new JSONObject();
-                            cachedData.put("price", bid.getDouble("price"));
-                            cachedData.put("volume", bid.getDouble("amount"));
-                            cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
-                            MtGox.this.setBidData(cachedData);
-                        }
-                        depthDataIsInitialized = true;
-                        MtGox.this.log("Done Processing Depth Data --");
-                        
-                        
+                synchronized(MtGox.this){
+                    try{
                         MtGox.this.log("-- Replay Depth Stream");
+                        depthDataIsInitialized = true;
                         while(cachedDepthData.size() > 0){
                             JSONObject obj = cachedDepthData.removeFirst();
                             MtGox.this.processDepthData(obj);
                         }
-                        MtGox.this.log("Done Processing Depth Data --");
+                        MtGox.this.log("Done Processing Depth Data --"); 
+                    }catch(Exception e){
+                        e.printStackTrace();
                     }
-                    
-                }catch(Exception e){
-                    e.printStackTrace();
                 }
+                
                 
             }
         }).start();

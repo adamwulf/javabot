@@ -55,8 +55,11 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
-        MtGox mtgox = new MtGox();
-        mtgox.connect();
+//        MtGox mtgox = new MtGox();
+//        mtgox.connect();
+        
+        MtGoxLive mtgoxlive = new MtGoxLive();
+        mtgoxlive.connect();
         
     }
 }
