@@ -17,12 +17,24 @@ public class SocketHelper{
     
     private String httpURL;
     private String wsURLFragment;
+    WebSocket.Connection socketConnection;
+    private ISocketHelperListener listener;
     
+    /**
+     * creates a generic socket that will handshake
+     * the input httpURL, and connect to the socket
+     * at the wsURL (with its response from the handshake)
+     */
     public SocketHelper(String httpURL, String wsURLFragment){
         this.httpURL = httpURL;
         this.wsURLFragment = wsURLFragment;
     }
     
+    /**
+     * green means go!
+     * 
+     * lets handshake and connect to the socket
+     */
     public void connect(){
         
         
@@ -89,47 +101,29 @@ public class SocketHelper{
             WebSocketClient client = factory.newWebSocketClient();
             // Configure the client
             
-            final WebSocket.Connection socketConnection = client.open(new URI(wsURL), new WebSocket.OnTextMessage(){
+            socketConnection = client.open(new URI(wsURL), new WebSocket.OnTextMessage(){
                 
                 
-                protected Connection foobar;
+                protected Connection socketConnection;
                 
                 public void onOpen(Connection socketConnection)
                 {
-                    System.out.println("open");
-                    // open notification
-                    foobar = socketConnection;
+                    this.socketConnection = socketConnection;
+                    SocketHelper.this.getListener().onOpen(SocketHelper.this);
                 }
                 
                 public void onClose(int closeCode, String message)
                 {
-                    System.out.println("close");
-                    // close notification
+                    SocketHelper.this.getListener().onClose(SocketHelper.this, closeCode, message);
                 }
                 
                 public void onMessage(String data)
                 {
-                    if(data.indexOf("\\n") > -1){
-                        data = data.substring(data.indexOf("\\n") + 2);
-                        try{
-                            data = URLDecoder.decode(data, "UTF-8");
-                        }catch(UnsupportedEncodingException e){
-                        }
-                        data = data.substring(0, data.lastIndexOf("\\n"));
-                        
-                        data = "{ \"data\" : " + data + "}";
-                        try{
-                            new JSONObject(data);
-                        }catch(Exception e){
-                            e.printStackTrace();
-                        }
-                    }
-                    System.out.println("message " + data);
-                    // handle incoming message
+                    SocketHelper.this.getListener().onMessage(SocketHelper.this, data);
                 }
             }).get(5, TimeUnit.SECONDS);
             
-            socketConnection.setMaxTextMessageSize(200000);
+            socketConnection.setMaxTextMessageSize(2000000);
             
 //            connection.sendMessage("Hello World");
             
@@ -139,21 +133,8 @@ public class SocketHelper{
                     return false;
                 }
                 public void run(){
-                    String msg = "2::";
-                    System.out.println(msg);
-                    try{
-                        socketConnection.sendMessage(msg);
-                    }catch(Exception e){
-                        e.printStackTrace();
-                    }
-                    
-                    msg = "3:::{\"currency\":\"USD\"}";
-                    System.out.println(msg);
-                    try{
-                        socketConnection.sendMessage(msg);
-                    }catch(Exception e){
-                        e.printStackTrace();
-                    }
+                    SocketHelper.this.send("2::");
+                    SocketHelper.this.getListener().onHeartbeatSent(SocketHelper.this);
                 }
                 public long scheduledExecutionTime(){
                     return 0;
@@ -192,5 +173,24 @@ public class SocketHelper{
         }
     }
     
+    /** allow sending data over the socket **/
     
+    public void send(String message){
+        try{
+            socketConnection.sendMessage(message);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    
+    /** Listener **/
+    
+    public void setListener(ISocketHelperListener listener){
+        this.listener = listener;
+    }
+    
+    public ISocketHelperListener getListener(){
+        return this.listener;
+    }
 }
