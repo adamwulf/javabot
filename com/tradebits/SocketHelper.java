@@ -86,7 +86,9 @@ public class SocketHelper{
                 rd.close();
             } catch (Exception e) {
                 e.printStackTrace();
+                return;
             }
+            
             
             String urlFragment = socketInfo.substring(0, socketInfo.indexOf(":"));
 
@@ -104,11 +106,12 @@ public class SocketHelper{
             socketConnection = client.open(new URI(wsURL), new WebSocket.OnTextMessage(){
                 
                 
-                protected Connection socketConnection;
+                protected Connection internalSocketConnection;
                 
-                public void onOpen(Connection socketConnection)
+                public void onOpen(Connection aSocketConnection)
                 {
-                    this.socketConnection = socketConnection;
+                    this.internalSocketConnection = aSocketConnection;
+                    SocketHelper.this.socketConnection = aSocketConnection;
                     SocketHelper.this.getListener().onOpen(SocketHelper.this);
                 }
                 

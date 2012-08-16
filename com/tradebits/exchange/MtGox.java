@@ -15,10 +15,10 @@ import org.json.*;
 
 public class MtGox extends AExchange {
     
-    WebSocketClient socket;
+    private WebSocketClient socket;
     
-    LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
-    boolean depthDataIsInitialized = false;
+    private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
+    private boolean depthDataIsInitialized = false;
     
     public MtGox(){
         super("MtGox");
@@ -64,7 +64,7 @@ public class MtGox extends AExchange {
     
     /** helper processing methods **/
     
-    private void loadInitialDepthData(CURRENCY curr){
+    protected void loadInitialDepthData(CURRENCY curr){
         (new Thread(this.getName() + " First Depth Fetch"){
             public void run(){
                 //
@@ -178,16 +178,16 @@ public class MtGox extends AExchange {
             if(msg.getString("private").equals("ticker")){
 //                this.log("ticker data" + "\n" + messageText);
             }else if(msg.getString("private").equals("depth")){
-                this.processDepthData(msg);
+//                this.processDepthData(msg);
             }else if(msg.getString("private").equals("trade")){
-//                this.log("trade data" + "\n" + messageText);
+                this.log("trade data" + "\n" + messageText);
             }else{
                 this.log("unknown feed type: " + msg.getString("private"));
             }
         }catch(JSONException e){
             e.printStackTrace();
-        }catch(ExchangeException e){
-            e.printStackTrace();
+//        }catch(ExchangeException e){
+//            e.printStackTrace();
         }
     }
     

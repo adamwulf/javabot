@@ -58,8 +58,13 @@ public class Trader{
 //        MtGox mtgox = new MtGox();
 //        mtgox.connect();
         
-        MtGoxLive mtgoxlive = new MtGoxLive();
-        mtgoxlive.connect();
+//        MtGoxLive mtgoxlive = new MtGoxLive();
+//        mtgoxlive.connect();
+        
+        MtGoxProper mtgoxproper= new MtGoxProper();
+        mtgoxproper.connect();
+        
+        
         
     }
 }

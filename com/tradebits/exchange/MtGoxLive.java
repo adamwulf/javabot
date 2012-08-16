@@ -13,7 +13,9 @@ import org.java_websocket.handshake.*;
 import java.nio.ByteBuffer;
 import org.json.*;
 
-
+//
+//
+// TODO: this doesn't remove keys from the data after each refresh
 public class MtGoxLive extends AExchange {
     
     SocketHelper socket;
@@ -84,11 +86,11 @@ public class MtGoxLive extends AExchange {
                                     JSONObject formerlyCachedData = MtGoxLive.this.getAskData(ask.getDouble(0));
                                     if(hasEverLoadedData){
                                         if(formerlyCachedData == null){
-                                            System.out.println("price was null: " + ask.getDouble(0));
+                                            System.out.println("ASK: price was null: " + ask.getDouble(0));
                                         }else if(formerlyCachedData.getDouble("volume") != cachedData.getDouble("volume")){
-                                            System.out.println("updated volume for price: " + ask.getDouble(0));
+                                            System.out.println("ASK: updated volume for price: " + ask.getDouble(0));
                                         }else if(((Date)formerlyCachedData.get("stamp")).after(((Date)cachedData.get("stamp")))){
-                                            System.out.println("updated stamp for price: " + ask.getDouble(0));
+                                            System.out.println("ASK: updated stamp for price: " + ask.getDouble(0));
                                         }
                                     }
                                     
@@ -101,6 +103,16 @@ public class MtGoxLive extends AExchange {
                                     cachedData.put("price", bid.getDouble(0));
                                     cachedData.put("volume", bid.getDouble(1));
                                     cachedData.put("stamp",new Date(bid.getLong(2) / 1000));
+                                    JSONObject formerlyCachedData = MtGoxLive.this.getBidData(bid.getDouble(0));
+                                    if(hasEverLoadedData){
+                                        if(formerlyCachedData == null){
+                                            System.out.println("BID: price was null: " + bid.getDouble(0));
+                                        }else if(formerlyCachedData.getDouble("volume") != cachedData.getDouble("volume")){
+                                            System.out.println("BID: updated volume for price: " + bid.getDouble(0));
+                                        }else if(((Date)formerlyCachedData.get("stamp")).after(((Date)cachedData.get("stamp")))){
+                                            System.out.println("BID: updated stamp for price: " + bid.getDouble(0));
+                                        }
+                                    }
                                     MtGoxLive.this.setBidData(cachedData);
                                 }
                                 MtGoxLive.this.log("Done Processing Depth Data --");
@@ -115,7 +127,7 @@ public class MtGoxLive extends AExchange {
                 }catch(Exception e){
                     e.printStackTrace();
                     System.out.println("========");
-                    System.out.println(originalData);
+                    System.out.println(originalData.substring(0, Math.min(200, originalData.length())));
                     System.out.println("========");
                 }
             }
