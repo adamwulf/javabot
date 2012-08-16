@@ -21,6 +21,8 @@ public class MtGoxLive extends AExchange {
     LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     boolean socketIsConnected = false;
     
+    boolean hasEverLoadedData = false;
+    
     public MtGoxLive(){
         super("MtGoxLive");
         
@@ -49,23 +51,66 @@ public class MtGoxLive extends AExchange {
                 
                 
                 try{
-                    System.out.println(data.substring(0, Math.min(300, data.length())));
 
                     JSONArray arrData = new JSONArray(data);
-                    System.out.println("length of data " + arrData.length());
-                    
-                    if(arrData.getString(0).equals("depth")){
-                        String depthData = arrData.getString(1);
-                        depthData = URLDecoder.decode(depthData, "UTF-8");
-                        depthData = depthData.substring(depthData.indexOf("{"));
-                        originalData = depthData;
-                        System.out.println(depthData.substring(0, Math.min(300, depthData.length())));
 
-                        JSONObject depthObj = new JSONObject(depthData);
+                    //
+                    // only process depth data,
+                    // ignore trade history data and metadata, etc
+                    if(arrData.getString(0).equals("depth")){
+                        String depthDataStr = arrData.getString(1);
+                        depthDataStr = URLDecoder.decode(depthDataStr, "UTF-8");
+                        depthDataStr = depthDataStr.substring(depthDataStr.indexOf("{"));
+                        originalData = depthDataStr;
+                        JSONObject depthData = new JSONObject(depthDataStr);
+                        
+                        //
+                        // ok, now i have the depth data
+                        // let's process it
+                        try{
+                            JSONArray asks = depthData.getJSONArray("asks");
+                            JSONArray bids = depthData.getJSONArray("bids");
+                            MtGoxLive.this.log("got ask data " + asks.length());
+                            MtGoxLive.this.log("got bid data " + bids.length());
+                            
+                            synchronized(MtGoxLive.this){
+                                MtGoxLive.this.log("-- Processing Depth Data");
+                                for(int i=0;i<asks.length();i++){
+                                    JSONArray ask = asks.getJSONArray(i);
+                                    JSONObject cachedData = new JSONObject();
+                                    cachedData.put("price", ask.getDouble(0));
+                                    cachedData.put("volume", ask.getDouble(1));
+                                    cachedData.put("stamp",new Date(ask.getLong(2) / 1000));
+                                    JSONObject formerlyCachedData = MtGoxLive.this.getAskData(ask.getDouble(0));
+                                    if(hasEverLoadedData){
+                                        if(formerlyCachedData == null){
+                                            System.out.println("price was null: " + ask.getDouble(0));
+                                        }else if(formerlyCachedData.getDouble("volume") != cachedData.getDouble("volume")){
+                                            System.out.println("updated volume for price: " + ask.getDouble(0));
+                                        }else if(((Date)formerlyCachedData.get("stamp")).after(((Date)cachedData.get("stamp")))){
+                                            System.out.println("updated stamp for price: " + ask.getDouble(0));
+                                        }
+                                    }
+                                    
+                                    MtGoxLive.this.setAskData(cachedData);
+                                }
+                                
+                                for(int i=0;i<bids.length();i++){
+                                    JSONArray bid = bids.getJSONArray(i);
+                                    JSONObject cachedData = new JSONObject();
+                                    cachedData.put("price", bid.getDouble(0));
+                                    cachedData.put("volume", bid.getDouble(1));
+                                    cachedData.put("stamp",new Date(bid.getLong(2) / 1000));
+                                    MtGoxLive.this.setBidData(cachedData);
+                                }
+                                MtGoxLive.this.log("Done Processing Depth Data --");
+                                hasEverLoadedData = true;
+                            }  
+                        }catch(Exception e){
+                            e.printStackTrace();
+                        }
                         
                     }
-                    
-                    
                     
                 }catch(Exception e){
                     e.printStackTrace();
@@ -101,7 +146,7 @@ public class MtGoxLive extends AExchange {
             public long scheduledExecutionTime(){
                 return 0;
             }
-        }, 1000, 200000);
+        }, 1000, 5000);
     }
     
 

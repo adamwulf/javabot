@@ -35,6 +35,18 @@ public abstract class AExchange{
     abstract public boolean isCurrencySupported(CURRENCY curr);
     
     
+    private JSONObject getBidAskData(double price, TreeMap<Double, JSONObject> treeMap){
+        return treeMap.get(price);
+    }
+    
+    public JSONObject getAskData(double price){
+        return getBidAskData(price, askDepthData);
+    }
+    
+    public JSONObject getBidData(double price){
+        return getBidAskData(price, bidDepthData);
+    }
+    
     // methods for maintaining book
     
     private void setBidAskData(JSONObject obj, TreeMap<Double, JSONObject> treeMap) throws ExchangeException{
