@@ -18,68 +18,97 @@ import org.json.*;
 public class MtGoxProper extends AExchange {
     
     SocketHelper socket;
-        
+    
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     private boolean depthDataIsInitialized = false;
     boolean socketIsConnected = false;
+    Timer depthListingTimer;
+    
+    protected void resetAndReconnect(){
+        if(!this.isConnected()){
+            socket = null;
+            socketIsConnected = false;
+            depthDataIsInitialized = false;
+            cachedDepthData = new LinkedList<JSONObject>();
+            if(depthListingTimer != null) depthListingTimer.cancel();
+            depthListingTimer = null;
+            super.resetAndReconnect();
+        }
+    }
     
     public MtGoxProper(){
         super("MtGoxProper");
-        
-        socket = new SocketHelper("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
-        socket.setListener(new ISocketHelperListener(){
-            
-            public void onOpen(SocketHelper socket){
-                MtGoxProper.this.log("OPEN");
-                socketIsConnected = true;
-            }
-            
-            public void onClose(SocketHelper socket, int closeCode, String message){
-                MtGoxProper.this.log("CLOSE");
-            }
-            
-            String dataPrefix = "4::/mtgox:";
-            public void onMessage(SocketHelper aSocket, String originalData){
-                String data = originalData;
-                if(data.equals("1::")){
-                    // ask to connect to the mtgox channel
-                    socket.send("1::/mtgox");
-                    return;
-                }else if(data.startsWith("1::")){
-                    // just print to console, should be our
-                    // confirmation of our /mtgox message above
-                    MtGoxProper.this.log(data);
-                    MtGoxProper.this.beginTimerForDepthData();
-                    return;
-                }else if(data.equals("2::")){
-                    // just heartbeat from the server
-                    return;
-                }else if(data.startsWith(dataPrefix)){
-                    data = data.substring(dataPrefix.length());
-                    MtGoxProper.this.processMessage(data);
-                    return;
-                }
-                
-                MtGoxProper.this.log(data);
-                
-            }
-            
-            public void onHeartbeatSent(SocketHelper socket){
-                //
-                // update our depth data as often as we heartbeat
-                MtGoxProper.this.log("~h~");
-            }
-            
-        });
     }
     
+    /**
+     * returns true if the socket is
+     * connected and active, false
+     * otherwise
+     */
+    public boolean isConnected(){
+        return socketIsConnected;
+    }
+    
+    /**
+     * create the socket if it doesn't exist
+     * and then begin to connect
+     */
     public void connect(){
+        if(!this.isConnected()){
+            
+            socket = new SocketHelper("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
+            socket.setListener(new ISocketHelperListener(){
+                
+                public void onOpen(SocketHelper socket){
+                    MtGoxProper.this.log("OPEN");
+                    socketIsConnected = true;
+                }
+                
+                public void onClose(SocketHelper socket, int closeCode, String message){
+                    MtGoxProper.this.log("CLOSE");
+                    socketIsConnected = false;
+                    MtGoxProper.this.resetAndReconnect();
+                }
+                
+                String dataPrefix = "4::/mtgox:";
+                public void onMessage(SocketHelper aSocket, String originalData){
+                    String data = originalData;
+                    if(data.equals("1::")){
+                        // ask to connect to the mtgox channel
+                        socket.send("1::/mtgox");
+                        return;
+                    }else if(data.startsWith("1::")){
+                        // just print to console, should be our
+                        // confirmation of our /mtgox message above
+                        MtGoxProper.this.log(data);
+                        MtGoxProper.this.beginTimerForDepthData();
+                        return;
+                    }else if(data.equals("2::")){
+                        // just heartbeat from the server
+                        return;
+                    }else if(data.startsWith(dataPrefix)){
+                        data = data.substring(dataPrefix.length());
+                        MtGoxProper.this.processMessage(data);
+                        return;
+                    }
+                    
+                    MtGoxProper.this.log(data);
+                    
+                }
+                
+                public void onHeartbeatSent(SocketHelper socket){
+                    //
+                    // update our depth data as often as we heartbeat
+                    MtGoxProper.this.log("~h~");
+                }
+            });
+        }
         socket.connect();
     }
     
     public void beginTimerForDepthData(){
-        Timer foo = new Timer();
-        foo.scheduleAtFixedRate(new TimerTask(){
+        depthListingTimer = new Timer();
+        depthListingTimer.scheduleAtFixedRate(new TimerTask(){
             public boolean cancel(){
                 return false;
             }
@@ -91,116 +120,126 @@ public class MtGoxProper extends AExchange {
             public long scheduledExecutionTime(){
                 return 0;
             }
-//        }, 15000, 240000);
-        }, 120000, 10000);
+        }, 15000, 15000);
     }
     
-
+    
     /** helper processing methods **/
     
+    
+    /**
+     * This methos is responsible for loading
+     * the initial depth data for the market.
+     * 
+     * after the socket is connected and we have
+     * consistent depth data, this will continue to run
+     * and validate our depth data
+     */
     protected void loadInitialDepthData(CURRENCY curr){
         (new Thread(this.getName() + " First Depth Fetch"){
             public void run(){
                 //
                 // ok
-                // we're going to download the dept data 5 times
+                // we're going to download the depth data
                 //
                 // and only after that we're going to re-run the
                 // realtime data on top of it
-                for(int j=0;j<1;j++){
-                    
-                    
-                    JSONObject depthData = null;
-                    while(depthData == null){
-                        try {
-                            
-                            String depthString = "";
-                            // Send data
-                            URL url = new URL("https://mtgox.com/api/1/BTCUSD/depth");
-                            URLConnection conn = url.openConnection();
-                            
-                            // Get the response
-                            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                            String line;
-                            while ((line = rd.readLine()) != null) {
-                                // Process line...
-                                depthString += line + "\n";
-                            }
-                            rd.close();
-                            
-                            //
-                            // ok, we have the string data,
-                            // now parse it
-                            if(depthString.length() > 0){
-                                JSONObject parsedDepthData = new JSONObject(depthString);
-                                if(parsedDepthData != null &&
-                                   parsedDepthData.getString("result").equals("success")){
-                                    depthData = parsedDepthData;
-                                }
-                            }
-                            
-                        }catch (Exception e) {
-                            e.printStackTrace();
+                JSONObject depthData = null;
+                while(depthData == null){
+                    try {
+                        String depthString = "";
+                        // Send data
+                        URL url = new URL("https://mtgox.com/api/1/BTCUSD/depth");
+                        URLConnection conn = url.openConnection();
+                        
+                        // Get the response
+                        BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        String line;
+                        while ((line = rd.readLine()) != null) {
+                            // Process line...
+                            depthString += line + "\n";
                         }
+                        rd.close();
+                        
+                        //
+                        // ok, we have the string data,
+                        // now parse it
+                        if(depthString.length() > 0){
+                            JSONObject parsedDepthData = new JSONObject(depthString);
+                            if(parsedDepthData != null &&
+                               parsedDepthData.getString("result").equals("success")){
+                                depthData = parsedDepthData;
+                            }
+                        }
+                        
+                    }catch (Exception e) {
+                        e.printStackTrace();
                     }
+                }
+                
+                
+                /**
+                 * now that we've downloaded the depth data,
+                 * it's time to process the asks/bids and store
+                 * the results
+                 */
+                try{
                     
+                    JSONArray asks = depthData.getJSONObject("return").getJSONArray("asks");
+                    JSONArray bids = depthData.getJSONObject("return").getJSONArray("bids");
+                    MtGoxProper.this.log("got ask data " + asks.length());
+                    MtGoxProper.this.log("got bid data " + bids.length());
                     
-                    try{
-                        
-                        JSONArray asks = depthData.getJSONObject("return").getJSONArray("asks");
-                        JSONArray bids = depthData.getJSONObject("return").getJSONArray("bids");
-                        MtGoxProper.this.log("got ask data " + asks.length());
-                        MtGoxProper.this.log("got bid data " + bids.length());
-                        
-                        synchronized(MtGoxProper.this){
-                            MtGoxProper.this.log("-- Processing Depth Data");
-                            for(int i=0;i<asks.length();i++){
-                                JSONObject ask = asks.getJSONObject(i);
-                                JSONObject cachedData = new JSONObject();
-                                cachedData.put("price", ask.getDouble("price"));
-                                cachedData.put("volume_int", ask.getDouble("amount_int"));
-                                cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
-                                JSONObject formerlyCached = MtGoxProper.this.getAskData(ask.getDouble("price"));
-                                if(!depthDataIsInitialized || formerlyCached == null){
-                                    MtGoxProper.this.setAskData(cachedData);
-                                }else{
-                                    JSONArray log = formerlyCached.getJSONArray("log");
-                                    JSONObject logItem = new JSONObject();
-                                    logItem.put("volume_int", cachedData.getDouble("volume_int"));
-                                    logItem.put("stamp", cachedData.get("stamp"));
-                                    logItem.put("check", true);
-                                    log.put(logItem);
-                                    formerlyCached.put("log", log);
-                                }
-                                if(depthDataIsInitialized){
-                                    if(formerlyCached != null){
-                                        if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
-                                            MtGoxProper.this.log("Different volume for " + cachedData.getDouble("price")
-                                                                     + ": " + formerlyCached.getDouble("volume_int")
-                                                                     + " vs " + cachedData.getDouble("volume_int") + " with log "
-                                                                     + formerlyCached.get("log"));
-                                        }
+                    synchronized(MtGoxProper.this){
+                        MtGoxProper.this.log("-- Processing Depth Data");
+                        for(int i=0;i<asks.length();i++){
+                            JSONObject ask = asks.getJSONObject(i);
+                            JSONObject cachedData = new JSONObject();
+                            cachedData.put("price", ask.getDouble("price"));
+                            cachedData.put("volume_int", ask.getDouble("amount_int"));
+                            cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
+                            JSONObject formerlyCached = MtGoxProper.this.getAskData(ask.getDouble("price"));
+                            if(!depthDataIsInitialized || formerlyCached == null){
+                                MtGoxProper.this.setAskData(cachedData);
+                            }else{
+                                JSONArray log = formerlyCached.getJSONArray("log");
+                                JSONObject logItem = new JSONObject();
+                                logItem.put("volume_int", cachedData.getDouble("volume_int"));
+                                logItem.put("stamp", cachedData.get("stamp"));
+                                logItem.put("check", true);
+                                log.put(logItem);
+                                formerlyCached.put("log", log);
+                            }
+                            if(depthDataIsInitialized){
+                                //
+                                // check to see if anything has changed or not
+                                if(formerlyCached != null){
+                                    if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
+                                        MtGoxProper.this.log("Different volume for " + cachedData.getDouble("price")
+                                                                 + ": " + formerlyCached.getDouble("volume_int")
+                                                                 + " vs " + cachedData.getDouble("volume_int") + " with log "
+                                                                 + formerlyCached.get("log"));
                                     }
                                 }
                             }
-                            if(!depthDataIsInitialized){
-                                //
-                                // for now, we're only going to compare
-                                // values for anything after the first load
-                                for(int i=0;i<bids.length();i++){
-                                    JSONObject bid = bids.getJSONObject(i);
-                                    JSONObject cachedData = new JSONObject();
-                                    cachedData.put("price", bid.getDouble("price"));
-                                    cachedData.put("volume_int", bid.getDouble("amount_int"));
-                                    cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
-                                    MtGoxProper.this.setBidData(cachedData);
-                                }
+                        }
+                        if(!depthDataIsInitialized){
+                            //
+                            // for now, we're only going to compare
+                            // values for anything after the first load
+                            for(int i=0;i<bids.length();i++){
+                                JSONObject bid = bids.getJSONObject(i);
+                                JSONObject cachedData = new JSONObject();
+                                cachedData.put("price", bid.getDouble("price"));
+                                cachedData.put("volume_int", bid.getDouble("amount_int"));
+                                cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
+                                MtGoxProper.this.setBidData(cachedData);
                             }
-                            MtGoxProper.this.log("Done Processing Depth Data --");
-                        }  
-                    }catch(Exception e){
-                        e.printStackTrace();
-                    }
+                        }
+                        MtGoxProper.this.log("Done Processing Depth Data --");
+                    }  
+                }catch(Exception e){
+                    e.printStackTrace();
                 }
                 
                 synchronized(MtGoxProper.this){
@@ -224,7 +263,11 @@ public class MtGoxProper extends AExchange {
     
     
     
-    
+    /**
+     * process a socket message
+     * 
+     * these will be either depth, tricker, or trade details
+     */
     protected void processMessage(String messageText){
         try{
             JSONObject msg = new JSONObject(messageText);
@@ -251,14 +294,14 @@ public class MtGoxProper extends AExchange {
             String type = depthMessage.getJSONObject("depth").getString("type_str");
             JSONObject depthData = depthMessage.getJSONObject("depth");
             long totalVolInt = depthData.getLong("total_volume_int");
-
+            
             JSONObject cachableData = new JSONObject();
             cachableData.put("price", depthData.getDouble("price"));
             cachableData.put("volume_int", totalVolInt);
             cachableData.put("stamp",new Date(depthData.getLong("now") / 1000));
             if(depthDataIsInitialized){
 //                this.log("processing depth data" + "\n" + depthMessage);
-                this.log("expecting new vol for " + depthData.getDouble("price") + " to be " + totalVolInt);
+//                this.log("expecting new vol for " + depthData.getDouble("price") + " to be " + totalVolInt);
                 if(type.equals("ask")){
                     this.setAskData(cachableData);
                 }else if(type.equals("bid")){

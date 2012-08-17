@@ -17,7 +17,15 @@ public abstract class AExchange{
         BTC, USD, PLN, EUR, GBP, AUD, CAD, CHF, CNY, DKK, HKD, JPY, NZD, RUB, SEK, SGD, THB
     }
 
-    
+    protected void resetAndReconnect(){
+        if(!this.isConnected()){
+            this.log("RESET AND RECONNECT");
+            bidDepthData = new TreeMap<Double, JSONObject>();
+            askDepthData = new TreeMap<Double, JSONObject>();
+            connect();
+        }
+    }
+
     private String name;
     
     public AExchange(String name){
@@ -34,6 +42,9 @@ public abstract class AExchange{
     
     abstract public boolean isCurrencySupported(CURRENCY curr);
     
+    abstract public void connect();
+    
+    abstract public boolean isConnected();
     
     private JSONObject getBidAskData(double price, TreeMap<Double, JSONObject> treeMap){
         return treeMap.get(price);

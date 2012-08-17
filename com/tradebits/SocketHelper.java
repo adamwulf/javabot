@@ -36,10 +36,7 @@ public class SocketHelper{
      * lets handshake and connect to the socket
      */
     public void connect(){
-        
-        
         try{
-            
             //
             // i loaded this in the web browser. to help find urls
             //
@@ -93,7 +90,6 @@ public class SocketHelper{
             String urlFragment = socketInfo.substring(0, socketInfo.indexOf(":"));
 
             Thread.sleep(300);
-
             
             String wsURL = wsURLFragment + urlFragment;
             
@@ -105,12 +101,8 @@ public class SocketHelper{
             
             socketConnection = client.open(new URI(wsURL), new WebSocket.OnTextMessage(){
                 
-                
-                protected Connection internalSocketConnection;
-                
                 public void onOpen(Connection aSocketConnection)
                 {
-                    this.internalSocketConnection = aSocketConnection;
                     SocketHelper.this.socketConnection = aSocketConnection;
                     SocketHelper.this.getListener().onOpen(SocketHelper.this);
                 }
@@ -118,6 +110,7 @@ public class SocketHelper{
                 public void onClose(int closeCode, String message)
                 {
                     SocketHelper.this.getListener().onClose(SocketHelper.this, closeCode, message);
+                    SocketHelper.this.socketConnection = null;
                 }
                 
                 public void onMessage(String data)
@@ -136,41 +129,16 @@ public class SocketHelper{
                     return false;
                 }
                 public void run(){
-                    SocketHelper.this.send("2::");
-                    SocketHelper.this.getListener().onHeartbeatSent(SocketHelper.this);
+                    if(SocketHelper.this.socketConnection != null){
+                        SocketHelper.this.send("2::");
+                        SocketHelper.this.getListener().onHeartbeatSent(SocketHelper.this);
+                    }
                 }
                 public long scheduledExecutionTime(){
                     return 0;
                 }
             }, 1000, 15000);
             
-            /*
-             // /icbit
-             this.log("sleeping");
-             Thread.sleep(1000);
-             this.log("sleeping2");
-             
-             // subscribe
-             //
-             // this guy doesn't seem to work, i get all currency pairs back
-             // all the time :(
-             //
-             // i'll have to filter them according to:
-             // https://intersango.com/api.php
-             //
-             // 1 = BTC:GBP
-             // 2 = BTC:EUR
-             // 3 = BTC:USD
-             // 4 = BTC:PLN
-             //
-             // https://intersango.com/orderbook.php?currency_pair_id=3
-             // has a good graph on how to interpret the data
-             String msg = "5:::{\"name\":\"depth\",\"args\":[" +
-             "{\"currency_pair_id\":\"3\"}" +
-             "]}";
-             this.log("sending: " + msg);
-             socketConnection.sendMessage(msg);
-             */
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -180,7 +148,9 @@ public class SocketHelper{
     
     public void send(String message){
         try{
-            socketConnection.sendMessage(message);
+            if(socketConnection != null){
+                socketConnection.sendMessage(message);
+            }
         }catch(Exception e){
             e.printStackTrace();
         }

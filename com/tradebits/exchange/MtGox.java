@@ -58,7 +58,11 @@ public class MtGox extends AExchange {
     }
     
     
+    public boolean isConnected(){
+        return false;
+    }
     
+
     
     
     

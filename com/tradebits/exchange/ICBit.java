@@ -182,7 +182,39 @@ public class ICBit extends AExchange {
     
     public void connect(){
 //        socket.connect();
+            /*
+             // /icbit
+             this.log("sleeping");
+             Thread.sleep(1000);
+             this.log("sleeping2");
+             
+             // subscribe
+             //
+             // this guy doesn't seem to work, i get all currency pairs back
+             // all the time :(
+             //
+             // i'll have to filter them according to:
+             // https://intersango.com/api.php
+             //
+             // 1 = BTC:GBP
+             // 2 = BTC:EUR
+             // 3 = BTC:USD
+             // 4 = BTC:PLN
+             //
+             // https://intersango.com/orderbook.php?currency_pair_id=3
+             // has a good graph on how to interpret the data
+             String msg = "5:::{\"name\":\"depth\",\"args\":[" +
+             "{\"currency_pair_id\":\"3\"}" +
+             "]}";
+             this.log("sending: " + msg);
+             socketConnection.sendMessage(msg);
+             */
     }
+    
+    public boolean isConnected(){
+        return false;
+    }
+    
     
     /** AExchange **/
     

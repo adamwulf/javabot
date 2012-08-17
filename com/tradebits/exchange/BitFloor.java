@@ -160,6 +160,9 @@ public class BitFloor extends AExchange {
 //        socket.connect();
     }
     
+    public boolean isConnected(){
+        return false;
+    }
     
     /** AExchange **/
     

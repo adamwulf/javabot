@@ -165,6 +165,11 @@ public class Intersango extends AExchange {
 //        socket.connect();
     }
     
+    public boolean isConnected(){
+        return false;
+    }
+    
+    
     /** AExchange **/
     
     public boolean isCurrencySupported(CURRENCY curr){

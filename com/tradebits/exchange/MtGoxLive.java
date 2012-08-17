@@ -161,6 +161,10 @@ public class MtGoxLive extends AExchange {
         }, 1000, 5000);
     }
     
+    public boolean isConnected(){
+        return socketIsConnected;
+    }
+    
 
     /** AExchange **/
     
