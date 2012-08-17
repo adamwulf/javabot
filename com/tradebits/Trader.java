@@ -55,14 +55,8 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
-//        MtGox mtgox = new MtGox();
-//        mtgox.connect();
-        
-//        MtGoxLive mtgoxlive = new MtGoxLive();
-//        mtgoxlive.connect();
-        
-        MtGoxProper mtgoxproper= new MtGoxProper();
-        mtgoxproper.connect();
+        MtGox mtGox= new MtGox();
+        mtGox.connect();
         
         
         

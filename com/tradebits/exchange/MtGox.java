@@ -15,7 +15,7 @@ import org.json.*;
 
 //
 //
-public class MtGoxProper extends AExchange {
+public class MtGox extends AExchange {
     
     SocketHelper socket;
     
@@ -36,8 +36,8 @@ public class MtGoxProper extends AExchange {
         }
     }
     
-    public MtGoxProper(){
-        super("MtGoxProper");
+    public MtGox(){
+        super("MtGox");
     }
     
     /**
@@ -60,14 +60,14 @@ public class MtGoxProper extends AExchange {
             socket.setListener(new ISocketHelperListener(){
                 
                 public void onOpen(SocketHelper socket){
-                    MtGoxProper.this.log("OPEN");
+                    MtGox.this.log("OPEN");
                     socketIsConnected = true;
                 }
                 
                 public void onClose(SocketHelper socket, int closeCode, String message){
-                    MtGoxProper.this.log("CLOSE");
+                    MtGox.this.log("CLOSE");
                     socketIsConnected = false;
-                    MtGoxProper.this.resetAndReconnect();
+                    MtGox.this.resetAndReconnect();
                 }
                 
                 String dataPrefix = "4::/mtgox:";
@@ -80,26 +80,26 @@ public class MtGoxProper extends AExchange {
                     }else if(data.startsWith("1::")){
                         // just print to console, should be our
                         // confirmation of our /mtgox message above
-                        MtGoxProper.this.log(data);
-                        MtGoxProper.this.beginTimerForDepthData();
+                        MtGox.this.log(data);
+                        MtGox.this.beginTimerForDepthData();
                         return;
                     }else if(data.equals("2::")){
                         // just heartbeat from the server
                         return;
                     }else if(data.startsWith(dataPrefix)){
                         data = data.substring(dataPrefix.length());
-                        MtGoxProper.this.processMessage(data);
+                        MtGox.this.processMessage(data);
                         return;
                     }
                     
-                    MtGoxProper.this.log(data);
+                    MtGox.this.log(data);
                     
                 }
                 
                 public void onHeartbeatSent(SocketHelper socket){
                     //
                     // update our depth data as often as we heartbeat
-                    MtGoxProper.this.log("~h~");
+                    MtGox.this.log("~h~");
                 }
             });
         }
@@ -114,7 +114,7 @@ public class MtGoxProper extends AExchange {
             }
             public void run(){
                 if(socketIsConnected){
-                    MtGoxProper.this.loadInitialDepthData(CURRENCY.USD);
+                    MtGox.this.loadInitialDepthData(CURRENCY.USD);
                 }
             }
             public long scheduledExecutionTime(){
@@ -187,20 +187,20 @@ public class MtGoxProper extends AExchange {
                     
                     JSONArray asks = depthData.getJSONObject("return").getJSONArray("asks");
                     JSONArray bids = depthData.getJSONObject("return").getJSONArray("bids");
-                    MtGoxProper.this.log("got ask data " + asks.length());
-                    MtGoxProper.this.log("got bid data " + bids.length());
+                    MtGox.this.log("got ask data " + asks.length());
+                    MtGox.this.log("got bid data " + bids.length());
                     
-                    synchronized(MtGoxProper.this){
-                        MtGoxProper.this.log("-- Processing Depth Data");
+                    synchronized(MtGox.this){
+                        MtGox.this.log("-- Processing Depth Data");
                         for(int i=0;i<asks.length();i++){
                             JSONObject ask = asks.getJSONObject(i);
                             JSONObject cachedData = new JSONObject();
                             cachedData.put("price", ask.getDouble("price"));
                             cachedData.put("volume_int", ask.getDouble("amount_int"));
                             cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
-                            JSONObject formerlyCached = MtGoxProper.this.getAskData(ask.getDouble("price"));
+                            JSONObject formerlyCached = MtGox.this.getAskData(ask.getDouble("price"));
                             if(!depthDataIsInitialized || formerlyCached == null){
-                                MtGoxProper.this.setAskData(cachedData);
+                                MtGox.this.setAskData(cachedData);
                             }else{
                                 JSONArray log = formerlyCached.getJSONArray("log");
                                 JSONObject logItem = new JSONObject();
@@ -215,7 +215,7 @@ public class MtGoxProper extends AExchange {
                                 // check to see if anything has changed or not
                                 if(formerlyCached != null){
                                     if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
-                                        MtGoxProper.this.log("Different volume for " + cachedData.getDouble("price")
+                                        MtGox.this.log("Different volume for " + cachedData.getDouble("price")
                                                                  + ": " + formerlyCached.getDouble("volume_int")
                                                                  + " vs " + cachedData.getDouble("volume_int") + " with log "
                                                                  + formerlyCached.get("log"));
@@ -233,24 +233,24 @@ public class MtGoxProper extends AExchange {
                                 cachedData.put("price", bid.getDouble("price"));
                                 cachedData.put("volume_int", bid.getDouble("amount_int"));
                                 cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
-                                MtGoxProper.this.setBidData(cachedData);
+                                MtGox.this.setBidData(cachedData);
                             }
                         }
-                        MtGoxProper.this.log("Done Processing Depth Data --");
+                        MtGox.this.log("Done Processing Depth Data --");
                     }  
                 }catch(Exception e){
                     e.printStackTrace();
                 }
                 
-                synchronized(MtGoxProper.this){
+                synchronized(MtGox.this){
                     try{
-                        MtGoxProper.this.log("-- Replay Depth Stream");
+                        MtGox.this.log("-- Replay Depth Stream");
                         depthDataIsInitialized = true;
                         while(cachedDepthData.size() > 0){
                             JSONObject obj = cachedDepthData.removeFirst();
-                            MtGoxProper.this.processDepthData(obj);
+                            MtGox.this.processDepthData(obj);
                         }
-                        MtGoxProper.this.log("Done Replaying Depth Data --"); 
+                        MtGox.this.log("Done Replaying Depth Data --"); 
                     }catch(Exception e){
                         e.printStackTrace();
                     }
