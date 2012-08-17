@@ -23,10 +23,12 @@ public class MtGox extends AExchange {
     private boolean depthDataIsInitialized = false;
     boolean socketIsConnected = false;
     Timer depthListingTimer;
+    boolean hasLoadedDepthDataAtLeastOnce = false;
     
     protected void resetAndReconnect(){
         if(!this.isConnected()){
             socket = null;
+            hasLoadedDepthDataAtLeastOnce = false;
             socketIsConnected = false;
             depthDataIsInitialized = false;
             cachedDepthData = new LinkedList<JSONObject>();
@@ -113,7 +115,11 @@ public class MtGox extends AExchange {
                 return false;
             }
             public void run(){
-                if(socketIsConnected){
+                //
+                // only allowed to initialize depth data
+                // after we start receiving realtime data
+                if(socketIsConnected && cachedDepthData.size() > 0 || hasLoadedDepthDataAtLeastOnce){
+                    hasLoadedDepthDataAtLeastOnce = true;
                     MtGox.this.loadInitialDepthData(CURRENCY.USD);
                 }
             }
@@ -275,6 +281,7 @@ public class MtGox extends AExchange {
                 if(msg.getString("private").equals("ticker")){
 //                    this.log("ticker data" + "\n" + messageText);
                 }else if(msg.getString("private").equals("depth")){
+//                    this.log("depth data" + "\n" + messageText.substring(0, Math.min(100, messageText.length())));
                     this.processDepthData(msg);
                 }else if(msg.getString("private").equals("trade")){
 //                    this.log("trade data" + "\n" + messageText);
