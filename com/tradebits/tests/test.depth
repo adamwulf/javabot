@@ -1,0 +1,12 @@
+{"result":"success","return":{"asks":[{"price":11.91003,"amount":0.01,"price_int":"1191003","amount_int":"1000000","stamp":"1345282112160345"},
+{"price":11.98438,"amount":0.0338,"price_int":"1198438","amount_int":"3380000","stamp":"1345282111209877"},
+{"price":12,"amount":26.85150706,"price_int":"1200000","amount_int":"2685150706","stamp":"1345281362506750"},
+{"price":12.00999,"amount":0.36417694,"price_int":"1200999","amount_int":"36417694","stamp":"1345280525867026"},
+{"price":12.01999,"amount":0.36407406,"price_int":"1201999","amount_int":"36407406","stamp":"1345280525690153"}],
+"bids":[{"price":11.89121,"amount":0.24955,"price_int":"1189121","amount_int":"24955000","stamp":"1345280892956418"},
+{"price":11.89999,"amount":6.60950466,"price_int":"1189999","amount_int":"660950466","stamp":"1345281060361699"},
+{"price":11.9,"amount":6.2825,"price_int":"1190000","amount_int":"628250000","stamp":"1345281935339213"},
+{"price":11.91,"amount":45.465,"price_int":"1191000","amount_int":"4546500000","stamp":"1345282116037045"},
+{"price":11.91002,"amount":0.2054,"price_int":"1191002","amount_int":"20540000","stamp":"1345282103016717"}],
+"filter_min_price":{"value":"10.71902","value_int":"1071902","display":"$10.71902","display_short":"$10.72","currency":"USD"},
+"filter_max_price":{"value":"13.10102","value_int":"1310102","display":"$13.10102","display_short":"$13.10","currency":"USD"}}}

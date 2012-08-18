@@ -335,6 +335,4 @@ public class MtGoxTest extends TestCase{
         assertEquals("make sure to reconnect if failed websocket handshake", 2, count.intValue());
     }
     
-    
-    
 }
