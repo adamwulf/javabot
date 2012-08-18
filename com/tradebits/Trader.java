@@ -6,6 +6,7 @@ import java.util.*;
 import javax.net.ssl.*;
 import java.security.cert.*;
 import com.tradebits.exchange.*;
+import com.tradebits.socket.*;
 
 public class Trader{
     
@@ -40,7 +41,7 @@ public class Trader{
         
         
         
-        
+        StandardSocketFactory socketFactory = new StandardSocketFactory();
         
         
 //         BitFloor bitfloor = new BitFloor();
@@ -55,7 +56,7 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
-        MtGox mtGox= new MtGox();
+        MtGox mtGox= new MtGox(socketFactory);
         mtGox.connect();
         
         

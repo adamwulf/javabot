@@ -1,6 +1,6 @@
 
 
-package com.tradebits;
+package com.tradebits.socket;
 
 import java.io.*;
 import java.net.*;
@@ -13,12 +13,11 @@ import org.eclipse.jetty.websocket.*;
 import org.apache.commons.lang3.*;
 import org.json.*;
 
-public class SocketHelper{
+public class SocketHelper extends ASocketHelper{
     
     private String httpURL;
     private String wsURLFragment;
-    WebSocket.Connection socketConnection;
-    private ISocketHelperListener listener;
+    private WebSocket.Connection socketConnection;
     
     /**
      * creates a generic socket that will handshake
@@ -30,13 +29,16 @@ public class SocketHelper{
         this.wsURLFragment = wsURLFragment;
     }
     
+    public void disconnect(){
+        socketConnection.close();
+    }
+    
     /**
      * green means go!
      * 
      * lets handshake and connect to the socket
      */
-    public void connect(){
-        try{
+    public void connect() throws Exception{
             //
             // i loaded this in the web browser. to help find urls
             //
@@ -104,18 +106,24 @@ public class SocketHelper{
                 public void onOpen(Connection aSocketConnection)
                 {
                     SocketHelper.this.socketConnection = aSocketConnection;
-                    SocketHelper.this.getListener().onOpen(SocketHelper.this);
+                    if(SocketHelper.this.getListener() != null){
+                        SocketHelper.this.getListener().onOpen(SocketHelper.this);
+                    }
                 }
                 
                 public void onClose(int closeCode, String message)
                 {
-                    SocketHelper.this.getListener().onClose(SocketHelper.this, closeCode, message);
+                    if(SocketHelper.this.getListener() != null){
+                        SocketHelper.this.getListener().onClose(SocketHelper.this, closeCode, message);
+                    }
                     SocketHelper.this.socketConnection = null;
                 }
                 
                 public void onMessage(String data)
                 {
-                    SocketHelper.this.getListener().onMessage(SocketHelper.this, data);
+                    if(SocketHelper.this.getListener() != null){
+                        SocketHelper.this.getListener().onMessage(SocketHelper.this, data);
+                    }
                 }
             }).get(5, TimeUnit.SECONDS);
             
@@ -131,17 +139,15 @@ public class SocketHelper{
                 public void run(){
                     if(SocketHelper.this.socketConnection != null){
                         SocketHelper.this.send("2::");
-                        SocketHelper.this.getListener().onHeartbeatSent(SocketHelper.this);
+                        if(SocketHelper.this.getListener() != null){
+                            SocketHelper.this.getListener().onHeartbeatSent(SocketHelper.this);
+                        }
                     }
                 }
                 public long scheduledExecutionTime(){
                     return 0;
                 }
             }, 1000, 15000);
-            
-        }catch(Exception e){
-            e.printStackTrace();
-        }
     }
     
     /** allow sending data over the socket **/
@@ -157,13 +163,4 @@ public class SocketHelper{
     }
     
     
-    /** Listener **/
-    
-    public void setListener(ISocketHelperListener listener){
-        this.listener = listener;
-    }
-    
-    public ISocketHelperListener getListener(){
-        return this.listener;
-    }
 }

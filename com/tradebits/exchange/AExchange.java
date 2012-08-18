@@ -20,10 +20,14 @@ public abstract class AExchange{
     protected void resetAndReconnect(){
         if(!this.isConnected()){
             this.log("RESET AND RECONNECT");
-            bidDepthData = new TreeMap<Double, JSONObject>();
-            askDepthData = new TreeMap<Double, JSONObject>();
-            connect();
+            this.disconnect();
+            this.connect();
         }
+    }
+    
+    public void disconnect(){
+        bidDepthData = new TreeMap<Double, JSONObject>();
+        askDepthData = new TreeMap<Double, JSONObject>();
     }
 
     private String name;

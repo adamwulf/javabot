@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import com.tradebits.*;
+import com.tradebits.socket.*;
 import com.kaazing.gateway.client.html5.WebSocket;
 import com.kaazing.gateway.client.html5.WebSocketAdapter;
 import com.kaazing.gateway.client.html5.WebSocketEvent;
@@ -13,12 +14,15 @@ import org.java_websocket.handshake.*;
 import java.nio.ByteBuffer;
 import org.json.*;
 
-//
-//
+
+/**
+ * a class to connect to mtgox exchange
+ */
 public class MtGox extends AExchange {
     
-    SocketHelper socket;
+    ASocketHelper socket;
     
+    ISocketFactory socketFactory;
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     private boolean depthDataIsInitialized = false;
     boolean socketIsConnected = false;
@@ -27,19 +31,14 @@ public class MtGox extends AExchange {
     
     protected void resetAndReconnect(){
         if(!this.isConnected()){
-            socket = null;
-            hasLoadedDepthDataAtLeastOnce = false;
-            socketIsConnected = false;
-            depthDataIsInitialized = false;
-            cachedDepthData = new LinkedList<JSONObject>();
-            if(depthListingTimer != null) depthListingTimer.cancel();
-            depthListingTimer = null;
+            this.disconnect();
             super.resetAndReconnect();
         }
     }
     
-    public MtGox(){
+    public MtGox(ISocketFactory factory){
         super("MtGox");
+        this.socketFactory = factory;
     }
     
     /**
@@ -51,61 +50,83 @@ public class MtGox extends AExchange {
         return socketIsConnected;
     }
     
+    public void disconnect(){
+        if(this.isConnected()){
+            socket = null;
+            hasLoadedDepthDataAtLeastOnce = false;
+            socketIsConnected = false;
+            depthDataIsInitialized = false;
+            cachedDepthData = new LinkedList<JSONObject>();
+            if(depthListingTimer != null) depthListingTimer.cancel();
+            depthListingTimer = null;
+            super.disconnect();
+        }
+    }
+    
     /**
      * create the socket if it doesn't exist
      * and then begin to connect
      */
     public void connect(){
-        if(!this.isConnected()){
-            
-            socket = new SocketHelper("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
-            socket.setListener(new ISocketHelperListener(){
+        try{
+            if(!this.isConnected()){
                 
-                public void onOpen(SocketHelper socket){
-                    MtGox.this.log("OPEN");
-                    socketIsConnected = true;
-                }
-                
-                public void onClose(SocketHelper socket, int closeCode, String message){
-                    MtGox.this.log("CLOSE");
-                    socketIsConnected = false;
-                    MtGox.this.resetAndReconnect();
-                }
-                
-                String dataPrefix = "4::/mtgox:";
-                public void onMessage(SocketHelper aSocket, String originalData){
-                    String data = originalData;
-                    if(data.equals("1::")){
-                        // ask to connect to the mtgox channel
-                        socket.send("1::/mtgox");
-                        return;
-                    }else if(data.startsWith("1::")){
-                        // just print to console, should be our
-                        // confirmation of our /mtgox message above
-                        MtGox.this.log(data);
-                        MtGox.this.beginTimerForDepthData();
-                        return;
-                    }else if(data.equals("2::")){
-                        // just heartbeat from the server
-                        return;
-                    }else if(data.startsWith(dataPrefix)){
-                        data = data.substring(dataPrefix.length());
-                        MtGox.this.processMessage(data);
-                        return;
+                this.socket = this.socketFactory.getSocketHelperFor("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
+                socket.setListener(new ISocketHelperListener(){
+                    
+                    public void onOpen(ASocketHelper socket){
+                        MtGox.this.log("OPEN");
+                        socketIsConnected = true;
                     }
                     
-                    MtGox.this.log(data);
+                    public void onClose(ASocketHelper socket, int closeCode, String message){
+                        MtGox.this.log("CLOSE");
+                        socketIsConnected = false;
+                        MtGox.this.resetAndReconnect();
+                    }
                     
-                }
-                
-                public void onHeartbeatSent(SocketHelper socket){
-                    //
-                    // update our depth data as often as we heartbeat
-                    MtGox.this.log("~h~");
-                }
-            });
+                    String dataPrefix = "4::/mtgox:";
+                    public void onMessage(ASocketHelper aSocket, String originalData){
+                        String data = originalData;
+                        if(data.equals("1::")){
+                            // ask to connect to the mtgox channel
+                            socket.send("1::/mtgox");
+                            return;
+                        }else if(data.startsWith("1::")){
+                            // just print to console, should be our
+                            // confirmation of our /mtgox message above
+                            MtGox.this.log(data);
+                            MtGox.this.beginTimerForDepthData();
+                            return;
+                        }else if(data.equals("2::")){
+                            // just heartbeat from the server
+                            return;
+                        }else if(data.startsWith(dataPrefix)){
+                            data = data.substring(dataPrefix.length());
+                            MtGox.this.processMessage(data);
+                            return;
+                        }
+                        
+                        MtGox.this.log(data);
+                        
+                    }
+                    
+                    public void onHeartbeatSent(ASocketHelper socket){
+                        //
+                        // update our depth data as often as we heartbeat
+                        MtGox.this.log("~h~");
+                    }
+                });
+            }
+            socket.connect();
+        }catch(Exception e){
+            e.printStackTrace();
+            if(socket != null){
+                socket.setListener(null);
+            }
+            socketIsConnected = false;
+            this.resetAndReconnect();
         }
-        socket.connect();
     }
     
     public void beginTimerForDepthData(){
