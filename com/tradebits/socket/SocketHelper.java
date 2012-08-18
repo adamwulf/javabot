@@ -124,7 +124,7 @@ public class SocketHelper extends ASocketHelper{
                     }
                 }
             }
-        }).get(5, TimeUnit.SECONDS);
+        }).get(15, TimeUnit.SECONDS);
         
         socketConnection.setMaxTextMessageSize(2000000);
         
@@ -137,9 +137,16 @@ public class SocketHelper extends ASocketHelper{
             }
             public void run(){
                 if(SocketHelper.this.socketConnection != null){
-                    SocketHelper.this.send("2::");
-                    if(SocketHelper.this.getListener() != null){
-                        SocketHelper.this.getListener().onHeartbeatSent(SocketHelper.this);
+                    try{
+                        SocketHelper.this.send("2::");
+                        if(SocketHelper.this.getListener() != null){
+                            SocketHelper.this.getListener().onHeartbeatSent(SocketHelper.this);
+                        }
+                    }catch(IOException e){
+                        if(SocketHelper.this.getListener() != null){
+                            SocketHelper.this.getListener().onError(SocketHelper.this, Arrays.toString(e.getStackTrace()));
+                        }
+                        socketConnection.close();
                     }
                 }
             }
@@ -151,13 +158,9 @@ public class SocketHelper extends ASocketHelper{
     
     /** allow sending data over the socket **/
     
-    public void send(String message){
-        try{
-            if(socketConnection != null){
-                socketConnection.sendMessage(message);
-            }
-        }catch(Exception e){
-            e.printStackTrace();
+    public void send(String message) throws IOException{
+        if(socketConnection != null){
+            socketConnection.sendMessage(message);
         }
     }
     

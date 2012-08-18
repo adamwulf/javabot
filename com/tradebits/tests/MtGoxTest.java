@@ -10,6 +10,8 @@ import static org.junit.Assert.*;
 import org.apache.commons.lang3.mutable.*;
 import java.net.*;
 import java.io.*;
+import java.util.concurrent.locks.*;
+
 
 public class MtGoxTest extends TestCase{
     
@@ -284,7 +286,7 @@ public class MtGoxTest extends TestCase{
     @Test public void testInvalidWebSocketHandshake() {
         
         final MutableInt count = new MutableInt();
-        
+        final Lock lck = new ReentrantLock();
         //
         // initialize mtgox with a noop socket
         // and null data for the handshake
@@ -303,15 +305,35 @@ public class MtGoxTest extends TestCase{
                         if(count.intValue() == 1){
                             return "gibberish:";
                         }else{
+                            synchronized(count){
+                                count.notify();
+                            }
                             return super.postSynchronousURL(foo, bar);
                         }
                     }
                 };
             }
-        });
+        }){
+            protected void processMessage(String messageText){
+                super.processMessage(messageText);
+                lck.unlock();
+            }
+        };
         
         // initial connection
         mtgox.connect();
+        
+        //
+        // wait till we skip the gibberish URL
+        // and load the real URL
+        synchronized(count){
+            while(count.intValue() < 2){
+                try{
+                    count.wait();
+                }catch(InterruptedException e){}
+            }
+        }
+        
         
         // confirm it tried to reconnect
         assertEquals("make sure to reconnect if failed websocket handshake", 2, count.intValue());

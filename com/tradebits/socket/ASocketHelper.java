@@ -1,6 +1,6 @@
 package com.tradebits.socket;
 
-
+import java.io.*;
 
 public abstract class ASocketHelper{
     
@@ -15,7 +15,7 @@ public abstract class ASocketHelper{
     
     abstract public void connect() throws Exception;
     
-    abstract public void send(String message);
+    abstract public void send(String message) throws IOException;
     
     
     

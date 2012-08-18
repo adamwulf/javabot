@@ -85,7 +85,7 @@ public class MtGox extends AExchange {
     protected void connectHelper(){
         try{
             
-            if(!this.isConnected()){
+            if(!this.isConnected() && wasToldToConnect){
                 
                 this.socket = this.socketFactory.getSocketHelperFor("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
                 socket.setListener(new ISocketHelperListener(){
