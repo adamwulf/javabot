@@ -12,6 +12,8 @@ public interface ISocketHelperListener{
     
     public void onMessage(ASocketHelper socket, String data);
     
+    public void onError(ASocketHelper socket, String error);
+    
     public void onHeartbeatSent(ASocketHelper socket);
     
 }

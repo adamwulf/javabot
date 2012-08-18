@@ -21,7 +21,7 @@ public class MtGoxTest extends TestCase{
     }
     
     @After @AfterClass
-    protected void teardown(){
+    protected void tearDown(){
         mtgox.disconnect();
         mtgox = null;
     }
@@ -40,15 +40,9 @@ public class MtGoxTest extends TestCase{
         mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
-                    
-                    public void disconnect(){
-                        assertTrue(false);
-                    }
-                    
                     public void connect(){
                         count.increment();
                     }
-                    
                     public void send(String message){
                         assertTrue(false);
                     }
@@ -75,13 +69,6 @@ public class MtGoxTest extends TestCase{
         mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
-                    
-                    public void disconnect(){
-                        // when the exception is thrown,
-                        // disconnect is called to cleanup
-                        assertEquals(count.intValue(), 1);
-                    }
-                    
                     public void connect(){
                         count.increment();
                         if(count.intValue() == 1){
@@ -101,7 +88,7 @@ public class MtGoxTest extends TestCase{
         
         mtgox.connect();
         
-        assertEquals(2, count.intValue());
+        assertEquals("connect twice and disconnect twice (including tearDown)", 2, count.intValue());
     }
     
     
@@ -118,12 +105,6 @@ public class MtGoxTest extends TestCase{
         mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
-                    
-                    public void disconnect(){
-                        // when the exception is thrown,
-                        // disconnect is called to cleanup
-                        assertEquals(count.intValue(), 1);
-                    }
                     
                     public void connect() throws Exception{
                         count.increment();
@@ -258,7 +239,7 @@ public class MtGoxTest extends TestCase{
      * This tests that mtgox tries to reconnect
      * after receiving a null response during the handshake
      */
-    @Test public void testNullDepthDataRetries() {
+    @Test public void testNullWebSocketHandshake() {
         
         final MutableInt count = new MutableInt();
         
@@ -295,5 +276,45 @@ public class MtGoxTest extends TestCase{
     }
     
     
+    
+    /**
+     * This tests that mtgox tries to reconnect
+     * after receiving a null response during the handshake
+     */
+    @Test public void testInvalidWebSocketHandshake() {
+        
+        final MutableInt count = new MutableInt();
+        
+        //
+        // initialize mtgox with a noop socket
+        // and null data for the handshake
+        mtgox = new MtGox(new StandardSocketFactory(){
+            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+                return new SocketHelper(this, httpURL, wsURLFragment){
+                    public void connect() throws Exception{
+                        count.increment();
+                        super.connect();
+                    }
+                };
+            }
+            public URLHelper getURLHelper(){
+                return new URLHelper(){
+                    public String postSynchronousURL(URL foo, String bar) throws IOException{
+                        if(count.intValue() == 1){
+                            return "gibberish:";
+                        }else{
+                            return super.postSynchronousURL(foo, bar);
+                        }
+                    }
+                };
+            }
+        });
+        
+        // initial connection
+        mtgox.connect();
+        
+        // confirm it tried to reconnect
+        assertEquals("make sure to reconnect if failed websocket handshake", 2, count.intValue());
+    }
     
 }

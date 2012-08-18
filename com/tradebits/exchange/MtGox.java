@@ -30,16 +30,18 @@ public class MtGox extends AExchange {
     boolean hasLoadedDepthDataAtLeastOnce = false;
     boolean wasToldToConnect = false;
     
-    protected void resetAndReconnect(){
-        if(!this.isConnected() && wasToldToConnect){
-            this.disconnect();
-            super.resetAndReconnect();
-        }
-    }
     
     public MtGox(ASocketFactory factory){
         super("MtGox");
         this.socketFactory = factory;
+    }
+    
+    protected void resetAndReconnect(){
+        if(!this.isConnected() && wasToldToConnect){
+            this.log("RESET AND RECONNECT");
+            this.disconnectHelper();
+            this.connectHelper();
+        }
     }
     
     /**
@@ -53,6 +55,10 @@ public class MtGox extends AExchange {
     
     public void disconnect(){
         wasToldToConnect = false;
+        this.disconnectHelper();
+    }
+    
+    protected void disconnectHelper(){
         if(this.isConnected() || socket != null){
             if(socket != null) socket.disconnect();
             socket = null;
@@ -71,9 +77,14 @@ public class MtGox extends AExchange {
      * and then begin to connect
      */
     public void connect(){
+        wasToldToConnect = true;
+        this.connectHelper();
+    }
+    
+    
+    protected void connectHelper(){
         try{
-            (new Exception()).printStackTrace();
-            wasToldToConnect = true;
+            
             if(!this.isConnected()){
                 
                 this.socket = this.socketFactory.getSocketHelperFor("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
@@ -82,6 +93,9 @@ public class MtGox extends AExchange {
                     public void onOpen(ASocketHelper socket){
                         MtGox.this.log("OPEN");
                         socketIsConnected = true;
+                        if(!wasToldToConnect){
+                            MtGox.this.disconnectHelper();
+                        }
                     }
                     
                     public void onClose(ASocketHelper socket, int closeCode, String message){
@@ -91,6 +105,10 @@ public class MtGox extends AExchange {
                         // then MtGox disconnect() has
                         // not been called
                         MtGox.this.resetAndReconnect();
+                    }
+                    
+                    public void onError(ASocketHelper socket, String message){
+                        // noop
                     }
                     
                     String dataPrefix = "4::/mtgox:";
