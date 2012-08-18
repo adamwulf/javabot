@@ -1,10 +1,15 @@
-package com.tradebits.exchange;
+package com.tradebits.tests;
 
+import com.tradebits.*;
+import com.tradebits.exchange.*;
+import com.tradebits.socket.*;
+import com.tradebits.tests.*;
 import org.junit.*;
 import junit.framework.TestCase;
 import static org.junit.Assert.*;
-import com.tradebits.socket.*;
 import org.apache.commons.lang3.mutable.*;
+import java.net.*;
+import java.io.*;
 
 public class MtGoxTest extends TestCase{
     
@@ -15,7 +20,7 @@ public class MtGoxTest extends TestCase{
         
     }
     
-    @After
+    @After @AfterClass
     protected void teardown(){
         mtgox.disconnect();
         mtgox = null;
@@ -32,9 +37,9 @@ public class MtGoxTest extends TestCase{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new MtGox(new ISocketFactory(){
+        mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
-                return new ASocketHelper(){
+                return new TestSocketHelper(){
                     
                     public void disconnect(){
                         assertTrue(false);
@@ -67,9 +72,9 @@ public class MtGoxTest extends TestCase{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new MtGox(new ISocketFactory(){
+        mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
-                return new ASocketHelper(){
+                return new TestSocketHelper(){
                     
                     public void disconnect(){
                         // when the exception is thrown,
@@ -110,9 +115,9 @@ public class MtGoxTest extends TestCase{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new MtGox(new ISocketFactory(){
+        mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
-                return new ASocketHelper(){
+                return new TestSocketHelper(){
                     
                     public void disconnect(){
                         // when the exception is thrown,
@@ -153,21 +158,15 @@ public class MtGoxTest extends TestCase{
         
         //
         // record how often mtgox tries to connect
-        final ASocketHelper noopSocket = new ASocketHelper(){
-            public void disconnect(){
-                // noop
-            }
+        final ASocketHelper noopSocket = new TestSocketHelper(){
             public void connect() throws Exception{
                 count.increment();
-            }
-            public void send(String message){
-                // noop
             }
         };
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(new ISocketFactory(){
+        mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
@@ -194,21 +193,15 @@ public class MtGoxTest extends TestCase{
         
         //
         // record how often mtgox tries to connect
-        final ASocketHelper noopSocket = new ASocketHelper(){
-            public void disconnect(){
-                // noop
-            }
+        final ASocketHelper noopSocket = new TestSocketHelper(){
             public void connect() throws Exception{
                 count.increment();
-            }
-            public void send(String message){
-                // noop
             }
         };
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(new ISocketFactory(){
+        mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
@@ -223,6 +216,7 @@ public class MtGoxTest extends TestCase{
         // confirm it tried to reconnect
         assertEquals(2, count.intValue());
     }
+    
     /**
      * This tests that mtgox tries to reconnect
      * after recieving a json message with incorrect data
@@ -233,21 +227,15 @@ public class MtGoxTest extends TestCase{
         
         //
         // record how often mtgox tries to connect
-        final ASocketHelper noopSocket = new ASocketHelper(){
-            public void disconnect(){
-                // noop
-            }
+        final ASocketHelper noopSocket = new TestSocketHelper(){
             public void connect() throws Exception{
                 count.increment();
-            }
-            public void send(String message){
-                // noop
             }
         };
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(new ISocketFactory(){
+        mtgox = new MtGox(new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
@@ -262,4 +250,50 @@ public class MtGoxTest extends TestCase{
         // confirm it tried to reconnect
         assertEquals(2, count.intValue());
     }
+    
+    
+    
+    
+    /**
+     * This tests that mtgox tries to reconnect
+     * after receiving a null response during the handshake
+     */
+    @Test public void testNullDepthDataRetries() {
+        
+        final MutableInt count = new MutableInt();
+        
+        //
+        // initialize mtgox with a noop socket
+        // and null data for the handshake
+        mtgox = new MtGox(new StandardSocketFactory(){
+            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+                return new SocketHelper(this, httpURL, wsURLFragment){
+                    public void connect() throws Exception{
+                        count.increment();
+                        super.connect();
+                    }
+                };
+            }
+            public URLHelper getURLHelper(){
+                return new URLHelper(){
+                    public String postSynchronousURL(URL foo, String bar) throws IOException{
+                        if(count.intValue() == 1){
+                            return null;
+                        }else{
+                            return super.postSynchronousURL(foo, bar);
+                        }
+                    }
+                };
+            }
+        });
+        
+        // initial connection
+        mtgox.connect();
+        
+        // confirm it tried to reconnect
+        assertEquals(2, count.intValue());
+    }
+    
+    
+    
 }

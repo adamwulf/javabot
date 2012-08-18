@@ -22,12 +22,13 @@ public class MtGox extends AExchange {
     
     ASocketHelper socket;
     
-    ISocketFactory socketFactory;
+    ASocketFactory socketFactory;
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     private boolean depthDataIsInitialized = false;
     boolean socketIsConnected = false;
     Timer depthListingTimer;
     boolean hasLoadedDepthDataAtLeastOnce = false;
+    boolean wasToldToConnect = false;
     
     protected void resetAndReconnect(){
         if(!this.isConnected()){
@@ -36,7 +37,7 @@ public class MtGox extends AExchange {
         }
     }
     
-    public MtGox(ISocketFactory factory){
+    public MtGox(ASocketFactory factory){
         super("MtGox");
         this.socketFactory = factory;
     }
@@ -51,7 +52,8 @@ public class MtGox extends AExchange {
     }
     
     public void disconnect(){
-        if(this.isConnected()){
+        if(this.isConnected() || socket != null){
+            if(socket != null) socket.disconnect();
             socket = null;
             hasLoadedDepthDataAtLeastOnce = false;
             socketIsConnected = false;
@@ -61,6 +63,7 @@ public class MtGox extends AExchange {
             depthListingTimer = null;
             super.disconnect();
         }
+        wasToldToConnect = false;
     }
     
     /**
@@ -69,6 +72,7 @@ public class MtGox extends AExchange {
      */
     public void connect(){
         try{
+            wasToldToConnect = true;
             if(!this.isConnected()){
                 
                 this.socket = this.socketFactory.getSocketHelperFor("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
@@ -82,7 +86,12 @@ public class MtGox extends AExchange {
                     public void onClose(ASocketHelper socket, int closeCode, String message){
                         MtGox.this.log("CLOSE");
                         socketIsConnected = false;
-                        MtGox.this.resetAndReconnect();
+                        if(wasToldToConnect){
+                            // if this flag is still true,
+                            // then MtGox disconnect() has
+                            // not been called
+                            MtGox.this.resetAndReconnect();
+                        }
                     }
                     
                     String dataPrefix = "4::/mtgox:";
@@ -132,7 +141,7 @@ public class MtGox extends AExchange {
         }
     }
     
-    public void beginTimerForDepthData(){
+    protected void beginTimerForDepthData(){
         depthListingTimer = new Timer();
         depthListingTimer.scheduleAtFixedRate(new TimerTask(){
             public boolean cancel(){
@@ -165,7 +174,7 @@ public class MtGox extends AExchange {
      * consistent depth data, this will continue to run
      * and validate our depth data
      */
-    protected void loadInitialDepthData(CURRENCY curr){
+    public void loadInitialDepthData(CURRENCY curr){
         (new Thread(this.getName() + " First Depth Fetch"){
             public void run(){
                 //
@@ -178,23 +187,15 @@ public class MtGox extends AExchange {
                 while(depthData == null){
                     try {
                         String depthString = "";
+                        URLHelper urlHelper = socketFactory.getURLHelper();
                         // Send data
                         URL url = new URL("https://mtgox.com/api/1/BTCUSD/depth");
-                        URLConnection conn = url.openConnection();
-                        
-                        // Get the response
-                        BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                        String line;
-                        while ((line = rd.readLine()) != null) {
-                            // Process line...
-                            depthString += line + "\n";
-                        }
-                        rd.close();
-                        
+                        depthString = urlHelper.getSynchronousURL(url);
+
                         //
                         // ok, we have the string data,
                         // now parse it
-                        if(depthString.length() > 0){
+                        if(depthString != null && depthString.length() > 0){
                             JSONObject parsedDepthData = new JSONObject(depthString);
                             if(parsedDepthData != null &&
                                parsedDepthData.getString("result").equals("success")){
@@ -204,6 +205,9 @@ public class MtGox extends AExchange {
                         
                     }catch (Exception e) {
                         e.printStackTrace();
+                        try{
+                            Thread.sleep(300);
+                        }catch(InterruptedException e2){}
                     }
                 }
                 

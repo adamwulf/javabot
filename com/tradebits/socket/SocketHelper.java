@@ -2,12 +2,13 @@
 
 package com.tradebits.socket;
 
+import com.tradebits.*;
+import com.tradebits.exchange.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import javax.net.ssl.*;
 import java.security.cert.*;
-import com.tradebits.exchange.*;
 import java.util.concurrent.*;
 import org.eclipse.jetty.websocket.*;
 import org.apache.commons.lang3.*;
@@ -18,19 +19,21 @@ public class SocketHelper extends ASocketHelper{
     private String httpURL;
     private String wsURLFragment;
     private WebSocket.Connection socketConnection;
+    private ASocketFactory socketFactory;
     
     /**
      * creates a generic socket that will handshake
      * the input httpURL, and connect to the socket
      * at the wsURL (with its response from the handshake)
      */
-    public SocketHelper(String httpURL, String wsURLFragment){
+    public SocketHelper(ASocketFactory factory, String httpURL, String wsURLFragment){
         this.httpURL = httpURL;
         this.wsURLFragment = wsURLFragment;
+        this.socketFactory = factory;
     }
     
     public void disconnect(){
-        socketConnection.close();
+        if(socketConnection != null) socketConnection.close();
     }
     
     /**
@@ -62,29 +65,21 @@ public class SocketHelper extends ASocketHelper{
             String socketInfo = "";
             
             try {
-                
                 // Construct data
                 String data = URLEncoder.encode("t", "UTF-8") + "=" + URLEncoder.encode(time, "UTF-8");
-                
                 // Send data
                 URL url = new URL(httpURL);
-                URLConnection conn = url.openConnection();
-                conn.setDoOutput(true);
-                OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-                wr.write(data);
-                wr.flush();
                 
-                // Get the response
-                BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String line;
-                while ((line = rd.readLine()) != null) {
-                    // Process line...
-                    socketInfo += line + "\n";
+                URLHelper urlHelper = socketFactory.getURLHelper();
+                socketInfo = urlHelper.postSynchronousURL(url, data);
+                
+                if(socketInfo == null || socketInfo.length() == 0){
+                    throw new RuntimeException("null data from socket handshake URL: " + httpURL);
                 }
-                wr.close();
-                rd.close();
+                
             } catch (Exception e) {
                 e.printStackTrace();
+                this.getListener().onClose(this, 2, Arrays.toString(e.getStackTrace()));
                 return;
             }
             
