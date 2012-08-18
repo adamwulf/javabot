@@ -31,7 +31,7 @@ public class MtGox extends AExchange {
     boolean wasToldToConnect = false;
     
     protected void resetAndReconnect(){
-        if(!this.isConnected()){
+        if(!this.isConnected() && wasToldToConnect){
             this.disconnect();
             super.resetAndReconnect();
         }
@@ -52,6 +52,7 @@ public class MtGox extends AExchange {
     }
     
     public void disconnect(){
+        wasToldToConnect = false;
         if(this.isConnected() || socket != null){
             if(socket != null) socket.disconnect();
             socket = null;
@@ -63,7 +64,6 @@ public class MtGox extends AExchange {
             depthListingTimer = null;
             super.disconnect();
         }
-        wasToldToConnect = false;
     }
     
     /**
@@ -72,6 +72,7 @@ public class MtGox extends AExchange {
      */
     public void connect(){
         try{
+            (new Exception()).printStackTrace();
             wasToldToConnect = true;
             if(!this.isConnected()){
                 
@@ -86,12 +87,10 @@ public class MtGox extends AExchange {
                     public void onClose(ASocketHelper socket, int closeCode, String message){
                         MtGox.this.log("CLOSE");
                         socketIsConnected = false;
-                        if(wasToldToConnect){
-                            // if this flag is still true,
-                            // then MtGox disconnect() has
-                            // not been called
-                            MtGox.this.resetAndReconnect();
-                        }
+                        // if this flag is still true,
+                        // then MtGox disconnect() has
+                        // not been called
+                        MtGox.this.resetAndReconnect();
                     }
                     
                     String dataPrefix = "4::/mtgox:";

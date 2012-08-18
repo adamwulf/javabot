@@ -291,7 +291,7 @@ public class MtGoxTest extends TestCase{
         mtgox.connect();
         
         // confirm it tried to reconnect
-        assertEquals(2, count.intValue());
+        assertEquals("make sure to reconnect if failed websocket handshake", 2, count.intValue());
     }
     
     
