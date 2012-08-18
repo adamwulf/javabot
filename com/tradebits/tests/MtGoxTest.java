@@ -313,12 +313,7 @@ public class MtGoxTest extends TestCase{
                     }
                 };
             }
-        }){
-            protected void processMessage(String messageText){
-                super.processMessage(messageText);
-                lck.unlock();
-            }
-        };
+        });
         
         // initial connection
         mtgox.connect();
