@@ -86,29 +86,32 @@ public class MtGox extends AExchange {
                     }
                     
                     String dataPrefix = "4::/mtgox:";
-                    public void onMessage(ASocketHelper aSocket, String originalData){
-                        String data = originalData;
-                        if(data.equals("1::")){
-                            // ask to connect to the mtgox channel
-                            socket.send("1::/mtgox");
-                            return;
-                        }else if(data.startsWith("1::")){
-                            // just print to console, should be our
-                            // confirmation of our /mtgox message above
+                    public void onMessage(ASocketHelper aSocket, String data){
+                        try{
+                            if(data.equals("1::")){
+                                // ask to connect to the mtgox channel
+                                socket.send("1::/mtgox");
+                                return;
+                            }else if(data.startsWith("1::")){
+                                // just print to console, should be our
+                                // confirmation of our /mtgox message above
+                                MtGox.this.log(data);
+                                MtGox.this.beginTimerForDepthData();
+                                return;
+                            }else if(data.equals("2::")){
+                                // just heartbeat from the server
+                                return;
+                            }else if(data.startsWith(dataPrefix)){
+                                data = data.substring(dataPrefix.length());
+                                MtGox.this.processMessage(data);
+                                return;
+                            }
                             MtGox.this.log(data);
-                            MtGox.this.beginTimerForDepthData();
-                            return;
-                        }else if(data.equals("2::")){
-                            // just heartbeat from the server
-                            return;
-                        }else if(data.startsWith(dataPrefix)){
-                            data = data.substring(dataPrefix.length());
-                            MtGox.this.processMessage(data);
-                            return;
+                        }catch(Exception e){
+                            aSocket.disconnect();
+                            socketIsConnected = false;
+                            MtGox.this.resetAndReconnect();
                         }
-                        
-                        MtGox.this.log(data);
-                        
                     }
                     
                     public void onHeartbeatSent(ASocketHelper socket){
@@ -310,9 +313,10 @@ public class MtGox extends AExchange {
                     this.log("unknown feed type: " + msg.getString("private"));
                 }
             }
-        }catch(JSONException e){
-            e.printStackTrace();
-        }catch(ExchangeException e){
+        }catch(Exception e){
+            socket.disconnect();
+            socketIsConnected = false;
+            this.resetAndReconnect();
             e.printStackTrace();
         }
     }

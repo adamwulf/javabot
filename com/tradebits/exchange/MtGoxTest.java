@@ -182,4 +182,84 @@ public class MtGoxTest extends TestCase{
         // confirm it tried to reconnect
         assertEquals(2, count.intValue());
     }
+    
+    
+    /**
+     * This tests that mtgox tries to reconnect
+     * after recieving a null message
+     */
+    @Test public void testReconnectOnNullData() {
+        
+        final MutableInt count = new MutableInt();
+        
+        //
+        // record how often mtgox tries to connect
+        final ASocketHelper noopSocket = new ASocketHelper(){
+            public void disconnect(){
+                // noop
+            }
+            public void connect() throws Exception{
+                count.increment();
+            }
+            public void send(String message){
+                // noop
+            }
+        };
+        
+        //
+        // initialize mtgox with a noop socket
+        mtgox = new MtGox(new ISocketFactory(){
+            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+                return noopSocket;
+            }
+        });
+        
+        // initial connection
+        mtgox.connect();
+        
+        // send close message
+        noopSocket.getListener().onMessage(noopSocket, null);
+        
+        // confirm it tried to reconnect
+        assertEquals(2, count.intValue());
+    }
+    /**
+     * This tests that mtgox tries to reconnect
+     * after recieving a json message with incorrect data
+     */
+    @Test public void testReconnectOnNonDataJSON() {
+        
+        final MutableInt count = new MutableInt();
+        
+        //
+        // record how often mtgox tries to connect
+        final ASocketHelper noopSocket = new ASocketHelper(){
+            public void disconnect(){
+                // noop
+            }
+            public void connect() throws Exception{
+                count.increment();
+            }
+            public void send(String message){
+                // noop
+            }
+        };
+        
+        //
+        // initialize mtgox with a noop socket
+        mtgox = new MtGox(new ISocketFactory(){
+            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+                return noopSocket;
+            }
+        });
+        
+        // initial connection
+        mtgox.connect();
+        
+        // send close message
+        noopSocket.getListener().onMessage(noopSocket, "4::/mtgox:{\"mumble\"}");
+        
+        // confirm it tried to reconnect
+        assertEquals(2, count.intValue());
+    }
 }
