@@ -169,6 +169,7 @@ public class MtGoxDepthTest extends TestHelper{
                         // send two depth messages
                         (new Timer()).schedule(new TimerTask(){
                             public void run(){
+                                socket.getListener().onMessage(socket, "1::/mtgox");
                                 socket.getListener().onMessage(socket, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
                                                                    + "\"op\":\"private\",\"origin\":\"broadcast\",\"private\":\"depth\""
                                                                    + ",\"depth\":{\"price\":\"11.88326\",\"type\":2,\"type_str\":\"bid\""
@@ -208,7 +209,7 @@ public class MtGoxDepthTest extends TestHelper{
                                     count.notify();
                                 }
                             }
-                        }, 1500);
+                        }, 18000);
                     }
                     public void send(String message){
                         // noop
@@ -219,13 +220,11 @@ public class MtGoxDepthTest extends TestHelper{
             public URLHelper getURLHelper(){
                 return new URLHelper(){
                     public String getSynchronousURL(URL foo, String bar) throws IOException{
-                        try{
-                            Thread.sleep(1000);
-                        }catch(InterruptedException e){}
-                        
                         URL url = this.getClass().getResource("/test.depth");
                         File testDepthData = new File(url.getFile());
-                        return MtGoxDepthTest.this.fileToString(testDepthData);
+                        String foo2 = MtGoxDepthTest.this.fileToString(testDepthData);
+                        System.out.println(foo2);
+                        return foo2;
                     }
                 };
             }
