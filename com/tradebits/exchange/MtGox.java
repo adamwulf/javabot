@@ -44,6 +44,10 @@ public class MtGox extends AExchange {
         }
     }
     
+    public int numberOfCachedDepthData(){
+        return cachedDepthData.size();
+    }
+    
     /**
      * returns true if the socket is
      * connected and active, false

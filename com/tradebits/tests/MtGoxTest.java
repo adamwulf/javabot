@@ -10,6 +10,7 @@ import static org.junit.Assert.*;
 import org.apache.commons.lang3.mutable.*;
 import java.net.*;
 import java.io.*;
+import java.util.*;
 import java.util.concurrent.locks.*;
 
 
@@ -286,7 +287,7 @@ public class MtGoxTest extends TestCase{
     @Test public void testInvalidWebSocketHandshake() {
         
         final MutableInt count = new MutableInt();
-        final Lock lck = new ReentrantLock();
+
         //
         // initialize mtgox with a noop socket
         // and null data for the handshake
@@ -333,5 +334,7 @@ public class MtGoxTest extends TestCase{
         // confirm it tried to reconnect
         assertEquals("make sure to reconnect if failed websocket handshake", 2, count.intValue());
     }
+    
+    
     
 }

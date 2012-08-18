@@ -124,7 +124,7 @@ public class SocketHelper extends ASocketHelper{
                     }
                 }
             }
-        }).get(15, TimeUnit.SECONDS);
+        }).get(5, TimeUnit.SECONDS);
         
         socketConnection.setMaxTextMessageSize(2000000);
         
