@@ -54,11 +54,11 @@ public abstract class AExchange{
         return treeMap.get(price);
     }
     
-    public JSONObject getAskData(double price){
+    public JSONObject getAskData(CURRENCY currency, double price){
         return getBidAskData(price, askDepthData);
     }
     
-    public JSONObject getBidData(double price){
+    public JSONObject getBidData(CURRENCY currency, double price){
         return getBidAskData(price, bidDepthData);
     }
     
@@ -95,12 +95,12 @@ public abstract class AExchange{
         }
     }
     
-    public void setAskData(JSONObject obj) throws ExchangeException{
+    public void setAskData(CURRENCY currency, JSONObject obj) throws ExchangeException{
         // make sure we have the data we need
         this.setBidAskData(obj, askDepthData);
     }
     
-    public void setBidData(JSONObject obj) throws ExchangeException{
+    public void setBidData(CURRENCY currency, JSONObject obj) throws ExchangeException{
         this.setBidAskData(obj, bidDepthData);
     }
     
@@ -155,11 +155,45 @@ public abstract class AExchange{
             throw new ExchangeException(e);
         }
     }
-    public void updateAskData(JSONObject obj) throws ExchangeException{
+    public void updateAskData(CURRENCY currency, JSONObject obj) throws ExchangeException{
         this.updateBidAskData(obj, askDepthData);
     }
     
-    public void updateBidData(JSONObject obj) throws ExchangeException{
+    public void updateBidData(CURRENCY currency, JSONObject obj) throws ExchangeException{
         this.updateBidAskData(obj, bidDepthData);
+    }
+    
+    
+    /** retrieve bid/ask data **/
+    
+    /**
+     * a zero index is closest to the trade window
+     * and increases as prices move away.
+     * 
+     * so an index 0 is the highest bid or
+     * lowest ask
+     */
+    public JSONObject getBid(CURRENCY currency, int index){
+        List<Double> keys = new ArrayList<Double>(bidDepthData.keySet());
+        for (int i = keys.size() - 1; i >= 0; i--) {
+            if(keys.size() - 1 - index == i){
+                Double key = keys.get(i);
+                System.out.println("B" + index + " " + bidDepthData.get(key));
+                return bidDepthData.get(key);
+            }
+        }
+        return null;
+    }
+    
+    public JSONObject getAsk(CURRENCY currency, int index){
+        List<Double> keys = new ArrayList<Double>(askDepthData.keySet());
+        for (int i = 0; i < keys.size(); i++) {
+            if(i == index){
+                Double key = keys.get(i);
+                System.out.println("A" + i + " " + askDepthData.get(key));
+                return askDepthData.get(key);
+            }
+        }
+        return null;
     }
 }

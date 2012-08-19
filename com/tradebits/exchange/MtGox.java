@@ -27,6 +27,9 @@ public class MtGox extends AExchange {
     private boolean depthDataIsInitialized = false;
     boolean socketIsConnected = false;
     Timer depthListingTimer;
+    Timer currencyInformationTimer;
+    TreeMap<CURRENCY, MtGoxCurrency> cachedCurrencyData = new TreeMap<CURRENCY, MtGoxCurrency>();
+    // TODO https://mtgox.com/api/1/generic/currency?currency=USD&raw
     boolean hasLoadedDepthDataAtLeastOnce = false;
     boolean wasToldToConnect = false;
     
@@ -71,7 +74,10 @@ public class MtGox extends AExchange {
             depthDataIsInitialized = false;
             cachedDepthData = new LinkedList<JSONObject>();
             if(depthListingTimer != null) depthListingTimer.cancel();
+            if(currencyInformationTimer != null) currencyInformationTimer.cancel();
             depthListingTimer = null;
+            currencyInformationTimer = null;
+            cachedCurrencyData = new TreeMap<CURRENCY, MtGoxCurrency>();
             super.disconnect();
         }
     }
@@ -90,6 +96,25 @@ public class MtGox extends AExchange {
         try{
             
             if(!this.isConnected() && wasToldToConnect){
+                
+                //
+                // force loading currency information for USD
+                // this will block until done
+                MtGox.this.loadCurrencyDataFor(CURRENCY.USD);
+                
+                
+                //
+                // setup a timer to refresh the currency data
+                currencyInformationTimer = new Timer();
+                currencyInformationTimer.scheduleAtFixedRate(new TimerTask(){
+                    public void run(){
+                        MtGox.this.loadCurrencyDataFor(CURRENCY.USD);
+                    }
+                }, 1000*60*5, 1000*60*5);
+                
+                
+                //
+                // now, connect to the realtime feed
                 
                 this.socket = this.socketFactory.getSocketHelperFor("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
                 socket.setListener(new ISocketHelperListener(){
@@ -162,12 +187,10 @@ public class MtGox extends AExchange {
         }
     }
     
+    
     protected void beginTimerForDepthData(){
         depthListingTimer = new Timer();
         depthListingTimer.scheduleAtFixedRate(new TimerTask(){
-            public boolean cancel(){
-                return false;
-            }
             public void run(){
                 //
                 // only allowed to initialize depth data
@@ -177,15 +200,20 @@ public class MtGox extends AExchange {
                     MtGox.this.loadInitialDepthData(CURRENCY.USD);
                 }
             }
-            public long scheduledExecutionTime(){
-                return 0;
-            }
         }, 15000, 15000);
     }
     
     
-    /** helper processing methods **/
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
+    // LOADING
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+
     
     /**
      * This methos is responsible for loading
@@ -195,7 +223,7 @@ public class MtGox extends AExchange {
      * consistent depth data, this will continue to run
      * and validate our depth data
      */
-    public void loadInitialDepthData(CURRENCY curr){
+    public void loadInitialDepthData(final CURRENCY curr){
         (new Thread(this.getName() + " First Depth Fetch"){
             public void run(){
                 //
@@ -210,9 +238,9 @@ public class MtGox extends AExchange {
                         String depthString = "";
                         URLHelper urlHelper = socketFactory.getURLHelper();
                         // Send data
-                        URL url = new URL("https://mtgox.com/api/1/BTCUSD/depth");
+                        URL url = new URL("https://mtgox.com/api/1/BTC" + curr + "/depth");
                         depthString = urlHelper.getSynchronousURL(url);
-
+                        
                         //
                         // ok, we have the string data,
                         // now parse it
@@ -253,9 +281,9 @@ public class MtGox extends AExchange {
                             cachedData.put("price", ask.getDouble("price"));
                             cachedData.put("volume_int", ask.getDouble("amount_int"));
                             cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
-                            JSONObject formerlyCached = MtGox.this.getAskData(ask.getDouble("price"));
+                            JSONObject formerlyCached = MtGox.this.getAskData(curr, ask.getDouble("price"));
                             if(!depthDataIsInitialized || formerlyCached == null){
-                                MtGox.this.setAskData(cachedData);
+                                MtGox.this.setAskData(curr, cachedData);
                             }else{
                                 JSONArray log = formerlyCached.getJSONArray("log");
                                 JSONObject logItem = new JSONObject();
@@ -288,7 +316,7 @@ public class MtGox extends AExchange {
                                 cachedData.put("price", bid.getDouble("price"));
                                 cachedData.put("volume_int", bid.getDouble("amount_int"));
                                 cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
-                                MtGox.this.setBidData(cachedData);
+                                MtGox.this.setBidData(curr, cachedData);
                             }
                         }
                         MtGox.this.log("Done Processing Depth Data --");
@@ -316,6 +344,41 @@ public class MtGox extends AExchange {
         }).start();
     }
     
+    private void loadCurrencyDataFor(CURRENCY currency){
+        do{
+            try{
+                URLHelper urlHelper = socketFactory.getURLHelper();
+                URL url = new URL("https://mtgox.com/api/1/generic/currency?currency=" + currency);
+                String currencyJSON = urlHelper.getSynchronousURL(url);
+                
+                //
+                // ok, we have the string data,
+                // now parse it
+                if(currencyJSON != null && currencyJSON.length() > 0){
+                    JSONObject parsedCurrencyData = new JSONObject(currencyJSON);
+                    if(parsedCurrencyData != null &&
+                       parsedCurrencyData.getString("result").equals("success")){
+                        parsedCurrencyData = parsedCurrencyData.getJSONObject("return");;
+                        MtGoxCurrency currObj = new MtGoxCurrency(currency, parsedCurrencyData);
+                        MtGox.this.log("loaded currency information for " + currency);
+                        cachedCurrencyData.put(currency, currObj);
+                    }
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }while(cachedCurrencyData.get(currency) == null);
+    }
+    
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // PROCESSING
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     
     /**
@@ -348,6 +411,8 @@ public class MtGox extends AExchange {
     
     protected void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException{
         synchronized(this){
+
+            CURRENCY curr = CURRENCY.valueOf(depthMessage.getJSONObject("depth").getString("currency"));;
             String type = depthMessage.getJSONObject("depth").getString("type_str");
             JSONObject depthData = depthMessage.getJSONObject("depth");
             long totalVolInt = depthData.getLong("total_volume_int");
@@ -360,9 +425,9 @@ public class MtGox extends AExchange {
 //                this.log("processing depth data" + "\n" + depthMessage);
 //                this.log("expecting new vol for " + depthData.getDouble("price") + " to be " + totalVolInt);
                 if(type.equals("ask")){
-                    this.setAskData(cachableData);
+                    this.setAskData(curr, cachableData);
                 }else if(type.equals("bid")){
-                    this.setBidData(cachableData);
+                    this.setBidData(curr, cachableData);
                 }else{
                     throw new RuntimeException("unknown depth type: " + type);
                 }
@@ -396,5 +461,67 @@ public class MtGox extends AExchange {
             curr == CURRENCY.SEK ||
             curr == CURRENCY.SGD ||
             curr == CURRENCY.THB;
+    }
+    
+    
+    /**
+     * a zero index is closest to the trade window
+     * and increases as prices move away.
+     * 
+     * so an index 0 is the highest bid or
+     * lowest ask
+     */
+    public JSONObject getBid(CURRENCY curr, int index){
+        JSONObject bid = super.getBid(curr, index);
+        if(bid != null){
+            try{
+                // format int values as proper values
+                Long volume = bid.getLong("volume_int");
+                Long price = bid.getLong("price");
+                MtGoxCurrency currency = cachedCurrencyData.get(bid.getString("currency"));
+                // add the decimal 5 places from the right
+                String volumeStr = volume.toString();
+                String priceStr = price.toString();
+            }catch(Exception e){
+                return null;
+            }
+        }
+        return bid;
+    }
+    
+    public JSONObject getAsk(CURRENCY curr, int index){
+        JSONObject ask = super.getAsk(curr, index);
+        if(ask != null){
+            // format int values as proper values
+        }
+        return null;
+    }
+    
+    
+    
+    
+    /**
+     * currency info
+     */
+    protected class MtGoxCurrency{
+        
+        CURRENCY currency;
+        JSONObject properties;
+        
+        public MtGoxCurrency(CURRENCY currency, JSONObject properties){
+            this.properties = properties;
+        }
+        
+        public CURRENCY getKey(){
+            return currency;
+        }
+        
+        public double parsePriceFromLong(Long price){
+            return 0;
+        }
+        
+        public double parsePriceFromVolume(Long volume){
+            return 0;
+        }
     }
 }
