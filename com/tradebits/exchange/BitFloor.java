@@ -164,6 +164,10 @@ public class BitFloor extends AExchange {
         return false;
     }
     
+    public boolean isOffline(){
+        return true;
+    }
+    
     /** AExchange **/
     
     public boolean isCurrencySupported(CURRENCY curr){

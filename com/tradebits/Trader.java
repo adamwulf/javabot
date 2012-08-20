@@ -57,48 +57,41 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
-        final MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
-        mtGoxUSD.connect();
+        final LinkedList<AExchange> exchanges = new LinkedList<AExchange>();
         
-//        final MtGox mtGoxEUR = new MtGox(socketFactory, CURRENCY.EUR);
-//        mtGoxEUR.connect();
+        MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
+        exchanges.add(mtGoxUSD);
         
-//        final MtGox mtGoxAUD = new MtGox(socketFactory, CURRENCY.AUD);
-//        mtGoxAUD.connect();
+        MtGox mtGoxEUR = new MtGox(socketFactory, CURRENCY.EUR);
+//        exchanges.add(mtGoxEUR);
         
-//        final MtGox mtGoxCAD = new MtGox(socketFactory, CURRENCY.CAD);
-//        mtGoxCAD.connect();
+        MtGox mtGoxAUD = new MtGox(socketFactory, CURRENCY.AUD);
+//        exchanges.add(mtGoxAUD);
         
-//        final MtGox mtGoxGBP = new MtGox(socketFactory, CURRENCY.GBP);
-//        mtGoxGBP.connect();
+        MtGox mtGoxCAD = new MtGox(socketFactory, CURRENCY.CAD);
+//        exchanges.add(mtGoxCAD);
+        
+        MtGox mtGoxGBP = new MtGox(socketFactory, CURRENCY.GBP);
+//        exchanges.add(mtGoxGBP);
         
         
+        for(AExchange ex : exchanges){
+            ex.connect();
+        }
+        
+
         Timer foo = new Timer();
         foo.scheduleAtFixedRate(new TimerTask(){
             public void run(){
-                mtGoxUSD.log("isOffline: " + mtGoxUSD.isOffline());
-                mtGoxUSD.log("isConnected: " + mtGoxUSD.isConnected());
-                mtGoxUSD.log("bid: " + mtGoxUSD.getBid(0));
-                mtGoxUSD.log("ask: " + mtGoxUSD.getAsk(0));
-                if(mtGoxUSD.isOffline()){
-                    mtGoxUSD.connect();
+                for(AExchange ex : exchanges){
+                    ex.log("isOffline: " + ex.isOffline());
+                    ex.log("isConnected: " + ex.isConnected());
+                    ex.log("bid: " + ex.getBid(0));
+                    ex.log("ask: " + ex.getAsk(0));
+                    if(ex.isOffline()){
+                        ex.connect();
+                    }
                 }
-
-//                mtGoxEUR.log("isConnected: " + mtGoxEUR.isConnected());
-//                mtGoxEUR.log("bid: " + mtGoxEUR.getBid(0));
-//                mtGoxEUR.log("ask: " + mtGoxEUR.getAsk(0));
-
-//                mtGoxAUD.log("isConnected: " + mtGoxAUD.isConnected());
-//                mtGoxAUD.log("bid: " + mtGoxAUD.getBid(0));
-//                mtGoxAUD.log("ask: " + mtGoxAUD.getAsk(0));
-
-//                mtGoxCAD.log("isConnected: " + mtGoxCAD.isConnected());
-//                mtGoxCAD.log("bid: " + mtGoxCAD.getBid(0));
-//                mtGoxCAD.log("ask: " + mtGoxCAD.getAsk(0));
-
-//                mtGoxGBP.log("isConnected: " + mtGoxGBP.isConnected());
-//                mtGoxGBP.log("bid: " + mtGoxGBP.getBid(0));
-//                mtGoxGBP.log("ask: " + mtGoxGBP.getAsk(0));
             }
         }, 10000, 10000);
     }

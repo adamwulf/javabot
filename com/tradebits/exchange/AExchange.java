@@ -50,6 +50,8 @@ public abstract class AExchange{
     
     abstract public boolean isConnected();
     
+    abstract public boolean isOffline();
+    
     private JSONObject getBidAskData(double price, TreeMap<Double, JSONObject> treeMap){
         return treeMap.get(price);
     }

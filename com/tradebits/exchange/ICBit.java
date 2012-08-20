@@ -215,6 +215,10 @@ public class ICBit extends AExchange {
         return false;
     }
     
+    public boolean isOffline(){
+        return true;
+    }
+    
     
     /** AExchange **/
     

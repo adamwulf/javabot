@@ -169,6 +169,10 @@ public class Intersango extends AExchange {
         return false;
     }
     
+    public boolean isOffline(){
+        return true;
+    }
+    
     
     /** AExchange **/
     
