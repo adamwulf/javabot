@@ -50,9 +50,15 @@ public class MtGox extends AExchange {
         return this.currencyEnum;
     }
     
-    protected void resetAndReconnect(){
+    protected synchronized void resetAndReconnect(){
         if(!this.isConnected() && wasToldToConnect){
             this.log("RESET AND RECONNECT");
+            try{
+                //
+                // don't allow us to spam mtgox with reconnects
+                // limit to 12s
+                Thread.sleep(12000);
+            }catch(InterruptedException e){ }
             this.disconnectHelper();
             this.connectHelper();
         }
@@ -68,7 +74,11 @@ public class MtGox extends AExchange {
      * otherwise
      */
     public boolean isConnected(){
-        return socketIsConnected;
+        return socketIsConnected && hasLoadedDepthDataAtLeastOnce;
+    }
+    
+    public boolean isOffline(){
+        return !wasToldToConnect;
     }
     
     public void disconnect(){
@@ -145,7 +155,7 @@ public class MtGox extends AExchange {
                         // if this flag is still true,
                         // then MtGox disconnect() has
                         // not been called
-                        MtGox.this.resetAndReconnect();
+                        MtGox.this.disconnect();
                     }
                     
                     public void onError(ASocketHelper socket, String message){
@@ -164,6 +174,7 @@ public class MtGox extends AExchange {
                             }else if(data.startsWith("1::")){
                                 // just print to console, should be our
                                 // confirmation of our /mtgox message above
+                                MtGox.this.log("Confirmed subscription: " + data);
                                 MtGox.this.beginTimerForDepthData();
                                 return;
                             }else if(data.equals("2::")){
@@ -178,7 +189,7 @@ public class MtGox extends AExchange {
                         }catch(Exception e){
                             aSocket.disconnect();
                             socketIsConnected = false;
-                            MtGox.this.resetAndReconnect();
+                            MtGox.this.disconnect();
                         }
                     }
                     
@@ -196,7 +207,7 @@ public class MtGox extends AExchange {
                 socket.setListener(null);
             }
             socketIsConnected = false;
-            this.resetAndReconnect();
+            this.disconnect();
         }
     }
     
@@ -208,8 +219,8 @@ public class MtGox extends AExchange {
                 //
                 // only allowed to initialize depth data
                 // after we start receiving realtime data
-                System.out.println("socket connected: " + socketIsConnected + " and received message: " + socketHasReceivedAnyMessage);
-                if(socketIsConnected && socketHasReceivedAnyMessage ||
+                MtGox.this.log("socket connected: " + socketIsConnected + " and received message: " + socketHasReceivedAnyMessage);
+                if(MtGox.this.isConnected() ||
                        hasLoadedDepthDataAtLeastOnce){
                     hasLoadedDepthDataAtLeastOnce = true;
                     MtGox.this.loadInitialDepthData(MtGox.this.currencyEnum);
@@ -415,9 +426,9 @@ public class MtGox extends AExchange {
                msg.getString("suggest").equals("retry")){
                 //
                 // mtgox is having trouble, re-connect
-                this.log("ERROR: command failed on socket - reconnecting");
+                this.log("ERROR: command failed on socket - reconnecting: " + messageText);
                 socketIsConnected = false;
-                this.resetAndReconnect();
+                this.disconnect();
             }else if(msg.getString("op").equals("private")){
                 // ok, we got a valid message from the socket,
                 // so remeber that fact. we'll use this info
@@ -440,7 +451,7 @@ public class MtGox extends AExchange {
         }catch(Exception e){
             socket.disconnect();
             socketIsConnected = false;
-            this.resetAndReconnect();
+            this.disconnect();
             e.printStackTrace();
         }
     }
@@ -472,7 +483,7 @@ public class MtGox extends AExchange {
                 }
             }else{
                 // wrong currency!
-//                this.log(" did NOT load depth message for " + curr);
+                this.log(" did NOT load depth message for " + curr);
             }
         }
     }
