@@ -38,7 +38,7 @@ public class MtGoxDepthTest extends TestHelper{
      * it should also empty any depth messages in
      * the cache
      */
-    @Test public void testValidDepthEmptiesCache() {
+    @Test public void testValidDepthEmptiesCache() throws Exception{
         
         final MutableInt count = new MutableInt();
         
@@ -69,20 +69,20 @@ public class MtGoxDepthTest extends TestHelper{
                                 socket.getListener().onMessage(socket, "1::/mtgox");
                                 socket.getListener().onMessage(socket, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
                                                                    + "\"op\":\"private\",\"origin\":\"broadcast\",\"private\":\"depth\""
-                                                                   + ",\"depth\":{\"price\":\"11.88326\",\"type\":2,\"type_str\":\"bid\""
+                                                                   + ",\"depth\":{\"price\":\"11.91003\",\"type\":2,\"type_str\":\"ask\""
                                                                    + ",\"volume\":\"-0.01014437\",\"price_int\":\"1188326\",\"volume_int\""
                                                                    + ":\"-1014437\",\"item\":\"BTC\",\"currency\":\"USD\",\"now\":"
-                                                                   + "\"1345278624831146\",\"total_volume_int\":\"0\"}}");
+                                                                   + "\"1345278624831148\",\"total_volume_int\":\"1200000\"}}");
                             }
                         }, 60);
                         (new Timer()).schedule(new TimerTask(){
                             public void run(){
                                 socket.getListener().onMessage(socket, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
                                                                    + "\"op\":\"private\",\"origin\":\"broadcast\",\"private\":\"depth\""
-                                                                   + ",\"depth\":{\"price\":\"11.88326\",\"type\":2,\"type_str\":\"bid\""
-                                                                   + ",\"volume\":\"-0.01014437\",\"price_int\":\"1188326\",\"volume_int\""
+                                                                   + ",\"depth\":{\"price\":\"11.91002\",\"type\":2,\"type_str\":\"bid\""
+                                                                   + ",\"volume\":\"-0.01014437\",\"price_int\":\"1191002\",\"volume_int\""
                                                                    + ":\"-1014437\",\"item\":\"BTC\",\"currency\":\"USD\",\"now\":"
-                                                                   + "\"1345278624831146\",\"total_volume_int\":\"0\"}}");
+                                                                   + "\"1345278624831148\",\"total_volume_int\":\"30540000\"}}");
                             }
                         }, 90);
                         // notify that we're done with realtime data
@@ -169,20 +169,20 @@ public class MtGoxDepthTest extends TestHelper{
         
         
         
+        System.out.println("bid: " + highestBid);
+        System.out.println("ask: " + lowestAsk);
+        
+        
         // confirm it cached the depth data
         // since it hasn't yet loaded full depth
         // from mtgox servers
+        assertEquals("ask price is correct", 11.91003, lowestAsk.getDouble("price"));
+        assertEquals("ask volume is correct", 0.012, lowestAsk.getDouble("volume"));
+        assertEquals("ask date is correct", 1345278624831148L / 1000, ((Date)lowestAsk.get("stamp")).getTime());
+        assertEquals("bid price is correct", 11.91002, highestBid.getDouble("price"));
+        assertEquals("bid volume is correct", 0.3054, highestBid.getDouble("volume"));
+        assertEquals("bid date is correct", 1345278624831148L / 1000, ((Date)highestBid.get("stamp")).getTime());
         assertEquals("the depth data cache was emptied", 0, mtgox.numberOfCachedDepthData());
-        
-        
-        //
-        // TODO
-        //
-        // run this test with timestamps before the test.depth data, and verify
-        // that my code shows the correct volume for each price
-        //
-        // then run this test with timestamps after the test.depth data and
-        // verify again
     }
     
     

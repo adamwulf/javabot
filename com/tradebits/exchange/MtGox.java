@@ -28,7 +28,7 @@ public class MtGox extends AExchange {
     boolean socketIsConnected = false;
     Timer depthListingTimer;
     Timer currencyInformationTimer;
-    TreeMap<CURRENCY, MtGoxCurrency> cachedCurrencyData = new TreeMap<CURRENCY, MtGoxCurrency>();
+    MtGoxCurrency cachedCurrencyData = null;
     // TODO https://mtgox.com/api/1/generic/currency?currency=USD&raw
     boolean hasLoadedDepthDataAtLeastOnce = false;
     boolean wasToldToConnect = false;
@@ -77,7 +77,7 @@ public class MtGox extends AExchange {
             if(currencyInformationTimer != null) currencyInformationTimer.cancel();
             depthListingTimer = null;
             currencyInformationTimer = null;
-            cachedCurrencyData = new TreeMap<CURRENCY, MtGoxCurrency>();
+            cachedCurrencyData = null;
             super.disconnect();
         }
     }
@@ -361,13 +361,13 @@ public class MtGox extends AExchange {
                         parsedCurrencyData = parsedCurrencyData.getJSONObject("return");;
                         MtGoxCurrency currObj = new MtGoxCurrency(currency, parsedCurrencyData);
                         MtGox.this.log("loaded currency information for " + currency);
-                        cachedCurrencyData.put(currency, currObj);
+                        cachedCurrencyData = currObj;
                     }
                 }
             }catch(Exception e){
                 e.printStackTrace();
             }
-        }while(cachedCurrencyData.get(currency) == null);
+        }while(cachedCurrencyData == null);
     }
     
     
@@ -476,23 +476,41 @@ public class MtGox extends AExchange {
         if(bid != null){
             try{
                 // format int values as proper values
-                Long volume = bid.getLong("volume_int");
-                Long price = bid.getLong("price");
-                MtGoxCurrency currency = cachedCurrencyData.get(bid.getString("currency"));
-                // add the decimal 5 places from the right
-                String volumeStr = volume.toString();
-                String priceStr = price.toString();
+                double price = bid.getDouble("price");
+                Long volumeL = bid.getLong("volume_int");
+                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
+                
+                JSONObject ret = new JSONObject();
+                ret.put("price", price);
+                ret.put("volume", volume);
+                ret.put("currency", curr);
+                ret.put("stamp", bid.get("stamp"));
+                return ret;
             }catch(Exception e){
                 return null;
             }
         }
-        return bid;
+        return null;
     }
     
     public JSONObject getAsk(CURRENCY curr, int index){
         JSONObject ask = super.getAsk(curr, index);
         if(ask != null){
-            // format int values as proper values
+            try{
+                // format int values as proper values
+                double price = ask.getDouble("price");
+                Long volumeL = ask.getLong("volume_int");
+                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
+                
+                JSONObject ret = new JSONObject();
+                ret.put("price", price);
+                ret.put("volume", volume);
+                ret.put("currency", curr);
+                ret.put("stamp", ask.get("stamp"));
+                return ret;
+            }catch(Exception e){
+                return null;
+            }
         }
         return null;
     }
@@ -516,12 +534,9 @@ public class MtGox extends AExchange {
             return currency;
         }
         
-        public double parsePriceFromLong(Long price){
-            return 0;
-        }
-        
-        public double parsePriceFromVolume(Long volume){
-            return 0;
+        public double parseVolumeFromLong(Long volume){
+            // 10^8 comes from https://en.bitcoin.it/wiki/MtGox/API/HTTP/v1#Multi_currency_trades
+            return volume / Math.pow(10, 8);
         }
     }
 }
