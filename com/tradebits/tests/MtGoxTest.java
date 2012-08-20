@@ -452,4 +452,19 @@ public class MtGoxTest extends TestCase{
     @Test public void testInvalidDepthData() {
         assertTrue("need to implement this test", false);
     }
+    
+    
+    
+    /**
+     * This test is for parsing depth data
+     */
+    @Test public void testMovingDepthData() {
+        //
+        // load depth data
+        //
+        // then set the highest bid / lowest ask to zero volume
+        // and it should remove it from the cache
+            
+        assertTrue("need to implement this test", false);
+    }
 }

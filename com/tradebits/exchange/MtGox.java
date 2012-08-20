@@ -41,6 +41,10 @@ public class MtGox extends AExchange {
         this.socketFactory = factory;
     }
     
+    public String getName(){
+        return super.getName() + " " + this.getCurrency();
+    }
+
     public CURRENCY getCurrency(){
         return this.currencyEnum;
     }
@@ -156,7 +160,6 @@ public class MtGox extends AExchange {
                             }else if(data.startsWith("1::")){
                                 // just print to console, should be our
                                 // confirmation of our /mtgox message above
-                                MtGox.this.log(data);
                                 MtGox.this.beginTimerForDepthData();
                                 return;
                             }else if(data.equals("2::")){
@@ -255,9 +258,19 @@ public class MtGox extends AExchange {
                             if(parsedDepthData != null &&
                                parsedDepthData.getString("result").equals("success")){
                                 depthData = parsedDepthData;
+                            }else if(parsedDepthData != null &&
+                               parsedDepthData.getString("result").equals("error")){
+                                MtGox.this.log("ERROR LOADING DEPTH: " + depthString);
+                                MtGox.this.log("Sleeping for 15s");
+                                Thread.sleep(15000);
+                            }else{
+                                MtGox.this.log("UNKNOWN ERROR LOADING DEPTH: " + depthString);
+                                MtGox.this.log("Sleeping for 15s");
+                                Thread.sleep(15000);
                             }
                         }
                         
+                        MtGox.this.log("-- Loading from " + url);
                     }catch (Exception e) {
                         e.printStackTrace();
                         try{
@@ -266,7 +279,8 @@ public class MtGox extends AExchange {
                     }
                 }
                 
-                
+                MtGox.this.log("-- Processing Depth and Cache Data");
+
                 /**
                  * now that we've downloaded the depth data,
                  * it's time to process the asks/bids and store
@@ -276,11 +290,8 @@ public class MtGox extends AExchange {
                     
                     JSONArray asks = depthData.getJSONObject("return").getJSONArray("asks");
                     JSONArray bids = depthData.getJSONObject("return").getJSONArray("bids");
-                    MtGox.this.log("got ask data " + asks.length());
-                    MtGox.this.log("got bid data " + bids.length());
                     
                     synchronized(MtGox.this){
-                        MtGox.this.log("-- Processing Depth Data");
                         for(int i=0;i<asks.length();i++){
                             JSONObject ask = asks.getJSONObject(i);
                             JSONObject cachedData = new JSONObject();
@@ -325,7 +336,6 @@ public class MtGox extends AExchange {
                                 MtGox.this.setBidData(cachedData);
                             }
                         }
-                        MtGox.this.log("Done Processing Depth Data --");
                     }  
                 }catch(Exception e){
                     e.printStackTrace();
@@ -333,19 +343,17 @@ public class MtGox extends AExchange {
                 
                 synchronized(MtGox.this){
                     try{
-                        MtGox.this.log("-- Replay Depth Stream");
                         depthDataIsInitialized = true;
                         while(cachedDepthData.size() > 0){
                             JSONObject obj = cachedDepthData.removeFirst();
                             MtGox.this.processDepthData(obj);
                         }
-                        MtGox.this.log("Done Replaying Depth Data --"); 
                     }catch(Exception e){
                         e.printStackTrace();
                     }
                 }
                 
-                
+                MtGox.this.log("Done Processing Depth and Cache Data --");
             }
         }).start();
     }
@@ -417,29 +425,32 @@ public class MtGox extends AExchange {
     
     protected void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException{
         synchronized(this){
-
-            CURRENCY curr = CURRENCY.valueOf(depthMessage.getJSONObject("depth").getString("currency"));;
-            String type = depthMessage.getJSONObject("depth").getString("type_str");
-            JSONObject depthData = depthMessage.getJSONObject("depth");
-            long totalVolInt = depthData.getLong("total_volume_int");
             
-            JSONObject cachableData = new JSONObject();
-            cachableData.put("price", depthData.getDouble("price"));
-            cachableData.put("volume_int", totalVolInt);
-            cachableData.put("stamp",new Date(depthData.getLong("now") / 1000));
-            if(depthDataIsInitialized){
-//                this.log("processing depth data" + "\n" + depthMessage);
-//                this.log("expecting new vol for " + depthData.getDouble("price") + " to be " + totalVolInt);
-                if(type.equals("ask")){
-                    this.setAskData(cachableData);
-                }else if(type.equals("bid")){
-                    this.setBidData(cachableData);
+            CURRENCY curr = CURRENCY.valueOf(depthMessage.getJSONObject("depth").getString("currency"));
+            if(curr.equals(currencyEnum)){
+                String type = depthMessage.getJSONObject("depth").getString("type_str");
+                JSONObject depthData = depthMessage.getJSONObject("depth");
+                long totalVolInt = depthData.getLong("total_volume_int");
+                
+                JSONObject cachableData = new JSONObject();
+                cachableData.put("price", depthData.getDouble("price"));
+                cachableData.put("volume_int", totalVolInt);
+                cachableData.put("stamp",new Date(depthData.getLong("now") / 1000));
+                if(depthDataIsInitialized){
+                    if(type.equals("ask")){
+                        this.setAskData(cachableData);
+                    }else if(type.equals("bid")){
+                        this.setBidData(cachableData);
+                    }else{
+                        throw new RuntimeException("unknown depth type: " + type);
+                    }
                 }else{
-                    throw new RuntimeException("unknown depth type: " + type);
+                    cachedDepthData.add(depthMessage);
+                    this.log("caching " + type + " (" + cachedDepthData.size() + ")");
                 }
             }else{
-                cachedDepthData.add(depthMessage);
-                this.log("caching " + type + " (" + cachedDepthData.size() + ")");
+                // wrong currency!
+//                this.log(" did NOT load depth message for " + curr);
             }
         }
     }

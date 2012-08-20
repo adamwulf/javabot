@@ -27,7 +27,7 @@ public abstract class AExchange{
         return name;
     }
     
-    protected void log(String log){
+    public void log(String log){
         System.out.println(this.getName() + " " + (new Date()) + ": " + log + "\n");
     }
     
@@ -73,7 +73,7 @@ public abstract class AExchange{
             if(!obj.has("log")){
                 JSONArray arr = new JSONArray();
                 JSONObject firstLog = new JSONObject();
-                firstLog.put("volume_int", obj.getDouble("volume_int"));
+                firstLog.put("volume_int", obj.getLong("volume_int"));
                 firstLog.put("stamp", obj.get("stamp"));
                 firstLog.put("first", true);
                 arr.put(firstLog);
@@ -81,14 +81,18 @@ public abstract class AExchange{
             }else{
                 JSONArray log = obj.getJSONArray("log");
                 JSONObject logItem = new JSONObject();
-                logItem.put("volume_int", obj.getDouble("volume_int"));
+                logItem.put("volume_int", obj.getLong("volume_int"));
                 logItem.put("stamp", obj.get("stamp"));
                 logItem.put("diff", true);
                 log.put(logItem);
                 obj.put("log", log);
             }
-        
+            
+            if(obj.getLong("volume_int") > 0){
                 treeMap.put(obj.getDouble("price"), obj);
+            }else{
+                treeMap.remove(obj.getDouble("price"));
+            }
 //                this.log("set data for " + obj.getDouble("price") + " to vol " + obj.getDouble("volume_int"));
         }catch(JSONException e){
             throw new ExchangeException(e);
@@ -178,7 +182,6 @@ public abstract class AExchange{
         for (int i = keys.size() - 1; i >= 0; i--) {
             if(keys.size() - 1 - index == i){
                 Double key = keys.get(i);
-                System.out.println("B" + index + " " + bidDepthData.get(key));
                 return bidDepthData.get(key);
             }
         }
@@ -190,7 +193,6 @@ public abstract class AExchange{
         for (int i = 0; i < keys.size(); i++) {
             if(i == index){
                 Double key = keys.get(i);
-                System.out.println("A" + i + " " + askDepthData.get(key));
                 return askDepthData.get(key);
             }
         }
