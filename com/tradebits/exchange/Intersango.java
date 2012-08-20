@@ -173,6 +173,10 @@ public class Intersango extends AExchange {
         return true;
     }
     
+    public boolean isConnecting(){
+        return false;
+    }
+    
     
     /** AExchange **/
     

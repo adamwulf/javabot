@@ -168,6 +168,10 @@ public class BitFloor extends AExchange {
         return true;
     }
     
+    public boolean isConnecting(){
+        return false;
+    }
+    
     /** AExchange **/
     
     public boolean isCurrencySupported(CURRENCY curr){

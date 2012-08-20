@@ -57,13 +57,17 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
+        File logDir = new File(System.getProperty("logPath"));
+        
+        
+        
         final LinkedList<AExchange> exchanges = new LinkedList<AExchange>();
         
         MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
-        exchanges.add(mtGoxUSD);
+//        exchanges.add(mtGoxUSD);
         
         MtGox mtGoxEUR = new MtGox(socketFactory, CURRENCY.EUR);
-//        exchanges.add(mtGoxEUR);
+        exchanges.add(mtGoxEUR);
         
         MtGox mtGoxAUD = new MtGox(socketFactory, CURRENCY.AUD);
 //        exchanges.add(mtGoxAUD);

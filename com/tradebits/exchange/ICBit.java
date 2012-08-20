@@ -219,6 +219,10 @@ public class ICBit extends AExchange {
         return true;
     }
     
+    public boolean isConnecting(){
+        return false;
+    }
+    
     
     /** AExchange **/
     

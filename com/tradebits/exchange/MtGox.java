@@ -77,6 +77,10 @@ public class MtGox extends AExchange {
         return socketIsConnected && hasLoadedDepthDataAtLeastOnce;
     }
     
+    public boolean isConnecting(){
+        return !this.isOffline() && !this.isConnected();
+    }
+    
     public boolean isOffline(){
         return !wasToldToConnect;
     }
