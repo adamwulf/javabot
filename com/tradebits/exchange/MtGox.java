@@ -33,7 +33,7 @@ public class MtGox extends AExchange {
     // TODO https://mtgox.com/api/1/generic/currency?currency=USD&raw
     boolean hasLoadedDepthDataAtLeastOnce = false;
     boolean wasToldToConnect = false;
-    int numberOfDepthWaits = 0;
+    boolean socketHasReceivedAnyMessage = false;
     
     
     public MtGox(ASocketFactory factory, CURRENCY curr){
@@ -89,7 +89,7 @@ public class MtGox extends AExchange {
             depthListingTimer = null;
             currencyInformationTimer = null;
             cachedCurrencyData = null;
-            int numberOfDepthLoads = 0;
+            socketHasReceivedAnyMessage = false;
             super.disconnect();
         }
     }
@@ -157,7 +157,9 @@ public class MtGox extends AExchange {
                         try{
                             if(data.equals("1::")){
                                 // ask to connect to the mtgox channel
-                                socket.send("1::/mtgox");
+                                String outgoing = "1::/mtgox";
+                                MtGox.this.log("sending: " + outgoing);
+                                socket.send(outgoing);
                                 return;
                             }else if(data.startsWith("1::")){
                                 // just print to console, should be our
@@ -204,14 +206,10 @@ public class MtGox extends AExchange {
         depthListingTimer.scheduleAtFixedRate(new TimerTask(){
             public void run(){
                 //
-                // record how many times we try to wait
-                numberOfDepthWaits++;
-
-                //
                 // only allowed to initialize depth data
                 // after we start receiving realtime data
-                if(socketIsConnected && cachedDepthData.size() > 0 ||
-                   socketIsConnected && numberOfDepthWaits > 2 ||
+                System.out.println("socket connected: " + socketIsConnected + " and received message: " + socketHasReceivedAnyMessage);
+                if(socketIsConnected && socketHasReceivedAnyMessage ||
                        hasLoadedDepthDataAtLeastOnce){
                     hasLoadedDepthDataAtLeastOnce = true;
                     MtGox.this.loadInitialDepthData(MtGox.this.currencyEnum);
@@ -413,7 +411,18 @@ public class MtGox extends AExchange {
     protected void processMessage(String messageText){
         try{
             JSONObject msg = new JSONObject(messageText);
-            if(msg.getString("op").equals("private")){
+            if(msg.getString("op").equals("error") &&
+               msg.getString("suggest").equals("retry")){
+                //
+                // mtgox is having trouble, re-connect
+                this.log("ERROR: command failed on socket - reconnecting");
+                socketIsConnected = false;
+                this.resetAndReconnect();
+            }else if(msg.getString("op").equals("private")){
+                // ok, we got a valid message from the socket,
+                // so remeber that fact. we'll use this info
+                // to decide when our depth data is accurate
+                socketHasReceivedAnyMessage = true;
                 if(msg.getString("private").equals("ticker")){
 //                    this.log("ticker data" + "\n" + messageText);
                 }else if(msg.getString("private").equals("depth")){
@@ -424,6 +433,9 @@ public class MtGox extends AExchange {
                 }else{
                     this.log("unknown feed type: " + msg.getString("private"));
                 }
+            }else{
+                this.log("UNKNOWN MESSAGE: " + messageText);
+                this.log("messageText: " + messageText);
             }
         }catch(Exception e){
             socket.disconnect();
