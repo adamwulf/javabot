@@ -57,8 +57,8 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
-        final MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
-        mtGoxUSD.connect();
+//        final MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
+//        mtGoxUSD.connect();
         
         final MtGox mtGoxEUR = new MtGox(socketFactory, CURRENCY.EUR);
         mtGoxEUR.connect();
@@ -76,9 +76,9 @@ public class Trader{
         Timer foo = new Timer();
         foo.scheduleAtFixedRate(new TimerTask(){
             public void run(){
-                mtGoxUSD.log("isConnected: " + mtGoxUSD.isConnected());
-                mtGoxUSD.log("bid: " + mtGoxUSD.getBid(0));
-                mtGoxUSD.log("ask: " + mtGoxUSD.getAsk(0));
+//                mtGoxUSD.log("isConnected: " + mtGoxUSD.isConnected());
+//                mtGoxUSD.log("bid: " + mtGoxUSD.getBid(0));
+//                mtGoxUSD.log("ask: " + mtGoxUSD.getAsk(0));
 
                 mtGoxEUR.log("isConnected: " + mtGoxEUR.isConnected());
                 mtGoxEUR.log("bid: " + mtGoxEUR.getBid(0));

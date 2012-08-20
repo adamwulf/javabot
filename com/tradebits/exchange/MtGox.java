@@ -33,6 +33,7 @@ public class MtGox extends AExchange {
     // TODO https://mtgox.com/api/1/generic/currency?currency=USD&raw
     boolean hasLoadedDepthDataAtLeastOnce = false;
     boolean wasToldToConnect = false;
+    int numberOfDepthWaits = 0;
     
     
     public MtGox(ASocketFactory factory, CURRENCY curr){
@@ -88,6 +89,7 @@ public class MtGox extends AExchange {
             depthListingTimer = null;
             currencyInformationTimer = null;
             cachedCurrencyData = null;
+            int numberOfDepthLoads = 0;
             super.disconnect();
         }
     }
@@ -202,9 +204,15 @@ public class MtGox extends AExchange {
         depthListingTimer.scheduleAtFixedRate(new TimerTask(){
             public void run(){
                 //
+                // record how many times we try to wait
+                numberOfDepthWaits++;
+
+                //
                 // only allowed to initialize depth data
                 // after we start receiving realtime data
-                if(socketIsConnected && cachedDepthData.size() > 0 || hasLoadedDepthDataAtLeastOnce){
+                if(socketIsConnected && cachedDepthData.size() > 0 ||
+                   socketIsConnected && numberOfDepthWaits > 2 ||
+                       hasLoadedDepthDataAtLeastOnce){
                     hasLoadedDepthDataAtLeastOnce = true;
                     MtGox.this.loadInitialDepthData(MtGox.this.currencyEnum);
                 }
@@ -241,6 +249,8 @@ public class MtGox extends AExchange {
                 //
                 // and only after that we're going to re-run the
                 // realtime data on top of it
+                //
+                // track how many times we try to load
                 JSONObject depthData = null;
                 while(depthData == null){
                     try {
@@ -261,12 +271,12 @@ public class MtGox extends AExchange {
                             }else if(parsedDepthData != null &&
                                parsedDepthData.getString("result").equals("error")){
                                 MtGox.this.log("ERROR LOADING DEPTH: " + depthString);
-                                MtGox.this.log("Sleeping for 15s");
-                                Thread.sleep(15000);
+                                MtGox.this.log("Sleeping and will try again later");
+                                return;
                             }else{
                                 MtGox.this.log("UNKNOWN ERROR LOADING DEPTH: " + depthString);
-                                MtGox.this.log("Sleeping for 15s");
-                                Thread.sleep(15000);
+                                MtGox.this.log("Sleeping and will try again later");
+                                return;
                             }
                         }
                         
