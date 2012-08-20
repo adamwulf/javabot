@@ -12,6 +12,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.locks.*;
+import com.tradebits.exchange.AExchange.CURRENCY;
 
 
 public class MtGoxTest extends TestCase{
@@ -51,7 +52,7 @@ public class MtGoxTest extends TestCase{
                     }
                 };
             }
-        });
+        }, CURRENCY.USD);
         
         mtgox.connect();
         
@@ -87,7 +88,7 @@ public class MtGoxTest extends TestCase{
                     }
                 };
             }
-        });
+        }, CURRENCY.USD);
         
         mtgox.connect();
         
@@ -124,7 +125,7 @@ public class MtGoxTest extends TestCase{
                     }
                 };
             }
-        });
+        }, CURRENCY.USD);
         
         mtgox.connect();
         
@@ -154,7 +155,7 @@ public class MtGoxTest extends TestCase{
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
-        });
+        }, CURRENCY.USD);
         
         // initial connection
         mtgox.connect();
@@ -189,7 +190,7 @@ public class MtGoxTest extends TestCase{
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
-        });
+        }, CURRENCY.USD);
         
         // initial connection
         mtgox.connect();
@@ -223,7 +224,7 @@ public class MtGoxTest extends TestCase{
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
-        });
+        }, CURRENCY.USD);
         
         // initial connection
         mtgox.connect();
@@ -269,7 +270,7 @@ public class MtGoxTest extends TestCase{
                     }
                 };
             }
-        });
+        }, CURRENCY.USD);
         
         // initial connection
         mtgox.connect();
@@ -314,7 +315,7 @@ public class MtGoxTest extends TestCase{
                     }
                 };
             }
-        });
+        }, CURRENCY.USD);
         
         // initial connection
         mtgox.connect();
@@ -408,7 +409,7 @@ public class MtGoxTest extends TestCase{
                     }
                 };
             }
-        });
+        }, CURRENCY.USD);
         
         // initial connection
         mtgox.connect();

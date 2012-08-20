@@ -6,6 +6,7 @@ import java.util.*;
 import javax.net.ssl.*;
 import java.security.cert.*;
 import com.tradebits.exchange.*;
+import com.tradebits.exchange.AExchange.CURRENCY;
 import com.tradebits.socket.*;
 
 public class Trader{
@@ -56,7 +57,7 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
-        MtGox mtGox= new MtGox(socketFactory);
+        MtGox mtGox= new MtGox(socketFactory, CURRENCY.USD);
         mtGox.connect();
         
         

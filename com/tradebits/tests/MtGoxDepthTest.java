@@ -133,7 +133,7 @@ public class MtGoxDepthTest extends TestHelper{
                     }
                 };
             }
-        });
+        }, CURRENCY.USD);
         
         // initial connection
         mtgox.connect();
@@ -164,8 +164,8 @@ public class MtGoxDepthTest extends TestHelper{
         // now we have the cached realtime data,
         // and the REST depth data has been downloaded
         
-        JSONObject highestBid = mtgox.getBid(CURRENCY.USD, 0);
-        JSONObject lowestAsk = mtgox.getAsk(CURRENCY.USD, 0);
+        JSONObject highestBid = mtgox.getBid(0);
+        JSONObject lowestAsk = mtgox.getAsk(0);
         
         
         

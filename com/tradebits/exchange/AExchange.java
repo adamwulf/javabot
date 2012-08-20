@@ -54,11 +54,11 @@ public abstract class AExchange{
         return treeMap.get(price);
     }
     
-    public JSONObject getAskData(CURRENCY currency, double price){
+    public JSONObject getAskData(double price){
         return getBidAskData(price, askDepthData);
     }
     
-    public JSONObject getBidData(CURRENCY currency, double price){
+    public JSONObject getBidData(double price){
         return getBidAskData(price, bidDepthData);
     }
     
@@ -95,12 +95,12 @@ public abstract class AExchange{
         }
     }
     
-    public void setAskData(CURRENCY currency, JSONObject obj) throws ExchangeException{
+    public void setAskData(JSONObject obj) throws ExchangeException{
         // make sure we have the data we need
         this.setBidAskData(obj, askDepthData);
     }
     
-    public void setBidData(CURRENCY currency, JSONObject obj) throws ExchangeException{
+    public void setBidData(JSONObject obj) throws ExchangeException{
         this.setBidAskData(obj, bidDepthData);
     }
     
@@ -155,11 +155,11 @@ public abstract class AExchange{
             throw new ExchangeException(e);
         }
     }
-    public void updateAskData(CURRENCY currency, JSONObject obj) throws ExchangeException{
+    public void updateAskData(JSONObject obj) throws ExchangeException{
         this.updateBidAskData(obj, askDepthData);
     }
     
-    public void updateBidData(CURRENCY currency, JSONObject obj) throws ExchangeException{
+    public void updateBidData(JSONObject obj) throws ExchangeException{
         this.updateBidAskData(obj, bidDepthData);
     }
     
@@ -173,7 +173,7 @@ public abstract class AExchange{
      * so an index 0 is the highest bid or
      * lowest ask
      */
-    public JSONObject getBid(CURRENCY currency, int index){
+    public JSONObject getBid(int index){
         List<Double> keys = new ArrayList<Double>(bidDepthData.keySet());
         for (int i = keys.size() - 1; i >= 0; i--) {
             if(keys.size() - 1 - index == i){
@@ -185,7 +185,7 @@ public abstract class AExchange{
         return null;
     }
     
-    public JSONObject getAsk(CURRENCY currency, int index){
+    public JSONObject getAsk(int index){
         List<Double> keys = new ArrayList<Double>(askDepthData.keySet());
         for (int i = 0; i < keys.size(); i++) {
             if(i == index){
