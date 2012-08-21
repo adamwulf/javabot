@@ -18,6 +18,9 @@ public class Log{
         String logFilePath = logDirectory + File.separator + name + ".log";
         final File logFile = new File(logFilePath);
         
+        this.log("====================================================================");
+        this.log("Begin New Log");
+        
         (new Thread("Log " + name){
             public void run(){
                 synchronized(logs){
