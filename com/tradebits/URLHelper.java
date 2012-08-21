@@ -13,6 +13,7 @@ public class URLHelper{
         String depthString = "";
         // Send data
         URLConnection conn = url.openConnection();
+        conn.setRequestProperty("User-Agent", "Brokerbot Java Trading Bot");
         
         // Get the response
         BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -36,6 +37,7 @@ public class URLHelper{
         String socketInfo = "";
         // Send data
         URLConnection conn = url.openConnection();
+        conn.setRequestProperty("User-Agent", "Brokerbot Java Trading Bot");
         conn.setDoOutput(true);
         OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
         wr.write(data);

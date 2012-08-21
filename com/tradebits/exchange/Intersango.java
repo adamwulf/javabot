@@ -177,6 +177,10 @@ public class Intersango extends AExchange {
         return false;
     }
     
+    public CURRENCY getCurrency(){
+        return CURRENCY.USD;
+    }
+    
     
     /** AExchange **/
     

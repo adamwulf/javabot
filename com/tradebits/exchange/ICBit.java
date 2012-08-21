@@ -223,6 +223,10 @@ public class ICBit extends AExchange {
         return false;
     }
     
+    public CURRENCY getCurrency(){
+        return CURRENCY.USD;
+    }
+    
     
     /** AExchange **/
     

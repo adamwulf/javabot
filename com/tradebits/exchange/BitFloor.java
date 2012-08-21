@@ -172,6 +172,10 @@ public class BitFloor extends AExchange {
         return false;
     }
     
+    public CURRENCY getCurrency(){
+        return CURRENCY.USD;
+    }
+    
     /** AExchange **/
     
     public boolean isCurrencySupported(CURRENCY curr){

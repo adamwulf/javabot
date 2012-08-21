@@ -27,6 +27,8 @@ public abstract class AExchange{
         return name;
     }
     
+    abstract public CURRENCY getCurrency();
+    
     public void log(String log){
         System.out.println(this.getName() + " " + (new Date()) + ": " + log + "\n");
     }

@@ -8,6 +8,7 @@ import java.security.cert.*;
 import com.tradebits.exchange.*;
 import com.tradebits.exchange.AExchange.CURRENCY;
 import com.tradebits.socket.*;
+import org.json.*;
 
 public class Trader{
     
@@ -63,20 +64,20 @@ public class Trader{
         
         final LinkedList<AExchange> exchanges = new LinkedList<AExchange>();
         
-        MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
-//        exchanges.add(mtGoxUSD);
+        final MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
+        exchanges.add(mtGoxUSD);
         
         MtGox mtGoxEUR = new MtGox(socketFactory, CURRENCY.EUR);
-        exchanges.add(mtGoxEUR);
+//        exchanges.add(mtGoxEUR);
         
         MtGox mtGoxAUD = new MtGox(socketFactory, CURRENCY.AUD);
 //        exchanges.add(mtGoxAUD);
         
         MtGox mtGoxCAD = new MtGox(socketFactory, CURRENCY.CAD);
-//        exchanges.add(mtGoxCAD);
+        exchanges.add(mtGoxCAD);
         
         MtGox mtGoxGBP = new MtGox(socketFactory, CURRENCY.GBP);
-//        exchanges.add(mtGoxGBP);
+        exchanges.add(mtGoxGBP);
         
         
         for(AExchange ex : exchanges){
@@ -88,10 +89,29 @@ public class Trader{
         foo.scheduleAtFixedRate(new TimerTask(){
             public void run(){
                 for(AExchange ex : exchanges){
-                    ex.log("isOffline: " + ex.isOffline());
-                    ex.log("isConnected: " + ex.isConnected());
-                    ex.log("bid: " + ex.getBid(0));
-                    ex.log("ask: " + ex.getAsk(0));
+                    if(ex != mtGoxUSD && ex.isConnected()){
+                        //
+                        // ok, lets figure out the "exchange rate" 
+                        // of this currency compared to USD
+                        try{
+                            JSONObject usdAsk = mtGoxUSD.getAsk(0);
+                            double usdToBTC = usdAsk.getDouble("price");
+                            JSONObject exBid = ex.getBid(0);
+                            double exToBTC = exBid.getDouble("price");
+                            double exdusd = exToBTC / usdToBTC;
+                            // "how many EXD do we get per USD?"
+                            ex.log("exchange rate: " + ex.getCurrency() + mtGoxUSD.getCurrency() + ": " + exdusd);
+                            ex.log("bid: " + ex.getBid(0));
+                            ex.log("ask: " + ex.getAsk(0));
+                        }catch(JSONException e){
+                            ex.log("error calculating currency exchange rates: ");
+                            e.printStackTrace();
+                        }
+                    }else if(ex.isOffline()){
+                        ex.log("is offline");
+                    }else if(ex.isConnecting()){
+                        ex.log("is connecting");
+                    }
                     if(ex.isOffline()){
                         ex.connect();
                     }

@@ -34,6 +34,7 @@ public class MtGox extends AExchange {
     boolean hasLoadedDepthDataAtLeastOnce = false;
     boolean wasToldToConnect = false;
     boolean socketHasReceivedAnyMessage = false;
+    Date lastRESTDepthCheck = null;
     
     
     public MtGox(ASocketFactory factory, CURRENCY curr){
@@ -224,13 +225,19 @@ public class MtGox extends AExchange {
                 // only allowed to initialize depth data
                 // after we start receiving realtime data
                 MtGox.this.log("socket connected: " + socketIsConnected + " and received message: " + socketHasReceivedAnyMessage);
-                if(MtGox.this.isConnected() ||
-                       hasLoadedDepthDataAtLeastOnce){
-                    hasLoadedDepthDataAtLeastOnce = true;
-                    MtGox.this.loadInitialDepthData(MtGox.this.currencyEnum);
+                if(socketIsConnected || hasLoadedDepthDataAtLeastOnce){
+                    Date now = new Date();
+                    //
+                    // only load once each hour - yikes!
+                    // this is b/c mtgox has an extremely aggressive anti DDOS in place
+                    if(lastRESTDepthCheck == null || now.after(new Date(lastRESTDepthCheck.getTime() + 1000*60*60))){
+                        hasLoadedDepthDataAtLeastOnce = true;
+                        lastRESTDepthCheck = now;
+                        MtGox.this.loadInitialDepthData(MtGox.this.currencyEnum);
+                    }
                 }
             }
-        }, 15000, 15000);
+        }, 15000, 30000);
     }
     
     
@@ -450,7 +457,6 @@ public class MtGox extends AExchange {
                 }
             }else{
                 this.log("UNKNOWN MESSAGE: " + messageText);
-                this.log("messageText: " + messageText);
             }
         }catch(Exception e){
             socket.disconnect();
@@ -487,7 +493,7 @@ public class MtGox extends AExchange {
                 }
             }else{
                 // wrong currency!
-                this.log(" did NOT load depth message for " + curr);
+//                this.log(" did NOT load depth message for " + curr);
             }
         }
     }
