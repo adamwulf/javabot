@@ -37,7 +37,7 @@ public class Log{
                             FileWriter fileWritter = new FileWriter(logFile,true);
                             BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
                             while(logs.size() > 0){
-                                bufferWritter.write(logs.removeFirst());
+                                bufferWritter.write(logs.removeFirst() + "\n");
                             }
                             bufferWritter.close();
                         }catch(IOException e){ }
