@@ -92,7 +92,7 @@ public class MtGox extends AExchange {
     }
     
     protected void disconnectHelper(){
-        if(this.isConnected() || socket != null){
+        if(socketIsConnected || socket != null){
             if(socket != null) socket.disconnect();
             socket = null;
             hasLoadedDepthDataAtLeastOnce = false;
@@ -105,6 +105,7 @@ public class MtGox extends AExchange {
             currencyInformationTimer = null;
             cachedCurrencyData = null;
             socketHasReceivedAnyMessage = false;
+            lastRESTDepthCheck = null;
             super.disconnect();
         }
     }
@@ -121,7 +122,7 @@ public class MtGox extends AExchange {
     
     protected void connectHelper(){
         try{
-            
+            this.log("Connecting...");
             if(!this.isConnected() && wasToldToConnect){
                 
                 //
@@ -137,7 +138,7 @@ public class MtGox extends AExchange {
                     public void run(){
                         MtGox.this.loadCurrencyDataFor(MtGox.this.currencyEnum);
                     }
-                }, 1000*60*5, 1000*60*5);
+                }, 1000*60*60, 1000*60*60);
                 
                 
                 //
@@ -201,7 +202,7 @@ public class MtGox extends AExchange {
                     public void onHeartbeatSent(ASocketHelper socket){
                         //
                         // update our depth data as often as we heartbeat
-                        MtGox.this.log("~h~");
+//                        MtGox.this.log("~h~");
                     }
                 });
             }
@@ -224,8 +225,7 @@ public class MtGox extends AExchange {
                 //
                 // only allowed to initialize depth data
                 // after we start receiving realtime data
-                MtGox.this.log("socket connected: " + socketIsConnected + " and received message: " + socketHasReceivedAnyMessage);
-                if(socketIsConnected || hasLoadedDepthDataAtLeastOnce){
+                if(socketIsConnected || !hasLoadedDepthDataAtLeastOnce){
                     Date now = new Date();
                     //
                     // only load once each hour - yikes!
@@ -440,6 +440,8 @@ public class MtGox extends AExchange {
                 this.log("ERROR: command failed on socket - reconnecting: " + messageText);
                 socketIsConnected = false;
                 this.disconnect();
+            }else if(msg.getString("op").equals("subscribe")){
+                // ignore
             }else if(msg.getString("op").equals("private")){
                 // ok, we got a valid message from the socket,
                 // so remeber that fact. we'll use this info

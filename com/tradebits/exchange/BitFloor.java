@@ -118,7 +118,7 @@ public class BitFloor extends AExchange {
                     return false;
                 }
                 public void run(){
-                    System.out.println("~h~");
+//                    System.out.println("~h~");
                     try{
                         String msg = "2::";
                         socketConnection.sendMessage(msg);

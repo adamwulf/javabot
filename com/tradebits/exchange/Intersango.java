@@ -117,7 +117,7 @@ public class Intersango extends AExchange {
                 }
                 public void run(){
                     String msg = "2::";
-                    Intersango.this.log("~h~");
+//                    Intersango.this.log("~h~");
                     try{
                         socketConnection.sendMessage(msg);
                     }catch(Exception e){

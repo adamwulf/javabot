@@ -58,9 +58,11 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
+        final Log exchangeRatesOverTimeLog = new Log("Exchange Rates");
+        
         File logDir = new File(System.getProperty("logPath"));
         
-        
+        final OpenExchangeRates exchangeRates = new OpenExchangeRates(socketFactory.getURLHelper());
         
         final LinkedList<AExchange> exchanges = new LinkedList<AExchange>();
         
@@ -79,17 +81,31 @@ public class Trader{
         MtGox mtGoxGBP = new MtGox(socketFactory, CURRENCY.GBP);
         exchanges.add(mtGoxGBP);
         
+        exchanges.add(new MtGox(socketFactory, CURRENCY.CHF));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.CNY));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.DKK));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.HKD));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.JPY));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.NZD));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.PLN));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.RUB));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.SEK));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.SGD));
+        exchanges.add(new MtGox(socketFactory, CURRENCY.THB));
         
         for(AExchange ex : exchanges){
             ex.connect();
+            Thread.sleep(5000);
         }
         
 
         Timer foo = new Timer();
         foo.scheduleAtFixedRate(new TimerTask(){
             public void run(){
+                JSONObject rates = exchangeRates.getUSDRates();
+                System.out.println("****************************************");
                 for(AExchange ex : exchanges){
-                    if(ex != mtGoxUSD && ex.isConnected()){
+                    if(ex != mtGoxUSD && ex.isConnected() && mtGoxUSD.isConnected()){
                         //
                         // ok, lets figure out the "exchange rate" 
                         // of this currency compared to USD
@@ -99,14 +115,17 @@ public class Trader{
                             JSONObject exBid = ex.getBid(0);
                             double exToBTC = exBid.getDouble("price");
                             double exdusd = exToBTC / usdToBTC;
+                            double actualRate = rates.getDouble(ex.getCurrency().toString());
                             // "how many EXD do we get per USD?"
-                            ex.log("exchange rate: " + ex.getCurrency() + mtGoxUSD.getCurrency() + ": " + exdusd);
+                            exchangeRatesOverTimeLog.log("exchange rate: " + ex.getCurrency() + mtGoxUSD.getCurrency() + ": " + exdusd + " vs " + actualRate + " diff= " + (exdusd/actualRate));
                             ex.log("bid: " + ex.getBid(0));
                             ex.log("ask: " + ex.getAsk(0));
                         }catch(JSONException e){
-                            ex.log("error calculating currency exchange rates: ");
+                            exchangeRatesOverTimeLog.log("error calculating currency exchange rates: ");
                             e.printStackTrace();
                         }
+                    }else if(mtGoxUSD.isOffline()){
+                        mtGoxUSD.log("is offline");
                     }else if(ex.isOffline()){
                         ex.log("is offline");
                     }else if(ex.isConnecting()){
@@ -116,6 +135,7 @@ public class Trader{
                         ex.connect();
                     }
                 }
+                System.out.println("****************************************");
             }
         }, 10000, 10000);
     }

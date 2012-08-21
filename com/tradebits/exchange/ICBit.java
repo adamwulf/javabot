@@ -143,7 +143,7 @@ public class ICBit extends AExchange {
                 }
                 public void run(){
                     String msg = "2::";
-                    System.out.println("~h~");
+//                    System.out.println("~h~");
                     try{
                         socketConnection.sendMessage(msg);
                     }catch(Exception e){
