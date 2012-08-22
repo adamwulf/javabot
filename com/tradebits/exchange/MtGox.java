@@ -3,15 +3,9 @@ package com.tradebits.exchange;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import com.tradebits.*;
 import com.tradebits.socket.*;
-import com.kaazing.gateway.client.html5.WebSocket;
-import com.kaazing.gateway.client.html5.WebSocketAdapter;
-import com.kaazing.gateway.client.html5.WebSocketEvent;
-import org.java_websocket.client.*;
-import org.java_websocket.drafts.*;
-import org.java_websocket.handshake.*;
-import java.nio.ByteBuffer;
 import org.json.*;
 
 
@@ -19,7 +13,6 @@ import org.json.*;
  * a class to connect to mtgox exchange
  */
 public class MtGox extends AExchange {
-    
     ASocketHelper socket;
     
     ASocketFactory socketFactory;
@@ -30,17 +23,23 @@ public class MtGox extends AExchange {
     Timer currencyInformationTimer;
     CURRENCY currencyEnum;
     MtGoxCurrency cachedCurrencyData = null;
-    // TODO https://mtgox.com/api/1/generic/currency?currency=USD&raw
     boolean hasLoadedDepthDataAtLeastOnce = false;
     boolean wasToldToConnect = false;
     boolean socketHasReceivedAnyMessage = false;
     Date lastRESTDepthCheck = null;
+    
+    Log rawDepthDataLog;
+    Log rawSocketMessagesLog;
     
     
     public MtGox(ASocketFactory factory, CURRENCY curr){
         super("MtGox");
         this.currencyEnum = curr;
         this.socketFactory = factory;
+        try{
+            rawDepthDataLog = new NullLog(curr + " Depth");
+            rawSocketMessagesLog = new NullLog(curr + " Socket");
+        }catch(IOException e){ }
     }
     
     public String getName(){
@@ -49,20 +48,6 @@ public class MtGox extends AExchange {
 
     public CURRENCY getCurrency(){
         return this.currencyEnum;
-    }
-    
-    protected synchronized void resetAndReconnect(){
-        if(!this.isConnected() && wasToldToConnect){
-            this.log("RESET AND RECONNECT");
-            try{
-                //
-                // don't allow us to spam mtgox with reconnects
-                // limit to 12s
-                Thread.sleep(12000);
-            }catch(InterruptedException e){ }
-            this.disconnectHelper();
-            this.connectHelper();
-        }
     }
     
     public int numberOfCachedDepthData(){
@@ -207,6 +192,23 @@ public class MtGox extends AExchange {
                 });
             }
             socket.connect();
+        }catch(ConnectException e){
+            //
+            // can happen if the POST to handshake the
+            // socket dies on connection
+            if(socket != null){
+                socket.setListener(null);
+            }
+            socketIsConnected = false;
+            this.disconnect();
+        }catch(TimeoutException e){
+            //
+            // happens w/ mtgox socket a lot
+            if(socket != null){
+                socket.setListener(null);
+            }
+            socketIsConnected = false;
+            this.disconnect();
         }catch(Exception e){
             e.printStackTrace();
             if(socket != null){
@@ -288,6 +290,7 @@ public class MtGox extends AExchange {
                             if(parsedDepthData != null &&
                                parsedDepthData.getString("result").equals("success")){
                                 depthData = parsedDepthData;
+                                rawDepthDataLog.log(depthString);
                             }else if(parsedDepthData != null &&
                                parsedDepthData.getString("result").equals("error")){
                                 MtGox.this.log("ERROR LOADING DEPTH: " + depthString);
@@ -453,7 +456,7 @@ public class MtGox extends AExchange {
 //                    this.log("depth data" + "\n" + messageText.substring(0, Math.min(100, messageText.length())));
                     this.processDepthData(msg);
                 }else if(msg.getString("private").equals("trade")){
-//                    this.log("trade data" + "\n" + messageText);
+                    this.processTradeData(msg);
                 }else{
                     this.log("unknown feed type: " + msg.getString("private"));
                 }
@@ -468,11 +471,23 @@ public class MtGox extends AExchange {
         }
     }
     
+    protected void processTradeData(JSONObject tradeMessage) throws JSONException, ExchangeException{
+        synchronized(this){
+            CURRENCY curr = CURRENCY.valueOf(tradeMessage.getJSONObject("trade").getString("price_currency"));
+            if(curr.equals(currencyEnum)){
+                rawSocketMessagesLog.log(tradeMessage.toString());
+            }else{
+                // noop, wrong currency
+            }
+        }
+    }
+    
     protected void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException{
         synchronized(this){
             
             CURRENCY curr = CURRENCY.valueOf(depthMessage.getJSONObject("depth").getString("currency"));
             if(curr.equals(currencyEnum)){
+                rawSocketMessagesLog.log(depthMessage.toString());
                 String type = depthMessage.getJSONObject("depth").getString("type_str");
                 JSONObject depthData = depthMessage.getJSONObject("depth");
                 long totalVolInt = depthData.getLong("total_volume_int");
@@ -493,6 +508,9 @@ public class MtGox extends AExchange {
                     cachedDepthData.add(depthMessage);
                     this.log("caching " + type + " (" + cachedDepthData.size() + ")");
                 }
+                rawSocketMessagesLog.log("bid: " + MtGox.this.getBid(0));
+                rawSocketMessagesLog.log("ask: " + MtGox.this.getAsk(0));
+
             }else{
                 // wrong currency!
 //                this.log(" did NOT load depth message for " + curr);

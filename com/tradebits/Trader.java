@@ -58,7 +58,8 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
-        final Log exchangeRatesOverTimeLog = new Log("Exchange Rates");
+        final Log exchangeRatesFromUSDOverTimeLog = new Log("Exchange Rates USD => EXD");
+        final Log exchangeRatesToUSDOverTimeLog = new Log("Exchange Rates USD <= EXD");
         
         File logDir = new File(System.getProperty("logPath"));
         
@@ -69,29 +70,22 @@ public class Trader{
         final MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
         exchanges.add(mtGoxUSD);
         
-        MtGox mtGoxEUR = new MtGox(socketFactory, CURRENCY.EUR);
-//        exchanges.add(mtGoxEUR);
-        
-        MtGox mtGoxAUD = new MtGox(socketFactory, CURRENCY.AUD);
-//        exchanges.add(mtGoxAUD);
-        
-        MtGox mtGoxCAD = new MtGox(socketFactory, CURRENCY.CAD);
-        exchanges.add(mtGoxCAD);
-        
-        MtGox mtGoxGBP = new MtGox(socketFactory, CURRENCY.GBP);
-        exchanges.add(mtGoxGBP);
-        
-        exchanges.add(new MtGox(socketFactory, CURRENCY.CHF));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.CNY));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.DKK));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.HKD));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.JPY));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.NZD));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.PLN));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.RUB));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.SEK));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.SGD));
-        exchanges.add(new MtGox(socketFactory, CURRENCY.THB));
+        exchanges.add(new Intersango2(socketFactory, CURRENCY.USD));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.EUR));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.AUD));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.CAD));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.GBP));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.CHF));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.CNY));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.DKK));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.HKD));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.JPY));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.NZD));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.PLN));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.RUB));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.SEK));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.SGD));
+//        exchanges.add(new MtGox(socketFactory, CURRENCY.THB));
         
         for(AExchange ex : exchanges){
             ex.connect();
@@ -101,29 +95,46 @@ public class Trader{
 
         Timer foo = new Timer();
         foo.scheduleAtFixedRate(new TimerTask(){
+            JSONObject rates;
+            public void logExchangeRates(AExchange fromEx, AExchange toEx, Log logFile){
+                try{
+                    JSONObject usdAsk = fromEx.getAsk(0);
+                    JSONObject exBid = toEx.getBid(0);
+                    if(usdAsk != null && exBid != null){
+                        double usdToBTC = usdAsk.getDouble("price");
+                        double exToBTC = exBid.getDouble("price");
+                        double exdusd = exToBTC / usdToBTC;
+                        double actualRate = rates.getDouble(toEx.getCurrency().toString());
+                        if(toEx == mtGoxUSD){
+                            actualRate = 1 / rates.getDouble(fromEx.getCurrency().toString());
+                        }
+                        // "how many EXD do we get per USD?"
+                        logFile.log("exchange rate: " + toEx.getCurrency() + "/" + fromEx.getCurrency() + 
+                                    ": " + exdusd + " vs " + actualRate + " diff= " + (exdusd/actualRate));
+                        toEx.log("bid: " + toEx.getBid(0));
+                        toEx.log("ask: " + toEx.getAsk(0));
+                    }else if(usdAsk == null){
+                        logFile.log("no bid for: " + fromEx.getCurrency());
+                    }else if(exBid == null){
+                        logFile.log("no bid for: " + toEx.getCurrency());
+                    }
+                }catch(JSONException e){
+                    logFile.log("error calculating currency exchange rates: ");
+                    e.printStackTrace();
+                }
+            }
             public void run(){
-                JSONObject rates = exchangeRates.getUSDRates();
-                System.out.println("****************************************");
+                rates = exchangeRates.getUSDRates();
                 for(AExchange ex : exchanges){
                     if(ex != mtGoxUSD && ex.isConnected() && mtGoxUSD.isConnected()){
                         //
                         // ok, lets figure out the "exchange rate" 
                         // of this currency compared to USD
-                        try{
-                            JSONObject usdAsk = mtGoxUSD.getAsk(0);
-                            double usdToBTC = usdAsk.getDouble("price");
-                            JSONObject exBid = ex.getBid(0);
-                            double exToBTC = exBid.getDouble("price");
-                            double exdusd = exToBTC / usdToBTC;
-                            double actualRate = rates.getDouble(ex.getCurrency().toString());
-                            // "how many EXD do we get per USD?"
-                            exchangeRatesOverTimeLog.log("exchange rate: " + ex.getCurrency() + mtGoxUSD.getCurrency() + ": " + exdusd + " vs " + actualRate + " diff= " + (exdusd/actualRate));
-                            ex.log("bid: " + ex.getBid(0));
-                            ex.log("ask: " + ex.getAsk(0));
-                        }catch(JSONException e){
-                            exchangeRatesOverTimeLog.log("error calculating currency exchange rates: ");
-                            e.printStackTrace();
-                        }
+                        AExchange fromEx = mtGoxUSD;
+                        AExchange toEx = ex;
+                        this.logExchangeRates(fromEx, toEx, exchangeRatesFromUSDOverTimeLog);
+                        this.logExchangeRates(toEx, fromEx, exchangeRatesToUSDOverTimeLog);
+                        
                     }else if(mtGoxUSD.isOffline()){
                         mtGoxUSD.log("is offline");
                     }else if(ex.isOffline()){
@@ -135,7 +146,6 @@ public class Trader{
                         ex.connect();
                     }
                 }
-                System.out.println("****************************************");
             }
         }, 10000, 60000);
     }

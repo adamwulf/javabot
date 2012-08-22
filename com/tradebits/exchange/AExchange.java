@@ -33,14 +33,6 @@ public abstract class AExchange{
         System.out.println(this.getName() + " " + (new Date()) + ": " + log + "\n");
     }
     
-    protected void resetAndReconnect(){
-        if(!this.isConnected()){
-            this.log("RESET AND RECONNECT");
-            this.disconnect();
-            this.connect();
-        }
-    }
-    
     public void disconnect(){
         bidDepthData = new TreeMap<Double, JSONObject>();
         askDepthData = new TreeMap<Double, JSONObject>();
@@ -71,37 +63,39 @@ public abstract class AExchange{
     // methods for maintaining book
     
     private void setBidAskData(JSONObject obj, TreeMap<Double, JSONObject> treeMap) throws ExchangeException{
-        try{
-            obj.get("price");
-            obj.get("volume_int");
-            obj.get("stamp");
-            
-            if(!obj.has("log")){
-                JSONArray arr = new JSONArray();
-                JSONObject firstLog = new JSONObject();
-                firstLog.put("volume_int", obj.getLong("volume_int"));
-                firstLog.put("stamp", obj.get("stamp"));
-                firstLog.put("first", true);
-                arr.put(firstLog);
-                obj.put("log", arr);
-            }else{
-                JSONArray log = obj.getJSONArray("log");
-                JSONObject logItem = new JSONObject();
-                logItem.put("volume_int", obj.getLong("volume_int"));
-                logItem.put("stamp", obj.get("stamp"));
-                logItem.put("diff", true);
-                log.put(logItem);
-                obj.put("log", log);
-            }
-            
-            if(obj.getLong("volume_int") > 0){
-                treeMap.put(obj.getDouble("price"), obj);
-            }else{
-                treeMap.remove(obj.getDouble("price"));
-            }
+        synchronized(treeMap){
+            try{
+                obj.get("price");
+                obj.get("volume_int");
+                obj.get("stamp");
+                
+                if(!obj.has("log")){
+                    JSONArray arr = new JSONArray();
+                    JSONObject firstLog = new JSONObject();
+                    firstLog.put("volume_int", obj.getLong("volume_int"));
+                    firstLog.put("stamp", obj.get("stamp"));
+                    firstLog.put("first", true);
+                    arr.put(firstLog);
+                    obj.put("log", arr);
+                }else{
+                    JSONArray log = obj.getJSONArray("log");
+                    JSONObject logItem = new JSONObject();
+                    logItem.put("volume_int", obj.getLong("volume_int"));
+                    logItem.put("stamp", obj.get("stamp"));
+                    logItem.put("diff", true);
+                    log.put(logItem);
+                    obj.put("log", log);
+                }
+                
+                if(obj.getLong("volume_int") > 0){
+                    treeMap.put(obj.getDouble("price"), obj);
+                }else{
+                    treeMap.remove(obj.getDouble("price"));
+                }
 //                this.log("set data for " + obj.getDouble("price") + " to vol " + obj.getDouble("volume_int"));
-        }catch(JSONException e){
-            throw new ExchangeException(e);
+            }catch(JSONException e){
+                throw new ExchangeException(e);
+            }
         }
     }
     
@@ -118,51 +112,53 @@ public abstract class AExchange{
     
     
     private void updateBidAskData(JSONObject obj, TreeMap<Double, JSONObject> treeMap) throws ExchangeException{
-        try{
-            obj.getDouble("price");
-            obj.getDouble("volume_int");
-            obj.get("stamp");
-            
-            JSONObject cachedObj = treeMap.get(obj.getDouble("price"));
-            if(cachedObj == null){
-                // set
-                this.setBidAskData(obj, treeMap);
-            }else{
-                // update
-                long cachedVolumeInt = cachedObj.getLong("volume_int");
-                Date cachedStamp = (Date) cachedObj.get("stamp");
+        synchronized(treeMap){
+            try{
+                obj.getDouble("price");
+                obj.getDouble("volume_int");
+                obj.get("stamp");
                 
-                if(!cachedStamp.after((Date)obj.get("stamp"))){
-                    // the cached data is earlier than the input data
-                    JSONObject newCachedObj = new JSONObject();
-                    double price = obj.getDouble("price");
-                    long newVolumeInt = cachedVolumeInt + obj.getLong("volume_int");
-                    
-                    
-                    newCachedObj.put("price", price);
-                    newCachedObj.put("volume_int", newVolumeInt);
-                    newCachedObj.put("stamp", obj.get("stamp"));
-                    
-                    //
-                    // update the data
-                    this.setBidAskData(newCachedObj, treeMap);
-
-                    if(cachedVolumeInt < 0){
-                        this.log("WAS negative volume " + cachedVolumeInt + ", now" + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
-                    }else if(newVolumeInt < 0){
-                        this.log("negative volume data " + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
-                    }
-
-                    this.log("updating data for " + newCachedObj.getDouble("price") + " to vol " + newCachedObj.getLong("volume_int"));
+                JSONObject cachedObj = treeMap.get(obj.getDouble("price"));
+                if(cachedObj == null){
+                    // set
+                    this.setBidAskData(obj, treeMap);
                 }else{
-                    // the input data is earlier than the cached data
-                    //
-                    // noop
-                    this.log("ignoring data, timestamp was earlier than cached data");
+                    // update
+                    long cachedVolumeInt = cachedObj.getLong("volume_int");
+                    Date cachedStamp = (Date) cachedObj.get("stamp");
+                    
+                    if(!cachedStamp.after((Date)obj.get("stamp"))){
+                        // the cached data is earlier than the input data
+                        JSONObject newCachedObj = new JSONObject();
+                        double price = obj.getDouble("price");
+                        long newVolumeInt = cachedVolumeInt + obj.getLong("volume_int");
+                        
+                        
+                        newCachedObj.put("price", price);
+                        newCachedObj.put("volume_int", newVolumeInt);
+                        newCachedObj.put("stamp", obj.get("stamp"));
+                        
+                        //
+                        // update the data
+                        this.setBidAskData(newCachedObj, treeMap);
+                        
+                        if(cachedVolumeInt < 0){
+                            this.log("WAS negative volume " + cachedVolumeInt + ", now" + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
+                        }else if(newVolumeInt < 0){
+                            this.log("negative volume data " + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
+                        }
+                        
+                        this.log("updating data for " + newCachedObj.getDouble("price") + " to vol " + newCachedObj.getLong("volume_int"));
+                    }else{
+                        // the input data is earlier than the cached data
+                        //
+                        // noop
+                        this.log("ignoring data, timestamp was earlier than cached data");
+                    }
                 }
+            }catch(JSONException e){
+                throw new ExchangeException(e);
             }
-        }catch(JSONException e){
-            throw new ExchangeException(e);
         }
     }
     public void updateAskData(JSONObject obj) throws ExchangeException{
@@ -184,22 +180,26 @@ public abstract class AExchange{
      * lowest ask
      */
     public JSONObject getBid(int index){
-        List<Double> keys = new ArrayList<Double>(bidDepthData.keySet());
-        for (int i = keys.size() - 1; i >= 0; i--) {
-            if(keys.size() - 1 - index == i){
-                Double key = keys.get(i);
-                return bidDepthData.get(key);
+        synchronized(bidDepthData){
+            List<Double> keys = new ArrayList<Double>(bidDepthData.keySet());
+            for (int i = keys.size() - 1; i >= 0; i--) {
+                if(keys.size() - 1 - index == i){
+                    Double key = keys.get(i);
+                    return bidDepthData.get(key);
+                }
             }
         }
         return null;
     }
     
     public JSONObject getAsk(int index){
-        List<Double> keys = new ArrayList<Double>(askDepthData.keySet());
-        for (int i = 0; i < keys.size(); i++) {
-            if(i == index){
-                Double key = keys.get(i);
-                return askDepthData.get(key);
+        synchronized(askDepthData){
+            List<Double> keys = new ArrayList<Double>(askDepthData.keySet());
+            for (int i = 0; i < keys.size(); i++) {
+                if(i == index){
+                    Double key = keys.get(i);
+                    return askDepthData.get(key);
+                }
             }
         }
         return null;
