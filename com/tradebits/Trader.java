@@ -92,11 +92,11 @@ public class Trader{
             Thread.sleep(5000);
         }
         
-
+        final Date lastRun = new Date();
         Timer foo = new Timer();
         foo.scheduleAtFixedRate(new TimerTask(){
             JSONObject rates;
-            public void logExchangeRates(AExchange fromEx, AExchange toEx, Log logFile){
+            public boolean logExchangeRates(AExchange fromEx, AExchange toEx, Log logFile){
                 try{
                     JSONObject usdAsk = fromEx.getAsk(0);
                     JSONObject exBid = toEx.getBid(0);
@@ -108,15 +108,22 @@ public class Trader{
                         if(toEx == mtGoxUSD){
                             actualRate = 1 / rates.getDouble(fromEx.getCurrency().toString());
                         }
+                        double trigger = Math.abs(exdusd / actualRate - 1);
                         // "how many EXD do we get per USD?"
-                        logFile.log("exchange rate: " + toEx.getName() + "/" + fromEx.getName() + 
-                                    ": " + exdusd + " vs " + actualRate + " diff= " + (exdusd/actualRate));
-                        if(Math.abs(exdusd / actualRate - 1) > .05){
-                            // 5% difference in price
-                            logFile.log(fromEx.getName() + " bid: " + fromEx.getBid(0));
-                            logFile.log(fromEx.getName() + " ask: " + fromEx.getAsk(0));
-                            logFile.log(toEx.getName() + " bid: " + toEx.getBid(0));
-                            logFile.log(toEx.getName() + " ask: " + toEx.getAsk(0));
+                        if(new Date().getTime() - lastRun.getTime() > 60000 || trigger > .03){
+                            //
+                            // only log if it's time to
+                            logFile.log("exchange rate: " + toEx.getName() + "/" + fromEx.getName() + 
+                                        ": " + exdusd + " vs " + actualRate + " diff= " + (exdusd/actualRate) + " vol= " + 
+                                        Math.min(usdAsk.getDouble("volume"),exBid.getDouble("volume")) + " trigger=" + trigger);
+                            if(trigger > .03){
+                                // 5% difference in price
+                                logFile.log(" - " + fromEx.getName() + " bid: " + fromEx.getBid(0));
+                                logFile.log(" - " + fromEx.getName() + " ask: " + fromEx.getAsk(0));
+                                logFile.log(" - " + toEx.getName() + " bid: " + toEx.getBid(0));
+                                logFile.log(" - " + toEx.getName() + " ask: " + toEx.getAsk(0));
+                            }
+                            return true;
                         }
                     }else if(usdAsk == null){
                         logFile.log("no bid for: " + fromEx.getCurrency());
@@ -127,8 +134,10 @@ public class Trader{
                     logFile.log("error calculating currency exchange rates: ");
                     e.printStackTrace();
                 }
+                return false;
             }
             public void run(){
+                boolean didLog = false;
                 rates = exchangeRates.getUSDRates();
                 for(AExchange ex : exchanges){
                     if(ex != mtGoxUSD && ex.isConnected() && mtGoxUSD.isConnected()){
@@ -137,8 +146,8 @@ public class Trader{
                         // of this currency compared to USD
                         AExchange fromEx = mtGoxUSD;
                         AExchange toEx = ex;
-                        this.logExchangeRates(fromEx, toEx, exchangeRatesFromUSDOverTimeLog);
-                        this.logExchangeRates(toEx, fromEx, exchangeRatesToUSDOverTimeLog);
+                        didLog = this.logExchangeRates(fromEx, toEx, exchangeRatesFromUSDOverTimeLog) || didLog;
+                        didLog = this.logExchangeRates(toEx, fromEx, exchangeRatesToUSDOverTimeLog) || didLog;
                         
                     }else if(mtGoxUSD.isOffline()){
                         mtGoxUSD.log("is offline");
@@ -151,7 +160,10 @@ public class Trader{
                         ex.connect();
                     }
                 }
+                if(didLog){
+                    lastRun.setTime(new Date().getTime());
+                }
             }
-        }, 10000, 60000);
+        }, 10000, 1000);
     }
 }
