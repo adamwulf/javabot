@@ -11,7 +11,7 @@ import org.json.*;
 
 
 
-public class Intersango2 extends AExchange{
+public class Intersango extends AExchange{
     
     CURRENCY currencyEnum;
     ASocketHelper socket;
@@ -31,8 +31,8 @@ public class Intersango2 extends AExchange{
      * 3 = BTC:USD
      * 4 = BTC:PLN
      */
-    public Intersango2(ASocketFactory factory, CURRENCY curr){
-        super("Intersango2");
+    public Intersango(ASocketFactory factory, CURRENCY curr){
+        super("Intersango");
         this.currencyEnum = curr;
         this.socketFactory = factory;
         if(curr.equals(CURRENCY.GBP)){
@@ -76,17 +76,17 @@ public class Intersango2 extends AExchange{
                 socket.setListener(new ISocketHelperListener(){
                     
                     public void onOpen(ASocketHelper socket){
-                        Intersango2.this.log("OPEN");
+                        Intersango.this.log("OPEN");
                         socketIsConnected = true;
                     }
                     
                     public void onClose(ASocketHelper socket, int closeCode, String message){
-                        Intersango2.this.log("CLOSE");
+                        Intersango.this.log("CLOSE");
                         socketIsConnected = false;
                         // if this flag is still true,
                         // then MtGox disconnect() has
                         // not been called
-                        Intersango2.this.disconnect();
+                        Intersango.this.disconnect();
                     }
                     
                     public void onError(ASocketHelper socket, String message){
@@ -104,21 +104,21 @@ public class Intersango2 extends AExchange{
                                 return;
                             }else if(data.startsWith(dataPrefix)){
                                 data = data.substring(dataPrefix.length());
-                                Intersango2.this.processMessage(data);
+                                Intersango.this.processMessage(data);
                                 return;
                             }
-                            Intersango2.this.log(data);
+                            Intersango.this.log(data);
                         }catch(Exception e){
                             aSocket.disconnect();
                             socketIsConnected = false;
-                            Intersango2.this.disconnect();
+                            Intersango.this.disconnect();
                         }
                     }
                     
                     public void onHeartbeatSent(ASocketHelper socket){
                         //
                         // update our depth data as often as we heartbeat
-//                        Intersango2.this.log("~h~");
+//                        Intersango.this.log("~h~");
                     }
                 });
             }

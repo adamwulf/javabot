@@ -70,7 +70,7 @@ public class Trader{
         final MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
         exchanges.add(mtGoxUSD);
         
-        exchanges.add(new Intersango2(socketFactory, CURRENCY.USD));
+        exchanges.add(new Intersango(socketFactory, CURRENCY.USD));
 //        exchanges.add(new MtGox(socketFactory, CURRENCY.EUR));
 //        exchanges.add(new MtGox(socketFactory, CURRENCY.AUD));
 //        exchanges.add(new MtGox(socketFactory, CURRENCY.CAD));
