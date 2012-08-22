@@ -21,7 +21,7 @@ public class Intersango extends AExchange{
     boolean socketIsConnected = false;
     boolean socketHasReceivedAnyMessage = false;
     boolean hasLoadedDepthDataAtLeastOnce = false;
-    int intersangoCurrencyEnum;
+    Integer intersangoCurrencyEnum;
             
     /**
      * https://intersango.com/api.php
@@ -139,10 +139,12 @@ public class Intersango extends AExchange{
             socketHasReceivedAnyMessage = true;
             if(msg.getString("name").equals("orderbook")){
                 hasLoadedDepthDataAtLeastOnce = true;
-                this.log("got depth table: " + messageText);
+                this.processDepthData(msg);
             }else if(msg.getString("name").equals("depth")){
-                this.log("got depth update: " + messageText);
+                this.processDepthUpdate(msg);
             }else if(msg.getString("name").equals("tickers")){
+                // ignore
+            }else if(msg.getString("name").equals("trade")){
                 // ignore
             }else{
                 this.log("UNKNOWN MESSAGE: " + messageText);
@@ -172,7 +174,66 @@ public class Intersango extends AExchange{
     }
     
     
-    /** AExchange **/
+    private double intToDouble(int number){
+        return (double) number / Math.pow(10, 5);
+    }
+    
+    //
+    // returns an int, assuming 5 places
+    // after the decimal
+    private int doubleToInt(double number){
+        return (int) (number * Math.pow(10, 5));
+    }
+    
+    
+    protected void processDepthUpdate(JSONObject depthMessage) throws JSONException, ExchangeException{
+        JSONObject depthData = depthMessage.getJSONArray("args").getJSONObject(0);
+        if(intersangoCurrencyEnum.intValue() == depthData.getInt("currency_pair_id")){
+            this.log("got depth update w/ correct currency: " + depthMessage);
+            
+            JSONObject cachableData = new JSONObject();
+            cachableData.put("price", depthData.getDouble("rate"));
+            cachableData.put("volume_int", this.doubleToInt(depthData.getDouble("amount")));
+            cachableData.put("stamp",new Date());
+
+            if(depthData.get("type").equals("bids")){
+                this.updateBidData(cachableData);
+            }else if(depthData.get("type").equals("asks")){
+                this.updateAskData(cachableData);
+            }
+        }else{
+            // wrong currency
+        }
+    }
+    
+    protected void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException{
+        synchronized(this){
+            this.log("got depth table: " + depthMessage);
+            JSONObject orderBooks = depthMessage.getJSONArray("args").getJSONObject(0);
+            JSONObject orderBook = orderBooks.getJSONObject(intersangoCurrencyEnum.toString());
+            
+            JSONObject bids = orderBook.getJSONObject("bids");
+            JSONObject asks = orderBook.getJSONObject("asks");
+            
+            for(Iterator i = bids.keys(); i.hasNext();){
+                String price = (String)i.next();
+                JSONObject cachableData = new JSONObject();
+                cachableData.put("price", new Double(price));
+                cachableData.put("volume_int", this.doubleToInt(bids.getDouble(price)));
+                cachableData.put("stamp",new Date());
+                this.setBidData(cachableData);
+            }
+            
+            for(Iterator i = asks.keys(); i.hasNext();){
+                String price = (String)i.next();
+                JSONObject cachableData = new JSONObject();
+                cachableData.put("price", new Double(price));
+                cachableData.put("volume_int", this.doubleToInt(asks.getDouble(price)));
+                cachableData.put("stamp",new Date());
+                this.setAskData(cachableData);
+            }
+        }
+    }
     
     /**
      * https://intersango.com/api.php
@@ -189,4 +250,59 @@ public class Intersango extends AExchange{
             curr == CURRENCY.USD ||
             curr == CURRENCY.PLN;
     }
+    
+    
+    
+    /**
+     * a zero index is closest to the trade window
+     * and increases as prices move away.
+     * 
+     * so an index 0 is the highest bid or
+     * lowest ask
+     */
+    public JSONObject getBid(int index){
+        JSONObject bid = super.getBid(index);
+        if(bid != null){
+            try{
+                // format int values as proper values
+                double price = bid.getDouble("price");
+                int volumeL = bid.getInt("volume_int");
+                double volume = this.intToDouble(volumeL);
+                
+                JSONObject ret = new JSONObject();
+                ret.put("price", price);
+                ret.put("volume", volume);
+                ret.put("currency", currencyEnum);
+                ret.put("stamp", bid.get("stamp"));
+                return ret;
+            }catch(Exception e){
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    public JSONObject getAsk(int index){
+        JSONObject ask = super.getAsk(index);
+        if(ask != null){
+            try{
+                // format int values as proper values
+                double price = ask.getDouble("price");
+                int volumeL = ask.getInt("volume_int");
+                double volume = this.intToDouble(volumeL);
+                
+                JSONObject ret = new JSONObject();
+                ret.put("price", price);
+                ret.put("volume", volume);
+                ret.put("currency", currencyEnum);
+                ret.put("stamp", ask.get("stamp"));
+                return ret;
+            }catch(Exception e){
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    
 }

@@ -109,10 +109,15 @@ public class Trader{
                             actualRate = 1 / rates.getDouble(fromEx.getCurrency().toString());
                         }
                         // "how many EXD do we get per USD?"
-                        logFile.log("exchange rate: " + toEx.getCurrency() + "/" + fromEx.getCurrency() + 
+                        logFile.log("exchange rate: " + toEx.getName() + "/" + fromEx.getName() + 
                                     ": " + exdusd + " vs " + actualRate + " diff= " + (exdusd/actualRate));
-                        toEx.log("bid: " + toEx.getBid(0));
-                        toEx.log("ask: " + toEx.getAsk(0));
+                        if(Math.abs(exdusd / actualRate - 1) > .05){
+                            // 5% difference in price
+                            logFile.log(fromEx.getName() + " bid: " + fromEx.getBid(0));
+                            logFile.log(fromEx.getName() + " ask: " + fromEx.getAsk(0));
+                            logFile.log(toEx.getName() + " bid: " + toEx.getBid(0));
+                            logFile.log(toEx.getName() + " ask: " + toEx.getAsk(0));
+                        }
                     }else if(usdAsk == null){
                         logFile.log("no bid for: " + fromEx.getCurrency());
                     }else if(exBid == null){
