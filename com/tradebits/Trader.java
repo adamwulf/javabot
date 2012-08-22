@@ -58,6 +58,7 @@ public class Trader{
 //        Intersango intersango = new Intersango();
 //        intersango.connect();
         
+        final Log tradeLog = new Log("Trade Log");
         final Log exchangeRatesFromUSDOverTimeLog = new Log("Exchange Rates USD => EXD");
         final Log exchangeRatesToUSDOverTimeLog = new Log("Exchange Rates USD <= EXD");
         
