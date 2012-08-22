@@ -189,8 +189,6 @@ public class Intersango extends AExchange{
     protected void processDepthUpdate(JSONObject depthMessage) throws JSONException, ExchangeException{
         JSONObject depthData = depthMessage.getJSONArray("args").getJSONObject(0);
         if(intersangoCurrencyEnum.intValue() == depthData.getInt("currency_pair_id")){
-            this.log("got depth update w/ correct currency: " + depthMessage);
-            
             JSONObject cachableData = new JSONObject();
             cachableData.put("price", depthData.getDouble("rate"));
             cachableData.put("volume_int", this.doubleToInt(depthData.getDouble("amount")));
@@ -208,7 +206,6 @@ public class Intersango extends AExchange{
     
     protected void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException{
         synchronized(this){
-            this.log("got depth table: " + depthMessage);
             JSONObject orderBooks = depthMessage.getJSONArray("args").getJSONObject(0);
             JSONObject orderBook = orderBooks.getJSONObject(intersangoCurrencyEnum.toString());
             

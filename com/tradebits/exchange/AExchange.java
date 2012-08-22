@@ -148,12 +148,12 @@ public abstract class AExchange{
                             this.log("negative volume data " + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
                         }
                         
-                        this.log("updating data for " + newCachedObj.getDouble("price") + " to vol " + newCachedObj.getLong("volume_int"));
+//                        this.log("updating data for " + newCachedObj.getDouble("price") + " to vol " + newCachedObj.getLong("volume_int"));
                     }else{
                         // the input data is earlier than the cached data
                         //
                         // noop
-                        this.log("ignoring data, timestamp was earlier than cached data");
+//                        this.log("ignoring data, timestamp was earlier than cached data");
                     }
                 }
             }catch(JSONException e){
