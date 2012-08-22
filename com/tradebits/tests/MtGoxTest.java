@@ -92,7 +92,8 @@ public class MtGoxTest extends TestCase{
         
         mtgox.connect();
         
-        assertEquals("connect twice and disconnect twice (including tearDown)", 2, count.intValue());
+        assertEquals("connect twice and disconnect twice (including tearDown)", 1, count.intValue());
+        assertTrue("mtgox is offline if there is an exception thrown during connect", mtgox.isOffline());
     }
     
     
@@ -129,7 +130,8 @@ public class MtGoxTest extends TestCase{
         
         mtgox.connect();
         
-        assertEquals(2, count.intValue());
+        assertEquals(1, count.intValue());
+        assertTrue("mtgox is offline after failed connection", mtgox.isOffline());
     }
     
     
@@ -163,8 +165,9 @@ public class MtGoxTest extends TestCase{
         // send close message
         noopSocket.getListener().onClose(noopSocket, 1, null);
         
-        // confirm it tried to reconnect
-        assertEquals(2, count.intValue());
+        // confirm mtgox is offline after closing
+        assertEquals(1, count.intValue());
+        assertTrue("mtgox is offline", mtgox.isOffline());
     }
     
     
@@ -198,8 +201,9 @@ public class MtGoxTest extends TestCase{
         // send close message
         noopSocket.getListener().onMessage(noopSocket, null);
         
-        // confirm it tried to reconnect
-        assertEquals(2, count.intValue());
+        // confirm it goes offline
+        assertEquals(1, count.intValue());
+        assertTrue("mtgox is offline", mtgox.isOffline());
     }
     
     /**
@@ -232,8 +236,9 @@ public class MtGoxTest extends TestCase{
         // send close message
         noopSocket.getListener().onMessage(noopSocket, "4::/mtgox:{\"mumble\"}");
         
-        // confirm it tried to reconnect
-        assertEquals(2, count.intValue());
+        // confirm it goes offline
+        assertEquals(1, count.intValue());
+        assertTrue("mtgox is offline", mtgox.isOffline());
     }
     
     
@@ -275,8 +280,9 @@ public class MtGoxTest extends TestCase{
         // initial connection
         mtgox.connect();
         
-        // confirm it tried to reconnect
-        assertEquals("make sure to reconnect if failed websocket handshake", 2, count.intValue());
+        // confirm it goes offline
+        assertEquals("websocket connects once", 1, count.intValue());
+        assertTrue("mtgox is offline", mtgox.isOffline());
     }
     
     
@@ -324,7 +330,7 @@ public class MtGoxTest extends TestCase{
         // wait till we skip the gibberish URL
         // and load the real URL
         synchronized(count){
-            while(count.intValue() < 2){
+            while(count.intValue() < 1){
                 try{
                     count.wait();
                 }catch(InterruptedException e){}
@@ -333,7 +339,8 @@ public class MtGoxTest extends TestCase{
         
         
         // confirm it tried to reconnect
-        assertEquals("make sure to reconnect if failed websocket handshake", 2, count.intValue());
+        assertEquals("make sure to reconnect if failed websocket handshake", 1, count.intValue());
+        
     }
     
     

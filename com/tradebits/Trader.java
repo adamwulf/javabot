@@ -108,15 +108,19 @@ public class Trader{
                         if(toEx == mtGoxUSD){
                             actualRate = 1 / rates.getDouble(fromEx.getCurrency().toString());
                         }
-                        double trigger = Math.abs(exdusd / actualRate - 1);
+                        
+                        //
+                        // the sign of this trigger will tell
+                        // me which direction to trade
+                        double trigger = exdusd / actualRate - 1;
                         // "how many EXD do we get per USD?"
-                        if(new Date().getTime() - lastRun.getTime() > 60000 || trigger > .03){
+                        if(new Date().getTime() - lastRun.getTime() > 60000 || trigger > .03 || trigger < -.03){
                             //
                             // only log if it's time to
                             logFile.log("exchange rate: " + toEx.getName() + "/" + fromEx.getName() + 
                                         ": " + exdusd + " vs " + actualRate + " diff= " + (exdusd/actualRate) + " vol= " + 
                                         Math.min(usdAsk.getDouble("volume"),exBid.getDouble("volume")) + " trigger=" + trigger);
-                            if(trigger > .03){
+                            if(trigger > .05 || trigger < -.05){
                                 // 5% difference in price
                                 logFile.log(" - " + fromEx.getName() + " bid: " + fromEx.getBid(0));
                                 logFile.log(" - " + fromEx.getName() + " ask: " + fromEx.getAsk(0));
