@@ -36,9 +36,11 @@ public class MtGoxDepthTest extends TestHelper{
     
     
     /**
-     * This test is for parsing depth data
-     * it should also empty any depth messages in
-     * the cache
+     * This test makes sure that any realtime data is processed
+     * after the depth data loads and adjusts it accordingly.
+     * 
+     * the realtime data adjusts the bid(0) and ask(0), and we verify
+     * the change in this test.
      */
     @Test public void testValidDepthEmptiesCache() throws Exception{
         
@@ -186,9 +188,13 @@ public class MtGoxDepthTest extends TestHelper{
     
     
     /**
-     * This test is for parsing depth data
-     * it should also empty any depth messages in
-     * the cache
+     * This test is to make sure we load the initial depth data correctly.
+     * 
+     * the realtime data that is pulled in before the depth data adjusts
+     * the bid/ask data that is not the zero'th index. so the bid(0) and ask(0)
+     * are the ones from the full depth data.
+     * 
+     * we then verify that the price/volume is correct for these.
      */
     @Test public void testValidDepthWithRealtimeUpdatesOnNonZeroBidAsk() throws Exception{
         
