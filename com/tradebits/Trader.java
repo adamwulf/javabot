@@ -10,6 +10,7 @@ import com.tradebits.exchange.AExchange.CURRENCY;
 import com.tradebits.trade.*;
 import com.tradebits.socket.*;
 import org.json.*;
+import org.apache.commons.lang3.mutable.*;
 
 public class Trader{
 
@@ -104,6 +105,9 @@ public class Trader{
             Thread.sleep(5000);
         }
         
+        
+        final MutableInt ordersSent = new MutableInt();
+        
         final Date lastRun = new Date();
         Timer foo = new Timer();
         foo.scheduleAtFixedRate(new TimerTask(){
@@ -115,6 +119,32 @@ public class Trader{
 
                 for(AExchange ex : exchanges){
                     if(ex != mtGoxUSD && ex.isConnected() && mtGoxUSD.isConnected()){
+                        
+                        if(ordersSent.intValue() == 0){
+                            try{
+                                //
+                                // only send 1 trade
+                                Log transactionLog = new Log("Transactions");
+                                String key = config.getJSONObject("MtGox").getString("key");
+                                String secret = config.getJSONObject("MtGox").getString("secret");
+                                MtGoxRESTClient client = new MtGoxRESTClient(key, secret, transactionLog);
+                                
+                                String queryURL = "1/generic/private/info";
+                                HashMap<String, String> args = new HashMap<String, String>();
+                                String response = client.query(queryURL, args);
+                                
+                                transactionLog.log(queryURL + " with args " + args);
+                                transactionLog.log(response);
+                                
+                                if(response != null){
+                                    JSONObject ret = new JSONObject(response);
+                                    System.out.println(ret);
+                                }
+                                
+                                ordersSent.increment();
+                            }catch(Exception e){ }
+                        }
+                        
                         //
                         // ok, lets figure out the "exchange rate" 
                         // of this currency compared to USD

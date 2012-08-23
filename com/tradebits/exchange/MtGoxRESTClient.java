@@ -75,9 +75,9 @@ public class MtGoxRESTClient {
             // read info
             byte buffer[] = new byte[16384];
             int len = connection.getInputStream().read(buffer, 0, 16384);
-            System.out.print(new String(buffer, 0, len, "UTF-8"));
+            return new String(buffer, 0, len, "UTF-8");
         } catch (Exception ex) {
-            logFile.log(Arrays.toString(ex.getStackTrace()));
+            logFile.log(ex.toString());
         }
         return null;
     }
