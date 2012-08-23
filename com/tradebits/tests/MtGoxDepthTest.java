@@ -45,7 +45,7 @@ public class MtGoxDepthTest extends TestHelper{
         //
         // initialize mtgox with a noop socket
         // and null data for the handshake
-        mtgox = new MtGox(new ASocketFactory(){
+        mtgox = new MtGox(null, new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
                     final ASocketHelper socket = this;

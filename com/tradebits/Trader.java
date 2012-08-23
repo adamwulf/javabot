@@ -12,8 +12,18 @@ import com.tradebits.socket.*;
 import org.json.*;
 
 public class Trader{
+
+    private static JSONObject config;
     
     public static void main(String[] args) throws Exception {
+        
+        //
+        // load config
+        File configPath = new File(System.getProperty("configPath"));
+        String configJSON = URLHelper.fileToString(configPath);
+        config = new JSONObject(configJSON);
+        
+        
         
         // Create a trust manager that does not validate certificate chains
         TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
@@ -69,7 +79,7 @@ public class Trader{
         
         final LinkedList<AExchange> exchanges = new LinkedList<AExchange>();
         
-        final MtGox mtGoxUSD = new MtGox(socketFactory, CURRENCY.USD);
+        final MtGox mtGoxUSD = new MtGox(config.getJSONObject("MtGox"), socketFactory, CURRENCY.USD);
         exchanges.add(mtGoxUSD);
         
         exchanges.add(new Intersango(socketFactory, CURRENCY.USD));
@@ -98,50 +108,7 @@ public class Trader{
         Timer foo = new Timer();
         foo.scheduleAtFixedRate(new TimerTask(){
             JSONObject rates;
-            public boolean logExchangeRates(AExchange fromEx, AExchange toEx, Log logFile){
-                try{
-                    JSONObject usdAsk = fromEx.getAsk(0);
-                    JSONObject exBid = toEx.getBid(0);
-                    if(usdAsk != null && exBid != null){
-                        double usdToBTC = usdAsk.getDouble("price");
-                        double exToBTC = exBid.getDouble("price");
-                        double exdusd = exToBTC / usdToBTC;
-                        double actualRate = rates.getDouble(toEx.getCurrency().toString());
-                        if(toEx == mtGoxUSD){
-                            actualRate = 1 / rates.getDouble(fromEx.getCurrency().toString());
-                        }
-                        
-                        //
-                        // the sign of this trigger will tell
-                        // me which direction to trade
-                        double trigger = exdusd / actualRate - 1;
-                        // "how many EXD do we get per USD?"
-                        if(new Date().getTime() - lastRun.getTime() > 60000 || trigger > .03 || trigger < -.03){
-                            //
-                            // only log if it's time to
-                            logFile.log("exchange rate: " + toEx.getName() + "/" + fromEx.getName() + 
-                                        ": " + exdusd + " vs " + actualRate + " diff= " + (exdusd/actualRate) + " vol= " + 
-                                        Math.min(usdAsk.getDouble("volume"),exBid.getDouble("volume")) + " trigger=" + trigger);
-                            if(trigger > .05 || trigger < -.05){
-                                // 5% difference in price
-                                logFile.log(" - " + fromEx.getName() + " bid: " + fromEx.getBid(0));
-                                logFile.log(" - " + fromEx.getName() + " ask: " + fromEx.getAsk(0));
-                                logFile.log(" - " + toEx.getName() + " bid: " + toEx.getBid(0));
-                                logFile.log(" - " + toEx.getName() + " ask: " + toEx.getAsk(0));
-                            }
-                            return true;
-                        }
-                    }else if(usdAsk == null){
-                        logFile.log("no bid for: " + fromEx.getCurrency());
-                    }else if(exBid == null){
-                        logFile.log("no bid for: " + toEx.getCurrency());
-                    }
-                }catch(JSONException e){
-                    logFile.log("error calculating currency exchange rates: ");
-                    e.printStackTrace();
-                }
-                return false;
-            }
+            
             public void run(){
                 boolean didLog = false;
                 rates = exchangeRates.getUSDRates();
@@ -157,8 +124,6 @@ public class Trader{
                         didLog = possibleTrade1.prepTradeInformation() || didLog;
                         CurrencyTrade possibleTrade2 = new CurrencyTrade(toEx, fromEx, exchangeRates, exchangeRatesToUSDOverTimeLog);
                         didLog = possibleTrade2.prepTradeInformation() || didLog;
-//                        didLog = this.logExchangeRates(fromEx, toEx, exchangeRatesFromUSDOverTimeLog) || didLog;
-//                        didLog = this.logExchangeRates(toEx, fromEx, exchangeRatesToUSDOverTimeLog) || didLog;
                         
                     }else if(mtGoxUSD.isOffline()){
                         mtGoxUSD.log("is offline");

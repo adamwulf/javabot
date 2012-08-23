@@ -8,13 +8,19 @@ import com.tradebits.*;
 import com.tradebits.socket.*;
 import org.json.*;
 import com.tradebits.trade.*;
-
+import java.net.HttpURLConnection;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 /**
  * a class to connect to mtgox exchange
  */
 public class MtGox extends AExchange {
     ASocketHelper socket;
+    
+    JSONObject config;
     
     ASocketFactory socketFactory;
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
@@ -33,8 +39,9 @@ public class MtGox extends AExchange {
     Log rawSocketMessagesLog;
     
     
-    public MtGox(ASocketFactory factory, CURRENCY curr){
+    public MtGox(JSONObject config, ASocketFactory factory, CURRENCY curr){
         super("MtGox");
+        this.config = config;
         this.currencyEnum = curr;
         this.socketFactory = factory;
         try{
@@ -604,7 +611,7 @@ public class MtGox extends AExchange {
     public double calculateEXDFeeRateForTransaction(Trade tr){
         return 0;
     }
-
+    
     
     /**
      * currency info
