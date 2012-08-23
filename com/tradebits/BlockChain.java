@@ -2,9 +2,6 @@ package com.tradebits;
 
 import java.net.*;
 import java.util.*;
-import com.kaazing.gateway.client.html5.WebSocket;
-import com.kaazing.gateway.client.html5.WebSocketAdapter;
-import com.kaazing.gateway.client.html5.WebSocketEvent;
 import org.java_websocket.client.*;
 import org.java_websocket.drafts.*;
 import org.java_websocket.handshake.*;
