@@ -18,7 +18,7 @@ import sun.misc.BASE64Encoder;
  * a class to connect to mtgox exchange
  */
 public abstract class MtGoxBase extends AExchange {
-
+    
     // necessary connection properties
     private ASocketHelper socket;
     private MtGoxRESTClient restClient;
@@ -63,7 +63,7 @@ public abstract class MtGoxBase extends AExchange {
     public String getName(){
         return super.getName() + " " + this.getCurrency();
     }
-
+    
     public CURRENCY getCurrency(){
         return this.currencyEnum;
     }
@@ -273,7 +273,7 @@ public abstract class MtGoxBase extends AExchange {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     
-
+    
     
     /**
      * This methos is responsible for loading
@@ -313,7 +313,7 @@ public abstract class MtGoxBase extends AExchange {
                                 depthData = parsedDepthData;
                                 rawDepthDataLog.log(depthString);
                             }else if(parsedDepthData != null &&
-                               parsedDepthData.getString("result").equals("error")){
+                                     parsedDepthData.getString("result").equals("error")){
                                 MtGoxBase.this.log("ERROR LOADING DEPTH: " + depthString);
                                 MtGoxBase.this.log("Sleeping and will try again later");
                                 return;
@@ -334,7 +334,7 @@ public abstract class MtGoxBase extends AExchange {
                 }
                 
                 MtGoxBase.this.log("-- Processing Depth and Cache Data");
-
+                
                 /**
                  * now that we've downloaded the depth data,
                  * it's time to process the asks/bids and store
@@ -727,82 +727,82 @@ public abstract class MtGoxBase extends AExchange {
     
     
     public class MtGoxRESTClient {
-    protected Log logFile;
-    protected String key;
-    protected String secret;
-    
-    /**
-     * @param args the command line arguments
-    public static void main(String[] args) {
-        MtGoxRESTClient client = new MtGoxRESTClient(
-                                   "your key here",
-                                   "your secret here"
-                                  );
-        HashMap<String, String> query_args = new HashMap<String, String>();
-        query_args.put("currency", "BTC");
-        query_args.put("amount", "5.0");
-        query_args.put("return_success", "https://mtgox.com/success");
-        query_args.put("return_failure", "https://mtgox.com/failure");
+        protected Log logFile;
+        protected String key;
+        protected String secret;
         
-        client.query("1/generic/private/merchant/order/create", query_args);
-    }
-     */
-    
-    public MtGoxRESTClient(String key, String secret, Log logFile) {
-        this.key = key;
-        this.secret = secret;
-        this.logFile = logFile;
-    }
-    
-    public String query(String path, HashMap<String, String> args) {
-        try {
-            // add nonce and build arg list
-            args.put("nonce", String.valueOf(System.currentTimeMillis()));
-            String post_data = this.buildQueryString(args);
-            
-            // args signature
-            Mac mac = Mac.getInstance("HmacSHA512");
-            SecretKeySpec secret_spec = new SecretKeySpec((new BASE64Decoder()).decodeBuffer(this.secret), "HmacSHA512");
-            mac.init(secret_spec);
-            String signature = (new BASE64Encoder()).encode(mac.doFinal(post_data.getBytes()));
-            
-            
-            // build URL
-            URL queryUrl = new URL("https://mtgox.com/api/" + path);
-            
-            // create connection
-            HttpURLConnection connection = (HttpURLConnection)queryUrl.openConnection();
-            connection.setDoOutput(true);
-            // set signature
-            connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; Java Test client)");
-            connection.setRequestProperty("Rest-Key", this.key);
-            connection.setRequestProperty("Rest-Sign", signature.replaceAll("\n", ""));
-            
-            // write post
-            connection.getOutputStream().write(post_data.getBytes());
-            
-            // read info
-            byte buffer[] = new byte[16384];
-            int len = connection.getInputStream().read(buffer, 0, 16384);
-            return new String(buffer, 0, len, "UTF-8");
-        } catch (Exception ex) {
-            logFile.log(ex.toString());
+        /**
+         * @param args the command line arguments
+         public static void main(String[] args) {
+         MtGoxRESTClient client = new MtGoxRESTClient(
+         "your key here",
+         "your secret here"
+         );
+         HashMap<String, String> query_args = new HashMap<String, String>();
+         query_args.put("currency", "BTC");
+         query_args.put("amount", "5.0");
+         query_args.put("return_success", "https://mtgox.com/success");
+         query_args.put("return_failure", "https://mtgox.com/failure");
+         
+         client.query("1/generic/private/merchant/order/create", query_args);
+         }
+         */
+        
+        public MtGoxRESTClient(String key, String secret, Log logFile) {
+            this.key = key;
+            this.secret = secret;
+            this.logFile = logFile;
         }
-        return null;
-    }
-    
-    protected String buildQueryString(HashMap<String, String> args) {
-        String result = new String();
-        for (String hashkey : args.keySet()) {
-            if (result.length() > 0) result += '&';
+        
+        public String query(String path, HashMap<String, String> args) {
             try {
-                result += URLEncoder.encode(hashkey, "UTF-8") + "="
-                    + URLEncoder.encode(args.get(hashkey), "UTF-8");
+                // add nonce and build arg list
+                args.put("nonce", String.valueOf(System.currentTimeMillis()));
+                String post_data = this.buildQueryString(args);
+                
+                // args signature
+                Mac mac = Mac.getInstance("HmacSHA512");
+                SecretKeySpec secret_spec = new SecretKeySpec((new BASE64Decoder()).decodeBuffer(this.secret), "HmacSHA512");
+                mac.init(secret_spec);
+                String signature = (new BASE64Encoder()).encode(mac.doFinal(post_data.getBytes()));
+                
+                
+                // build URL
+                URL queryUrl = new URL("https://mtgox.com/api/" + path);
+                
+                // create connection
+                HttpURLConnection connection = (HttpURLConnection)queryUrl.openConnection();
+                connection.setDoOutput(true);
+                // set signature
+                connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; Java Test client)");
+                connection.setRequestProperty("Rest-Key", this.key);
+                connection.setRequestProperty("Rest-Sign", signature.replaceAll("\n", ""));
+                
+                // write post
+                connection.getOutputStream().write(post_data.getBytes());
+                
+                // read info
+                byte buffer[] = new byte[16384];
+                int len = connection.getInputStream().read(buffer, 0, 16384);
+                return new String(buffer, 0, len, "UTF-8");
             } catch (Exception ex) {
-                logFile.log(Arrays.toString(ex.getStackTrace()));
+                logFile.log(ex.toString());
             }
+            return null;
         }
-        return result;
+        
+        protected String buildQueryString(HashMap<String, String> args) {
+            String result = new String();
+            for (String hashkey : args.keySet()) {
+                if (result.length() > 0) result += '&';
+                try {
+                    result += URLEncoder.encode(hashkey, "UTF-8") + "="
+                        + URLEncoder.encode(args.get(hashkey), "UTF-8");
+                } catch (Exception ex) {
+                    logFile.log(Arrays.toString(ex.getStackTrace()));
+                }
+            }
+            return result;
+        }
     }
-}
 }
