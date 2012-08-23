@@ -7,6 +7,7 @@ import javax.net.ssl.*;
 import java.security.cert.*;
 import com.tradebits.exchange.*;
 import com.tradebits.exchange.AExchange.CURRENCY;
+import com.tradebits.trade.*;
 import com.tradebits.socket.*;
 import org.json.*;
 
@@ -144,6 +145,7 @@ public class Trader{
             public void run(){
                 boolean didLog = false;
                 rates = exchangeRates.getUSDRates();
+
                 for(AExchange ex : exchanges){
                     if(ex != mtGoxUSD && ex.isConnected() && mtGoxUSD.isConnected()){
                         //
@@ -151,8 +153,12 @@ public class Trader{
                         // of this currency compared to USD
                         AExchange fromEx = mtGoxUSD;
                         AExchange toEx = ex;
-                        didLog = this.logExchangeRates(fromEx, toEx, exchangeRatesFromUSDOverTimeLog) || didLog;
-                        didLog = this.logExchangeRates(toEx, fromEx, exchangeRatesToUSDOverTimeLog) || didLog;
+                        CurrencyTrade possibleTrade1 = new CurrencyTrade(fromEx, toEx, exchangeRates, exchangeRatesFromUSDOverTimeLog);
+                        didLog = possibleTrade1.prepTradeInformation() || didLog;
+                        CurrencyTrade possibleTrade2 = new CurrencyTrade(toEx, fromEx, exchangeRates, exchangeRatesToUSDOverTimeLog);
+                        didLog = possibleTrade2.prepTradeInformation() || didLog;
+//                        didLog = this.logExchangeRates(fromEx, toEx, exchangeRatesFromUSDOverTimeLog) || didLog;
+//                        didLog = this.logExchangeRates(toEx, fromEx, exchangeRatesToUSDOverTimeLog) || didLog;
                         
                     }else if(mtGoxUSD.isOffline()){
                         mtGoxUSD.log("is offline");

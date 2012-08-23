@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 import com.tradebits.*;
 import com.tradebits.socket.*;
 import org.json.*;
+import com.tradebits.trade.*;
 
 
 
@@ -232,6 +233,15 @@ public class Intersango extends AExchange{
         }
     }
     
+    
+    public double calculateBTCFeeRateForTransaction(Trade tr){
+        return 0;
+    }
+    
+    public double calculateEXDFeeRateForTransaction(Trade tr){
+        return 0;
+    }
+
     /**
      * https://intersango.com/api.php
      * 

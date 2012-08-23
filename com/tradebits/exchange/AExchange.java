@@ -7,6 +7,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import org.json.*;
+import com.tradebits.trade.*;
 
 public abstract class AExchange{
 
@@ -37,6 +38,10 @@ public abstract class AExchange{
         bidDepthData = new TreeMap<Double, JSONObject>();
         askDepthData = new TreeMap<Double, JSONObject>();
     }
+    
+    abstract public double calculateBTCFeeRateForTransaction(Trade tr);
+    
+    abstract public double calculateEXDFeeRateForTransaction(Trade tr);
 
     abstract public boolean isCurrencySupported(CURRENCY curr);
     
