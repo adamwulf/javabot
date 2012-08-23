@@ -7,13 +7,17 @@ import com.tradebits.socket.*;
 
 
 public class TestSocketHelper extends ASocketHelper{
+    boolean connected = false;
     public void disconnect(){
-        // noop
+        connected = false;
     }
     public void connect() throws Exception{
-        // noop
+        connected = true;
     }
     public void send(String message){
         // noop
+    }
+    public boolean isConnected(){
+        return connected;
     }
 }

@@ -19,28 +19,27 @@ import sun.misc.BASE64Encoder;
  */
 public abstract class MtGoxBase extends AExchange {
 
+    // necessary connection properties
     private ASocketHelper socket;
+    private MtGoxRESTClient restClient;
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     private ASocketFactory socketFactory;
-    private boolean socketIsConnected = false;
+    
+    // the mess that hopefully can be cleaned
     private Timer depthListingTimer;
     private Timer currencyInformationTimer;
-
-    
-    protected JSONObject config;
-    protected MtGoxCurrency cachedCurrencyData = null;
-    
-    protected Log rawDepthDataLog;
-    protected Log rawSocketMessagesLog;
-    protected CURRENCY currencyEnum;
-
     private boolean depthDataIsInitialized = false;
     private boolean hasLoadedDepthDataAtLeastOnce = false;
     private boolean wasToldToConnect = false;
     private boolean socketHasReceivedAnyMessage = false;
     private Date lastRESTDepthCheck = null;
     
-    private MtGoxRESTClient restClient;
+    // necessary config/state properties
+    protected CURRENCY currencyEnum;
+    protected JSONObject config;
+    protected MtGoxCurrency cachedCurrencyData = null;
+    protected Log rawDepthDataLog;
+    protected Log rawSocketMessagesLog;
     
     
     public MtGoxBase(JSONObject config, ASocketFactory factory, CURRENCY curr) throws ExchangeException{
@@ -85,7 +84,7 @@ public abstract class MtGoxBase extends AExchange {
      * otherwise
      */
     public boolean isConnected(){
-        return socketIsConnected && depthDataIsInitialized;
+        return wasToldToConnect&& depthDataIsInitialized && socket.isConnected();
     }
     
     public boolean isConnecting(){
@@ -97,17 +96,15 @@ public abstract class MtGoxBase extends AExchange {
     }
     
     public void disconnect(){
-        socketIsConnected = false;
         wasToldToConnect = false;
         this.disconnectHelper();
     }
     
     protected void disconnectHelper(){
-        if(socketIsConnected || socket != null){
+        if(socket == null ||  socket.isConnected()){
             if(socket != null) socket.disconnect();
             socket = null;
             hasLoadedDepthDataAtLeastOnce = false;
-            socketIsConnected = false;
             depthDataIsInitialized = false;
             cachedDepthData = new LinkedList<JSONObject>();
             if(depthListingTimer != null) depthListingTimer.cancel();
@@ -161,7 +158,6 @@ public abstract class MtGoxBase extends AExchange {
                     
                     public void onOpen(ASocketHelper socket){
                         MtGoxBase.this.log("OPEN");
-                        socketIsConnected = true;
                         if(!wasToldToConnect){
                             MtGoxBase.this.disconnectHelper();
                         }
@@ -169,7 +165,6 @@ public abstract class MtGoxBase extends AExchange {
                     
                     public void onClose(ASocketHelper socket, int closeCode, String message){
                         MtGoxBase.this.log("CLOSE");
-                        socketIsConnected = false;
                         // if this flag is still true,
                         // then MtGox disconnect() has
                         // not been called
@@ -206,7 +201,6 @@ public abstract class MtGoxBase extends AExchange {
                             MtGoxBase.this.log(data);
                         }catch(Exception e){
                             aSocket.disconnect();
-                            socketIsConnected = false;
                             MtGoxBase.this.disconnect();
                         }
                     }
@@ -226,7 +220,6 @@ public abstract class MtGoxBase extends AExchange {
             if(socket != null){
                 socket.setListener(null);
             }
-            socketIsConnected = false;
             this.disconnect();
         }catch(TimeoutException e){
             //
@@ -234,14 +227,12 @@ public abstract class MtGoxBase extends AExchange {
             if(socket != null){
                 socket.setListener(null);
             }
-            socketIsConnected = false;
             this.disconnect();
         }catch(Exception e){
             e.printStackTrace();
             if(socket != null){
                 socket.setListener(null);
             }
-            socketIsConnected = false;
             this.disconnect();
         }
     }
@@ -254,7 +245,7 @@ public abstract class MtGoxBase extends AExchange {
                 //
                 // only allowed to initialize depth data
                 // after we start receiving realtime data
-                if(socketIsConnected || !hasLoadedDepthDataAtLeastOnce){
+                if(MtGoxBase.this.isConnected() || !hasLoadedDepthDataAtLeastOnce){
                     Date now = new Date();
                     //
                     // only load once each hour - yikes!
@@ -588,7 +579,6 @@ public abstract class MtGoxBase extends AExchange {
             }
         }catch(Exception e){
             socket.disconnect();
-            socketIsConnected = false;
             this.disconnect();
             e.printStackTrace();
         }

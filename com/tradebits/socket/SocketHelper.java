@@ -36,6 +36,10 @@ public class SocketHelper extends ASocketHelper{
         if(socketConnection != null) socketConnection.close();
     }
     
+    public boolean isConnected(){
+        return (socketConnection != null) && socketConnection.isOpen();
+    }
+    
     /**
      * green means go!
      * 

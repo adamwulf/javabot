@@ -17,6 +17,7 @@ public abstract class ASocketHelper{
     
     abstract public void send(String message) throws IOException;
     
+    abstract public boolean isConnected();
     
     
     /** Listener **/

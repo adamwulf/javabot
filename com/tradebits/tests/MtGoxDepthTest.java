@@ -51,10 +51,8 @@ public class MtGoxDepthTest extends TestHelper{
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
                     final ASocketHelper socket = this;
-                    public void disconnect(){
-                        // noop
-                    }
                     public void connect() throws Exception{
+                        super.connect();
                         // open the socket
                         (new Timer()).schedule(new TimerTask(){
                             public void run(){
@@ -109,9 +107,6 @@ public class MtGoxDepthTest extends TestHelper{
                                 }
                             }
                         }, 18000);
-                    }
-                    public void send(String message){
-                        // noop
                     }
                 };
             }
