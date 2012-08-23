@@ -24,14 +24,14 @@ public abstract class MtGoxBase extends AExchange {
     private MtGoxRESTClient restClient;
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     private ASocketFactory socketFactory;
+    // a boolean for if the user expects us to stay connected or not
+    // if the user manually disconnects, then we shouldn't try to reconnect
+    private boolean wasToldToConnect = false;
     
     // the mess that hopefully can be cleaned
     private Timer depthListingTimer;
     private Timer currencyInformationTimer;
-    private boolean depthDataIsInitialized = false;
     private boolean hasLoadedDepthDataAtLeastOnce = false;
-    private boolean wasToldToConnect = false;
-    private boolean socketHasReceivedAnyMessage = false;
     private Date lastRESTDepthCheck = null;
     
     // necessary config/state properties
@@ -82,9 +82,14 @@ public abstract class MtGoxBase extends AExchange {
      * returns true if the socket is
      * connected and active, false
      * otherwise
+     * 
+     * this confirms that:
+     * 1. we were told to connect in the first place, and expect to me
+     * 2. that we have depth data loaded
+     * 3. that the socket is still connected
      */
     public boolean isConnected(){
-        return wasToldToConnect&& depthDataIsInitialized && socket.isConnected();
+        return wasToldToConnect && this.getAsk(0) != null && this.getBid(0) != null && socket.isConnected();
     }
     
     public boolean isConnecting(){
@@ -105,14 +110,12 @@ public abstract class MtGoxBase extends AExchange {
             if(socket != null) socket.disconnect();
             socket = null;
             hasLoadedDepthDataAtLeastOnce = false;
-            depthDataIsInitialized = false;
             cachedDepthData = new LinkedList<JSONObject>();
             if(depthListingTimer != null) depthListingTimer.cancel();
             if(currencyInformationTimer != null) currencyInformationTimer.cancel();
             depthListingTimer = null;
             currencyInformationTimer = null;
             cachedCurrencyData = null;
-            socketHasReceivedAnyMessage = false;
             lastRESTDepthCheck = null;
             super.disconnect();
         }
@@ -350,7 +353,7 @@ public abstract class MtGoxBase extends AExchange {
                             cachedData.put("volume_int", ask.getDouble("amount_int"));
                             cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
                             JSONObject formerlyCached = MtGoxBase.this.getAskData(ask.getDouble("price"));
-                            if(!depthDataIsInitialized || formerlyCached == null){
+                            if(formerlyCached == null){
                                 MtGoxBase.this.setAskData(cachedData);
                             }else{
                                 JSONArray log = formerlyCached.getJSONArray("log");
@@ -361,31 +364,66 @@ public abstract class MtGoxBase extends AExchange {
                                 log.put(logItem);
                                 formerlyCached.put("log", log);
                             }
-                            if(depthDataIsInitialized){
-                                //
-                                // check to see if anything has changed or not
-                                if(formerlyCached != null){
-                                    if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
-                                        MtGoxBase.this.log("Different volume for " + cachedData.getDouble("price")
-                                                                 + ": " + formerlyCached.getDouble("volume_int")
-                                                                 + " vs " + cachedData.getDouble("volume_int") + " with log "
-                                                                 + formerlyCached.get("log"));
-                                    }
+                            /////////////////////////////////////////////////////////////////////////////////////////////
+                            //
+                            // Log to see if we're staying in sync with the depth or not
+                            //
+                            // this should probably show some errors sometimes, and if we're getting out of sync
+                            // then the # of errors will continue to increase.
+                            //
+                            // right now, i'm only logging this, but not doing anything programatically to check
+                            // and verify the error rate. TODO future improvement to check this
+                            //
+                            // this is strictly a sanity check that the MtGox API is working properly and sending all
+                            // depth data back to me
+                            //
+                            // check to see if anything has changed or not
+                            if(formerlyCached != null){
+                                if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
+                                    MtGoxBase.this.log("Different volume for " + cachedData.getDouble("price")
+                                                           + ": " + formerlyCached.getDouble("volume_int")
+                                                           + " vs " + cachedData.getDouble("volume_int") + " with log "
+                                                           + formerlyCached.get("log"));
                                 }
                             }
-                        }
-                        if(!depthDataIsInitialized){
                             //
-                            // for now, we're only going to compare
-                            // values for anything after the first load
-                            for(int i=0;i<bids.length();i++){
-                                JSONObject bid = bids.getJSONObject(i);
-                                JSONObject cachedData = new JSONObject();
-                                cachedData.put("price", bid.getDouble("price"));
-                                cachedData.put("volume_int", bid.getDouble("amount_int"));
-                                cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
+                            /////////////////////////////////////////////////////////////////////////////////////////////
+                        }
+                        
+                        
+                        
+                        for(int i=0;i<bids.length();i++){
+                            JSONObject bid = bids.getJSONObject(i);
+                            JSONObject cachedData = new JSONObject();
+                            cachedData.put("price", bid.getDouble("price"));
+                            cachedData.put("volume_int", bid.getDouble("amount_int"));
+                            cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
+                            JSONObject formerlyCached = MtGoxBase.this.getBidData(bid.getDouble("price"));
+                            if(formerlyCached == null){
                                 MtGoxBase.this.setBidData(cachedData);
+                            }else{
+                                JSONArray log = formerlyCached.getJSONArray("log");
+                                JSONObject logItem = new JSONObject();
+                                logItem.put("volume_int", cachedData.getDouble("volume_int"));
+                                logItem.put("stamp", cachedData.get("stamp"));
+                                logItem.put("check", true);
+                                log.put(logItem);
+                                formerlyCached.put("log", log);
                             }
+                            /////////////////////////////////////////////////////////////////////////////////////////////
+                            //
+                            // Another check
+                            //
+                            if(formerlyCached != null){
+                                if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
+                                    MtGoxBase.this.log("Different volume for " + cachedData.getDouble("price")
+                                                           + ": " + formerlyCached.getDouble("volume_int")
+                                                           + " vs " + cachedData.getDouble("volume_int") + " with log "
+                                                           + formerlyCached.get("log"));
+                                }
+                            }
+                            //
+                            /////////////////////////////////////////////////////////////////////////////////////////////
                         }
                     }  
                 }catch(Exception e){
@@ -394,7 +432,6 @@ public abstract class MtGoxBase extends AExchange {
                 
                 synchronized(MtGoxBase.this){
                     try{
-                        depthDataIsInitialized = true;
                         while(cachedDepthData.size() > 0){
                             JSONObject obj = cachedDepthData.removeFirst();
                             MtGoxBase.this.processDepthData(obj);
@@ -563,7 +600,6 @@ public abstract class MtGoxBase extends AExchange {
                 // ok, we got a valid message from the socket,
                 // so remeber that fact. we'll use this info
                 // to decide when our depth data is accurate
-                socketHasReceivedAnyMessage = true;
                 if(msg.getString("private").equals("ticker")){
 //                    this.log("ticker data" + "\n" + messageText);
                 }else if(msg.getString("private").equals("depth")){
