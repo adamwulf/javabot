@@ -37,7 +37,7 @@ public class MtGoxTest extends TestCase{
      * This tests that the socket connect()
      * method is called when connecting to mtgox
      */
-    @Test public void testConnect() {
+    @Test public void testConnect() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
@@ -66,7 +66,7 @@ public class MtGoxTest extends TestCase{
      * This tests that mtgox retries the connection
      * if the connect() method throws an exception
      */
-    @Test public void testConnectException() {
+    @Test public void testConnectException() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
@@ -103,7 +103,7 @@ public class MtGoxTest extends TestCase{
      * This tests that mtgox retries the connection
      * if the connect() method throws an exception
      */
-    @Test public void testConnectTimeoutException() {
+    @Test public void testConnectTimeoutException() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
@@ -139,7 +139,7 @@ public class MtGoxTest extends TestCase{
      * This tests that mtgox tries to connec to 1::/mtgox
      * after the socket is connected
      */
-    @Test public void testReconnectOnDisconnect() {
+    @Test public void testReconnectOnDisconnect() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
@@ -175,7 +175,7 @@ public class MtGoxTest extends TestCase{
      * This tests that mtgox tries to reconnect
      * after recieving a null message
      */
-    @Test public void testReconnectOnNullData() {
+    @Test public void testReconnectOnNullData() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
@@ -210,7 +210,7 @@ public class MtGoxTest extends TestCase{
      * This tests that mtgox tries to reconnect
      * after recieving a json message with incorrect data
      */
-    @Test public void testReconnectOnNonDataJSON() {
+    @Test public void testReconnectOnNonDataJSON() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
@@ -248,7 +248,7 @@ public class MtGoxTest extends TestCase{
      * This tests that mtgox tries to reconnect
      * after receiving a null response during the handshake
      */
-    @Test public void testNullWebSocketHandshake() {
+    @Test public void testNullWebSocketHandshake() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
@@ -291,7 +291,7 @@ public class MtGoxTest extends TestCase{
      * This tests that mtgox tries to reconnect
      * after receiving a null response during the handshake
      */
-    @Test public void testInvalidWebSocketHandshake() {
+    @Test public void testInvalidWebSocketHandshake() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
 
@@ -348,7 +348,7 @@ public class MtGoxTest extends TestCase{
     /**
      * This test is for parsing depth data
      */
-    @Test public void testValidDepthDataToCache() {
+    @Test public void testValidDepthDataToCache() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         

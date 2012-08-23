@@ -46,8 +46,8 @@ public class Intersango extends AExchange{
             intersangoCurrencyEnum = 4;
         }
         try{
-            rawDepthDataLog = new NullLog(curr + " Depth");
-            rawSocketMessagesLog = new NullLog(curr + " Socket");
+            rawDepthDataLog = new NullLog(this.getName() + " Depth");
+            rawSocketMessagesLog = new NullLog(this.getName() + " Socket");
         }catch(IOException e){ }
     }
     
@@ -175,6 +175,9 @@ public class Intersango extends AExchange{
     }
     
     
+    /**
+     * to be used for currencyEnum balances only
+     */
     private double intToDouble(int number){
         return (double) number / Math.pow(10, 5);
     }

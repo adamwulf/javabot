@@ -37,17 +37,25 @@ public class MtGox extends AExchange {
     
     Log rawDepthDataLog;
     Log rawSocketMessagesLog;
+    MtGoxRESTClient restClient;
     
     
-    public MtGox(JSONObject config, ASocketFactory factory, CURRENCY curr){
+    public MtGox(JSONObject config, ASocketFactory factory, CURRENCY curr) throws ExchangeException{
         super("MtGox");
         this.config = config;
         this.currencyEnum = curr;
         this.socketFactory = factory;
         try{
-            rawDepthDataLog = new NullLog(curr + " Depth");
-            rawSocketMessagesLog = new NullLog(curr + " Socket");
-        }catch(IOException e){ }
+            rawDepthDataLog = new NullLog(this.getName() + " Depth");
+            rawSocketMessagesLog = new NullLog(this.getName() + " Socket");
+            String key = config.getString("key");
+            String secret = config.getString("secret");
+            restClient = new MtGoxRESTClient(key, secret, rawSocketMessagesLog);
+        }
+        catch(IOException e){ }
+        catch(JSONException e){
+            throw new ExchangeException(e);
+        }
     }
     
     public String getName(){
@@ -122,6 +130,7 @@ public class MtGox extends AExchange {
                 // force loading currency information for USD
                 // this will block until done
                 MtGox.this.loadCurrencyDataFor(this.currencyEnum);
+                MtGox.this.loadWalletData();
                 
                 
                 //
@@ -425,7 +434,112 @@ public class MtGox extends AExchange {
         }while(cachedCurrencyData == null);
     }
     
+    protected void loadWalletData(){
+        try{
+            //
+            // only send 1 trade
+            String queryURL = "1/generic/private/info";
+            HashMap<String, String> args = new HashMap<String, String>();
+            String response = restClient.query(queryURL, args);
+            if(response != null){
+                JSONObject ret = new JSONObject(response);
+                //
+                // the USD balance is
+                walletBalanceEXD = ret.getJSONObject("return").getJSONObject("Wallets")
+                    .getJSONObject(currencyEnum.toString()).getJSONObject("Balance").getLong("value_int");
+                walletBalanceBTC = ret.getJSONObject("return").getJSONObject("Wallets")
+                    .getJSONObject("BTC").getJSONObject("Balance").getLong("value_int");
+                
+                hasLoadedWallet = true;
+                this.log("loaded balance of " + walletBalanceEXD + " " + currencyEnum + " and " + walletBalanceBTC + " BTC");
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
     
+    
+    public void getCurrentOrderStatus(){
+        try{
+            JSONObject lowAsk = this.getAsk(0);
+            System.out.println(lowAsk);
+            //
+            // only send 1 trade
+            String queryURL = "1/generic/private/orders";
+            HashMap<String, String> args = new HashMap<String, String>();
+            
+            String response = restClient.query(queryURL, args);
+            if(response != null){
+                JSONObject ret = new JSONObject(response);
+                this.log("order status " + ret);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    
+    /**
+     * Fees:
+     * the fee will always keep the transaction exactly as
+     * you entered it
+     * 
+     * so i said to buy .1 BTC at price X
+     * 
+     * so it buys .1 BTC and deducts X from my USD
+     * then it charges me a fee from that .1 BTC i just bought
+     * and i'm deducted .6% of .1 BTC
+     * 
+     * 
+     * for a sale:
+     * there is no fee for mtgox when selling
+     * 
+     */
+    public void executeOrderToBuyBTC(double amount){
+        try{
+            
+            JSONObject lowAsk = this.getAsk(0);
+            System.out.println(lowAsk);
+            //
+            // only send 1 trade
+            String queryURL = "1/BTC" + currencyEnum + "/private/order/add";
+            HashMap<String, String> args = new HashMap<String, String>();
+            args.put("type","bid");
+            args.put("amount_int", (new Long((long)(amount * Math.pow(10, 8))).toString()));
+            args.put("price_int", (new Long((long)((lowAsk.getDouble("price")) * Math.pow(10, 5))).toString()));
+            
+            String response = restClient.query(queryURL, args);
+            if(response != null){
+                JSONObject ret = new JSONObject(response);
+                this.log("new order sent " + ret);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    public void executeOrderToSellBTC(double amount){
+        try{
+            
+            JSONObject highBid = this.getBid(0);
+            System.out.println(highBid);
+            //
+            // only send 1 trade
+            String queryURL = "1/BTC" + currencyEnum + "/private/order/add";
+            HashMap<String, String> args = new HashMap<String, String>();
+            args.put("type","ask");
+            args.put("amount_int", (new Long((long)(amount * Math.pow(10, 8))).toString()));
+            args.put("price_int", (new Long((long)((highBid.getDouble("price")) * Math.pow(10, 5))).toString()));
+            
+            String response = restClient.query(queryURL, args);
+            if(response != null){
+                JSONObject ret = new JSONObject(response);
+                this.log("new order sent " + ret);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -634,4 +748,87 @@ public class MtGox extends AExchange {
             return volume / Math.pow(10, 8);
         }
     }
+    
+    
+    
+    
+    public class MtGoxRESTClient {
+    protected Log logFile;
+    protected String key;
+    protected String secret;
+    
+    /**
+     * @param args the command line arguments
+    public static void main(String[] args) {
+        MtGoxRESTClient client = new MtGoxRESTClient(
+                                   "your key here",
+                                   "your secret here"
+                                  );
+        HashMap<String, String> query_args = new HashMap<String, String>();
+        query_args.put("currency", "BTC");
+        query_args.put("amount", "5.0");
+        query_args.put("return_success", "https://mtgox.com/success");
+        query_args.put("return_failure", "https://mtgox.com/failure");
+        
+        client.query("1/generic/private/merchant/order/create", query_args);
+    }
+     */
+    
+    public MtGoxRESTClient(String key, String secret, Log logFile) {
+        this.key = key;
+        this.secret = secret;
+        this.logFile = logFile;
+    }
+    
+    public String query(String path, HashMap<String, String> args) {
+        try {
+            // add nonce and build arg list
+            args.put("nonce", String.valueOf(System.currentTimeMillis()));
+            String post_data = this.buildQueryString(args);
+            
+            // args signature
+            Mac mac = Mac.getInstance("HmacSHA512");
+            SecretKeySpec secret_spec = new SecretKeySpec((new BASE64Decoder()).decodeBuffer(this.secret), "HmacSHA512");
+            mac.init(secret_spec);
+            String signature = (new BASE64Encoder()).encode(mac.doFinal(post_data.getBytes()));
+            
+            
+            // build URL
+            URL queryUrl = new URL("https://mtgox.com/api/" + path);
+            
+            // create connection
+            HttpURLConnection connection = (HttpURLConnection)queryUrl.openConnection();
+            connection.setDoOutput(true);
+            // set signature
+            connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; Java Test client)");
+            connection.setRequestProperty("Rest-Key", this.key);
+            connection.setRequestProperty("Rest-Sign", signature.replaceAll("\n", ""));
+            
+            // write post
+            connection.getOutputStream().write(post_data.getBytes());
+            
+            // read info
+            byte buffer[] = new byte[16384];
+            int len = connection.getInputStream().read(buffer, 0, 16384);
+            return new String(buffer, 0, len, "UTF-8");
+        } catch (Exception ex) {
+            logFile.log(ex.toString());
+        }
+        return null;
+    }
+    
+    protected String buildQueryString(HashMap<String, String> args) {
+        String result = new String();
+        for (String hashkey : args.keySet()) {
+            if (result.length() > 0) result += '&';
+            try {
+                result += URLEncoder.encode(hashkey, "UTF-8") + "="
+                    + URLEncoder.encode(args.get(hashkey), "UTF-8");
+            } catch (Exception ex) {
+                logFile.log(Arrays.toString(ex.getStackTrace()));
+            }
+        }
+        return result;
+    }
+}
 }
