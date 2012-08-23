@@ -28,11 +28,6 @@ public class CurrencyTrade extends Trade{
     }
     
     
-    
-    
-    
-    
-    
     /**
      * returns the exchange rate between toEx/fromEx
      * if i had used money market instead of BTC market

@@ -123,6 +123,16 @@ public class Intersango extends AExchange{
                 });
             }
             socket.connect();
+        }catch(java.net.ConnectException e){
+            this.log("Connection Refused. Waiting to reconnect.");
+            try{
+                Thread.sleep(5000);
+            }catch(Exception e2){ }
+            if(socket != null){
+                socket.setListener(null);
+            }
+            socketIsConnected = false;
+            this.disconnect();
         }catch(Exception e){
             e.printStackTrace();
             if(socket != null){
