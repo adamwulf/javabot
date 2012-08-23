@@ -11,7 +11,8 @@ import org.json.*;
 import com.tradebits.trade.*;
 
 
-
+//
+// backup plan: http://db.intersango.com:1337/a
 public class Intersango extends AExchange{
     
     CURRENCY currencyEnum;
@@ -21,7 +22,6 @@ public class Intersango extends AExchange{
     Log rawSocketMessagesLog;
     boolean socketIsConnected = false;
     boolean socketHasReceivedAnyMessage = false;
-    boolean hasLoadedDepthDataAtLeastOnce = false;
     Integer intersangoCurrencyEnum;
             
     /**
@@ -46,8 +46,8 @@ public class Intersango extends AExchange{
             intersangoCurrencyEnum = 4;
         }
         try{
-            rawDepthDataLog = new NullLog(this.getName() + " Depth");
-            rawSocketMessagesLog = new NullLog(this.getName() + " Socket");
+            rawDepthDataLog = new Log(this.getName() + " Depth");
+            rawSocketMessagesLog = new Log(this.getName() + " Socket");
         }catch(IOException e){ }
     }
     
@@ -57,11 +57,10 @@ public class Intersango extends AExchange{
     }
     
     public void disconnect(){
-        if(socket != null) socket.disconnect();
-        socket = null;
+        if(this.socket != null) this.socket.disconnect();
+        this.socket = null;
         socketIsConnected = false;
         socketHasReceivedAnyMessage = false;
-        hasLoadedDepthDataAtLeastOnce = false;
     }
     
     public void connect(){
@@ -139,7 +138,6 @@ public class Intersango extends AExchange{
             JSONObject msg = new JSONObject(messageText);
             socketHasReceivedAnyMessage = true;
             if(msg.getString("name").equals("orderbook")){
-                hasLoadedDepthDataAtLeastOnce = true;
                 this.processDepthData(msg);
             }else if(msg.getString("name").equals("depth")){
                 this.processDepthUpdate(msg);
@@ -237,14 +235,6 @@ public class Intersango extends AExchange{
     }
     
     
-    public double calculateBTCFeeRateForTransaction(Trade tr){
-        return 0;
-    }
-    
-    public double calculateEXDFeeRateForTransaction(Trade tr){
-        return 0;
-    }
-
     /**
      * https://intersango.com/api.php
      * 

@@ -4,7 +4,9 @@ package com.tradebits.tests;
 import junit.framework.TestCase;
 import java.io.*;
 
+
 public abstract class TestHelper extends TestCase{
+    
     
     public static String fileToString(File file) {
         String result = null;

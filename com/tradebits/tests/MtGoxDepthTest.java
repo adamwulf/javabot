@@ -14,15 +14,17 @@ import java.util.*;
 import java.util.concurrent.locks.*;
 import org.json.*;
 import com.tradebits.exchange.AExchange.CURRENCY;
+import org.json.*;
 
 public class MtGoxDepthTest extends TestHelper{
     
     MtGox mtgox;
     
+    JSONObject mtgoxTestConfig;
     
     @Before
-    protected void setUp(){
-        
+    protected void setUp() throws JSONException{
+        mtgoxTestConfig = new JSONObject("{ \"key\":\"aFakeKey\", \"secret\":\"aFakeSecret\" }");
     }
     
     @After @AfterClass
@@ -45,7 +47,7 @@ public class MtGoxDepthTest extends TestHelper{
         //
         // initialize mtgox with a noop socket
         // and null data for the handshake
-        mtgox = new MtGox(null, new ASocketFactory(){
+        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
             public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
                     final ASocketHelper socket = this;

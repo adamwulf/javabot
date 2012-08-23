@@ -133,8 +133,8 @@ public class Trader{
                         
                         if(mtGoxUSD.isConnected() && counter.intValue() == 0){
 //                            mtGoxUSD.executeOrderToBuyBTC(0.01);
-                            mtGoxUSD.executeOrderToSellBTC(0.01);
-                            mtGoxUSD.getCurrentOrderStatus();
+//                            mtGoxUSD.executeOrderToSellBTC(0.01);
+//                            mtGoxUSD.getCurrentOrderStatus();
                             counter.increment();
                         }
                         

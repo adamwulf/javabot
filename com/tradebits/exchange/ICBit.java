@@ -230,14 +230,6 @@ public class ICBit extends AExchange {
     
     
     /** AExchange **/
-    public double calculateBTCFeeRateForTransaction(Trade tr){
-        return 0;
-    }
-    
-    public double calculateEXDFeeRateForTransaction(Trade tr){
-        return 0;
-    }
-
     public boolean isCurrencySupported(CURRENCY curr){
         return curr == CURRENCY.BTC || curr == CURRENCY.USD;
     }

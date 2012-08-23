@@ -68,10 +68,6 @@ public abstract class AExchange{
         askDepthData = new TreeMap<Double, JSONObject>();
     }
     
-    abstract public double calculateBTCFeeRateForTransaction(Trade tr);
-    
-    abstract public double calculateEXDFeeRateForTransaction(Trade tr);
-
     abstract public boolean isCurrencySupported(CURRENCY curr);
     
     abstract public void connect();
@@ -177,10 +173,13 @@ public abstract class AExchange{
                         this.setBidAskData(newCachedObj, treeMap);
                         
                         if(cachedVolumeInt < 0){
-                            this.log("WAS negative volume " + cachedVolumeInt + ", now" + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
+                            this.log("WAS negative volume " + cachedVolumeInt + ", now" + 
+                                     newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
                         }else if(newVolumeInt < 0){
-                            this.log("negative volume data " + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
-                            throw new ExchangeException("negative volume data " + newVolumeInt + " for " + price + ", should reload. log: " + newCachedObj.get("log"));
+                            this.log("negative volume data " + newVolumeInt + " for " + price + 
+                                     ", should reload. log: " + newCachedObj.get("log"));
+                            throw new ExchangeException("negative volume data " + newVolumeInt + 
+                                                        " for " + price + ", should reload. log: " + newCachedObj.get("log"));
                         }
                         
 //                        this.log("updating data for " + newCachedObj.getDouble("price") + " to vol " + newCachedObj.getLong("volume_int"));
