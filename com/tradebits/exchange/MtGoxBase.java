@@ -156,7 +156,8 @@ public abstract class MtGoxBase extends AExchange {
                 //
                 // now, connect to the realtime feed
                 
-                this.socket = this.socketFactory.getSocketHelperFor("https://socketio.mtgox.com/socket.io/1/", "wss://socketio.mtgox.com/socket.io/1/websocket/");
+                this.socket = this.socketFactory.getSocketHelperFor("https://socketio.mtgox.com/socket.io/1/",
+                                                                    "wss://socketio.mtgox.com/socket.io/1/websocket/");
                 socket.setListener(new ISocketHelperListener(){
                     
                     public void onOpen(ASocketHelper socket){
@@ -240,6 +241,86 @@ public abstract class MtGoxBase extends AExchange {
         }
     }
     
+        
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // LOADING CURRENCY
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+
+    private void loadCurrencyDataFor(CURRENCY currency){
+        do{
+            try{
+                URLHelper urlHelper = socketFactory.getURLHelper();
+                URL url = new URL("https://mtgox.com/api/1/generic/currency?currency=" + currency);
+                String currencyJSON = urlHelper.getSynchronousURL(url);
+                
+                //
+                // ok, we have the string data,
+                // now parse it
+                if(currencyJSON != null && currencyJSON.length() > 0){
+                    JSONObject parsedCurrencyData = new JSONObject(currencyJSON);
+                    if(parsedCurrencyData != null &&
+                       parsedCurrencyData.getString("result").equals("success")){
+                        parsedCurrencyData = parsedCurrencyData.getJSONObject("return");;
+                        MtGoxCurrency currObj = new MtGoxCurrency(currency, parsedCurrencyData);
+                        MtGoxBase.this.log("loaded currency information for " + currency);
+                        cachedCurrencyData = currObj;
+                    }
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }while(cachedCurrencyData == null);
+    }
+    
+    
+        
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // LOADING WALLET
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+
+    protected void loadWalletData(){
+        try{
+            //
+            // only send 1 trade
+            String queryURL = "1/generic/private/info";
+            HashMap<String, String> args = new HashMap<String, String>();
+            String response = restClient.query(queryURL, args);
+            if(response != null){
+                JSONObject ret = new JSONObject(response);
+                //
+                // the USD balance is
+                walletBalanceEXD = ret.getJSONObject("return").getJSONObject("Wallets")
+                    .getJSONObject(currencyEnum.toString()).getJSONObject("Balance").getLong("value_int");
+                walletBalanceBTC = ret.getJSONObject("return").getJSONObject("Wallets")
+                    .getJSONObject("BTC").getJSONObject("Balance").getLong("value_int");
+                
+                hasLoadedWallet = true;
+                this.log("loaded balance of " + walletBalanceEXD + " " + currencyEnum + " and " + walletBalanceBTC + " BTC");
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // LOADING DEPTH
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     protected void beginTimerForDepthData(){
         depthListingTimer = new Timer();
@@ -262,18 +343,6 @@ public abstract class MtGoxBase extends AExchange {
             }
         }, 15000, 30000);
     }
-    
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    // LOADING
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    
-    
     
     /**
      * This methos is responsible for loading
@@ -446,55 +515,75 @@ public abstract class MtGoxBase extends AExchange {
         }).start();
     }
     
-    private void loadCurrencyDataFor(CURRENCY currency){
-        do{
-            try{
-                URLHelper urlHelper = socketFactory.getURLHelper();
-                URL url = new URL("https://mtgox.com/api/1/generic/currency?currency=" + currency);
-                String currencyJSON = urlHelper.getSynchronousURL(url);
-                
-                //
-                // ok, we have the string data,
-                // now parse it
-                if(currencyJSON != null && currencyJSON.length() > 0){
-                    JSONObject parsedCurrencyData = new JSONObject(currencyJSON);
-                    if(parsedCurrencyData != null &&
-                       parsedCurrencyData.getString("result").equals("success")){
-                        parsedCurrencyData = parsedCurrencyData.getJSONObject("return");;
-                        MtGoxCurrency currObj = new MtGoxCurrency(currency, parsedCurrencyData);
-                        MtGoxBase.this.log("loaded currency information for " + currency);
-                        cachedCurrencyData = currObj;
-                    }
-                }
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-        }while(cachedCurrencyData == null);
-    }
     
-    protected void loadWalletData(){
+        
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // SOCKET MESSAGES
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * process a socket message
+     * 
+     * these will be either depth, tricker, or trade details
+     */
+    protected void processMessage(String messageText){
         try{
-            //
-            // only send 1 trade
-            String queryURL = "1/generic/private/info";
-            HashMap<String, String> args = new HashMap<String, String>();
-            String response = restClient.query(queryURL, args);
-            if(response != null){
-                JSONObject ret = new JSONObject(response);
+            JSONObject msg = new JSONObject(messageText);
+            if(msg.getString("op").equals("error") &&
+               msg.getString("suggest").equals("retry")){
                 //
-                // the USD balance is
-                walletBalanceEXD = ret.getJSONObject("return").getJSONObject("Wallets")
-                    .getJSONObject(currencyEnum.toString()).getJSONObject("Balance").getLong("value_int");
-                walletBalanceBTC = ret.getJSONObject("return").getJSONObject("Wallets")
-                    .getJSONObject("BTC").getJSONObject("Balance").getLong("value_int");
-                
-                hasLoadedWallet = true;
-                this.log("loaded balance of " + walletBalanceEXD + " " + currencyEnum + " and " + walletBalanceBTC + " BTC");
+                // mtgox is having trouble, re-connect
+                this.log("ERROR: command failed on socket - reconnecting: " + messageText);
+                this.disconnect();
+            }else if(msg.getString("op").equals("subscribe")){
+                // ignore
+            }else if(msg.getString("op").equals("private")){
+                // ok, we got a valid message from the socket,
+                // so remeber that fact. we'll use this info
+                // to decide when our depth data is accurate
+                if(msg.getString("private").equals("ticker")){
+//                    this.log("ticker data" + "\n" + messageText);
+                }else if(msg.getString("private").equals("depth")){
+//                    this.log("depth data" + "\n" + messageText.substring(0, Math.min(100, messageText.length())));
+                    this.processDepthData(msg);
+                }else if(msg.getString("private").equals("trade")){
+                    this.processTradeData(msg);
+                }else{
+                    this.log("unknown feed type: " + msg.getString("private"));
+                }
+            }else{
+                this.log("UNKNOWN MESSAGE: " + messageText);
             }
         }catch(Exception e){
+            socket.disconnect();
+            this.disconnect();
             e.printStackTrace();
         }
     }
+    
+    
+    protected abstract void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException;
+    
+    protected abstract void processTradeData(JSONObject tradeMessage) throws JSONException, ExchangeException;
+    
+    
+    
+    
+    
+        
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // ORDER API
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+
     
     
     public void getCurrentOrderStatus(){
@@ -580,50 +669,9 @@ public abstract class MtGoxBase extends AExchange {
     }
     
     
-    /**
-     * process a socket message
-     * 
-     * these will be either depth, tricker, or trade details
-     */
-    protected void processMessage(String messageText){
-        try{
-            JSONObject msg = new JSONObject(messageText);
-            if(msg.getString("op").equals("error") &&
-               msg.getString("suggest").equals("retry")){
-                //
-                // mtgox is having trouble, re-connect
-                this.log("ERROR: command failed on socket - reconnecting: " + messageText);
-                this.disconnect();
-            }else if(msg.getString("op").equals("subscribe")){
-                // ignore
-            }else if(msg.getString("op").equals("private")){
-                // ok, we got a valid message from the socket,
-                // so remeber that fact. we'll use this info
-                // to decide when our depth data is accurate
-                if(msg.getString("private").equals("ticker")){
-//                    this.log("ticker data" + "\n" + messageText);
-                }else if(msg.getString("private").equals("depth")){
-//                    this.log("depth data" + "\n" + messageText.substring(0, Math.min(100, messageText.length())));
-                    this.processDepthData(msg);
-                }else if(msg.getString("private").equals("trade")){
-                    this.processTradeData(msg);
-                }else{
-                    this.log("unknown feed type: " + msg.getString("private"));
-                }
-            }else{
-                this.log("UNKNOWN MESSAGE: " + messageText);
-            }
-        }catch(Exception e){
-            socket.disconnect();
-            this.disconnect();
-            e.printStackTrace();
-        }
-    }
     
     
-    protected abstract void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException;
     
-    protected abstract void processTradeData(JSONObject tradeMessage) throws JSONException, ExchangeException;
     
     
     /** AExchange **/
