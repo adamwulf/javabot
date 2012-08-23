@@ -191,8 +191,10 @@ public abstract class MtGoxBase extends AExchange {
                             }else if(data.startsWith("1::")){
                                 // just print to console, should be our
                                 // confirmation of our /mtgox message above
-                                MtGoxBase.this.log("Confirmed subscription: " + data);
-                                MtGoxBase.this.beginTimerForDepthData();
+                                //
+                                // we are now confirmed connected to the socket,
+                                // and are awaiting our first realtime message
+                                MtGoxBase.this.didFinishConnectToSocketNowWaitingOnRealtimeData();
                                 return;
                             }else if(data.equals("2::")){
                                 // just heartbeat from the server
@@ -241,7 +243,7 @@ public abstract class MtGoxBase extends AExchange {
         }
     }
     
-        
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -395,10 +397,15 @@ public abstract class MtGoxBase extends AExchange {
                         
                         MtGoxBase.this.log("-- Loading from " + url);
                     }catch (Exception e) {
+                        //
+                        // something went terribly wrong
+                        // so log the error and mark our
+                        // last depth load as never so that 
+                        // the next timer cycle will try again in 30s
                         e.printStackTrace();
-                        try{
-                            Thread.sleep(300);
-                        }catch(InterruptedException e2){}
+                        lastRESTDepthCheck = null;
+                        MtGoxBase.this.log("Fetching depth failed");
+                        return;
                     }
                 }
                 
@@ -525,6 +532,19 @@ public abstract class MtGoxBase extends AExchange {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * we have finished the handshake with the socket,
+     * and are now awaiting our first realtime data
+     * 
+     * we're going to start a timer for the depth data,
+     * once it loads we should have some realtime data
+     * ready
+     */
+    private void didFinishConnectToSocketNowWaitingOnRealtimeData(){
+        MtGoxBase.this.log("Socket connection complete");
+        MtGoxBase.this.beginTimerForDepthData();
+    }
+    
     /**
      * process a socket message
      * 
