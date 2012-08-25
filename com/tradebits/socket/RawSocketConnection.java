@@ -92,7 +92,7 @@ public class RawSocketConnection implements ISocketHelper{
                 logFile.log("Couldn't get connection to: " + host);
                 connected = false;
                 connecting = false;
-                RawSocketConnection.this.getListener().onError(RawSocketConnection.this, Arrays.toString(e.getStackTrace()));
+                RawSocketConnection.this.getListener().onError(RawSocketConnection.this, e.toString() + ": " + Arrays.toString(e.getStackTrace()));
                 return;
             }
             
@@ -108,7 +108,6 @@ public class RawSocketConnection implements ISocketHelper{
             
             try{
                 while ((jsonLine = in.readLine()) != null) {
-                    System.out.println("GOT: " + jsonLine);
                     try{
                         // the 5::: is to fake the websocket response
                         // and the json modification is to mimic the

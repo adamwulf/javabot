@@ -4,7 +4,7 @@
         "secret": "5VUKyaG11AM2o5dmU9/C29zDCWq0OhVfJImejoQCQ2LcxsHXlmxeCDffiSjali/NMNML3PQBaXRb5HhlMOaTNg=="
     },
     "Intersango" : {
-        "host" : "db.instersango.com",
+        "host" : "db.intersango.com",
         "port": 1337
     }
 }

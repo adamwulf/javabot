@@ -74,7 +74,7 @@ public class Intersango extends AExchange{
     
     public void connect(){
         try{
-            this.log("Connecting...");
+            this.log("Connecting to: " + configHost + ":" + configPort + "...");
             if(!this.isConnected()){
                 
                 socket = socketFactory.getRawSocketTo(configHost, configPort, rawSocketMessagesLog);
