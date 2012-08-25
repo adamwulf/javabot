@@ -72,7 +72,6 @@ public class IntersangoTest extends TestHelper{
 
         assertEquals(1, count.intValue());
         assertTrue("should be connecting since socket is ok but no messages yet", intersango.isConnecting());
-        System.out.println("checking");
     }
 
     
@@ -319,14 +318,12 @@ public class IntersangoTest extends TestHelper{
         JSONObject testConfig = new JSONObject();
         testConfig.put("port", 2338);
         testConfig.put("host", testSocketServer.getInetAddress().getHostName());
-        System.out.println(testConfig);
         
         (new Thread(){
             public void run(){
                 Socket clientSocket = null;
                 try {
                     clientSocket = testSocketServer.accept();
-                    System.out.println("Accept wins");
                     PrintWriter os = new PrintWriter(clientSocket.getOutputStream());
                     
                     String orderbook = TestHelper.loadTestResource("intersango.orderbook");
@@ -353,7 +350,6 @@ public class IntersangoTest extends TestHelper{
         intersango = new Intersango(testConfig, new StandardSocketFactory(), CURRENCY.USD);
         intersango.addListener(new AExchangeListener(){
             public void didInitializeDepth(AExchange exchange){
-                System.out.println("depth initialized");
                 synchronized(count){
                     count.increment();
                     count.notify();
@@ -361,7 +357,6 @@ public class IntersangoTest extends TestHelper{
             }
             
             public void didProcessDepth(AExchange exchange){
-                System.out.println("depth message processed");
                 synchronized(count){
                     count.increment();
                     count.notify();
