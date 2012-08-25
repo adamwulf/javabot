@@ -48,8 +48,8 @@ public class Log{
     }
     
     public void log(String msg){
-        logs.add((new Date()) + ": " + msg);
         synchronized(logs){
+            logs.add((new Date()) + ": " + msg);
             logs.notify();
         }
     }

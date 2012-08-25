@@ -16,14 +16,14 @@ import com.tradebits.trade.*;
 public class Intersango extends AExchange{
     
     CURRENCY currencyEnum;
-    ASocketHelper socket;
+    RawSocketConnection socket;
     ASocketFactory socketFactory;
     Log rawDepthDataLog;
     Log rawSocketMessagesLog;
     boolean socketIsConnected = false;
     boolean socketHasReceivedAnyMessage = false;
     Integer intersangoCurrencyEnum;
-            
+    
     /**
      * https://intersango.com/api.php
      * 
@@ -68,19 +68,14 @@ public class Intersango extends AExchange{
             this.log("Connecting...");
             if(!this.isConnected()){
                 
-                
-                //
-                // now, connect to the realtime feed
-                
-                this.socket = this.socketFactory.getSocketHelperFor("https://socketio.intersango.com:8080/socket.io/1/", "wss://socketio.intersango.com:8080/socket.io/1/websocket/");
-                socket.setListener(new ISocketHelperListener(){
+                socket = new RawSocketConnection(new ISocketHelperListener(){
                     
-                    public void onOpen(ASocketHelper socket){
+                    public void onOpen(ISocketHelper socket){
                         Intersango.this.log("OPEN");
                         socketIsConnected = true;
                     }
                     
-                    public void onClose(ASocketHelper socket, int closeCode, String message){
+                    public void onClose(ISocketHelper socket, int closeCode, String message){
                         Intersango.this.log("CLOSE");
                         socketIsConnected = false;
                         // if this flag is still true,
@@ -89,11 +84,11 @@ public class Intersango extends AExchange{
                         Intersango.this.disconnect();
                     }
                     
-                    public void onError(ASocketHelper socket, String message){
+                    public void onError(ISocketHelper socket, String message){
                         // noop
                     }
                     
-                    public void onMessage(ASocketHelper aSocket, String data){
+                    public void onMessage(ISocketHelper aSocket, String data){
                         try{
                             String dataPrefix = "5:::";
                             if(data.startsWith("1::")){
@@ -115,7 +110,7 @@ public class Intersango extends AExchange{
                         }
                     }
                     
-                    public void onHeartbeatSent(ASocketHelper socket){
+                    public void onHeartbeatSent(ISocketHelper socket){
                         //
                         // update our depth data as often as we heartbeat
 //                        Intersango.this.log("~h~");
@@ -123,16 +118,7 @@ public class Intersango extends AExchange{
                 });
             }
             socket.connect();
-        }catch(java.net.ConnectException e){
-            this.log("Connection Refused. Waiting to reconnect.");
-            try{
-                Thread.sleep(5000);
-            }catch(Exception e2){ }
-            if(socket != null){
-                socket.setListener(null);
-            }
-            socketIsConnected = false;
-            this.disconnect();
+            
         }catch(Exception e){
             e.printStackTrace();
             if(socket != null){
@@ -205,7 +191,7 @@ public class Intersango extends AExchange{
             cachableData.put("price", depthData.getDouble("rate"));
             cachableData.put("volume_int", this.doubleToInt(depthData.getDouble("amount")));
             cachableData.put("stamp",new Date());
-
+            
             if(depthData.get("type").equals("bids")){
                 this.updateBidData(cachableData);
             }else if(depthData.get("type").equals("asks")){
@@ -315,4 +301,114 @@ public class Intersango extends AExchange{
     }
     
     
+    
+    
+    
+    
+    protected class RawSocketConnection implements ISocketHelper{
+        private boolean connected;
+        private boolean connecting;
+        private ISocketHelperListener listener;
+        private SocketThread socketThread;
+        
+        public RawSocketConnection(ISocketHelperListener listener){
+            connected = false;
+            connecting = true;
+            this.setListener(listener);
+        }
+        
+        
+        public boolean isConnected(){
+            return connected;
+        }
+        
+        public boolean isConnecting(){
+            return connecting && !connected;
+        }
+        
+        public void disconnect(){
+            socketThread.disconnect();
+        }
+        
+        public void connect(){
+            if(!this.isConnected()){
+                connecting = true;
+                socketThread = new SocketThread();
+                socketThread.start();
+            }
+        }
+        
+        public void send(String msg){
+            // noop
+        }
+        
+        /** Listener **/
+        
+        public void setListener(ISocketHelperListener listener){
+            this.listener = listener;
+        }
+        
+        public ISocketHelperListener getListener(){
+            return this.listener;
+        }
+        
+        
+        
+        
+        private class SocketThread extends Thread{
+            private BufferedReader stdIn;
+            public SocketThread(){
+                super(Intersango.this.getName() + " Socket Thread");
+            }
+            public void disconnect(){
+                try{
+                    stdIn.close();
+                }catch(IOException e){ }
+                connected = false;
+            }
+            public void run(){
+                Socket echoSocket = null;
+                BufferedReader in = null;
+                
+                try {
+                    echoSocket = new Socket("db.intersango.com", 1337);
+                    in = new BufferedReader(new InputStreamReader(
+                                                                  echoSocket.getInputStream()));
+                } catch (UnknownHostException e) {
+                    Intersango.this.log("Don't know about host: db.intersango.com.");
+                    connected = false;
+                    connecting = false;
+                    return;
+                } catch (IOException e) {
+                    Intersango.this.log("Couldn't get I/O for "
+                                           + "the connection to: db.intersango.com.");
+                    connected = false;
+                    connecting = false;
+                    return;
+                }
+                
+                stdIn = new BufferedReader(new InputStreamReader(System.in));
+                String jsonLine;
+                
+                connected = true;
+                connecting = false;
+                RawSocketConnection.this.getListener().onOpen(RawSocketConnection.this);
+                
+                try{
+                    while ((jsonLine = in.readLine()) != null) {
+                        // the 5::: is to fake the websocket response
+                        System.out.println(jsonLine);
+                        RawSocketConnection.this.getListener().onMessage(RawSocketConnection.this, "5:::{ \"return\": \"success\", " +
+                                                                             "\"args\":" + jsonLine + "}");
+                    }
+                }catch(IOException e){ }
+                try{ in.close(); }catch(IOException e){ }
+                try{ stdIn.close(); }catch(IOException e){ }
+                try{ echoSocket.close(); }catch(IOException e){ }
+
+                connected = false;
+                RawSocketConnection.this.getListener().onClose(RawSocketConnection.this, 0, null);
+            }
+        }
+    }
 }

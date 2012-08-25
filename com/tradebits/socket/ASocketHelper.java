@@ -2,7 +2,7 @@ package com.tradebits.socket;
 
 import java.io.*;
 
-public abstract class ASocketHelper{
+public abstract class ASocketHelper implements ISocketHelper{
     
     /** Members **/
     

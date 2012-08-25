@@ -6,14 +6,14 @@ package com.tradebits.socket;
 public interface ISocketHelperListener{
     
     
-    public void onOpen(ASocketHelper socket);
+    public void onOpen(ISocketHelper socket);
     
-    public void onClose(ASocketHelper socket, int closeCode, String message);
+    public void onClose(ISocketHelper socket, int closeCode, String message);
     
-    public void onMessage(ASocketHelper socket, String data);
+    public void onMessage(ISocketHelper socket, String data);
     
-    public void onError(ASocketHelper socket, String error);
+    public void onError(ISocketHelper socket, String error);
     
-    public void onHeartbeatSent(ASocketHelper socket);
+    public void onHeartbeatSent(ISocketHelper socket);
     
 }

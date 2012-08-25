@@ -160,14 +160,14 @@ public abstract class MtGoxBase extends AExchange {
                                                                     "wss://socketio.mtgox.com/socket.io/1/websocket/");
                 socket.setListener(new ISocketHelperListener(){
                     
-                    public void onOpen(ASocketHelper socket){
+                    public void onOpen(ISocketHelper socket){
                         MtGoxBase.this.log("OPEN");
                         if(!wasToldToConnect){
                             MtGoxBase.this.disconnectHelper();
                         }
                     }
                     
-                    public void onClose(ASocketHelper socket, int closeCode, String message){
+                    public void onClose(ISocketHelper socket, int closeCode, String message){
                         MtGoxBase.this.log("CLOSE");
                         // if this flag is still true,
                         // then MtGox disconnect() has
@@ -175,12 +175,12 @@ public abstract class MtGoxBase extends AExchange {
                         MtGoxBase.this.disconnect();
                     }
                     
-                    public void onError(ASocketHelper socket, String message){
+                    public void onError(ISocketHelper socket, String message){
                         // noop
                     }
                     
                     String dataPrefix = "4::/mtgox:";
-                    public void onMessage(ASocketHelper aSocket, String data){
+                    public void onMessage(ISocketHelper aSocket, String data){
                         try{
                             if(data.equals("1::")){
                                 // ask to connect to the mtgox channel
@@ -211,7 +211,7 @@ public abstract class MtGoxBase extends AExchange {
                         }
                     }
                     
-                    public void onHeartbeatSent(ASocketHelper socket){
+                    public void onHeartbeatSent(ISocketHelper socket){
                         //
                         // update our depth data as often as we heartbeat
 //                        MtGox.this.log("~h~");
