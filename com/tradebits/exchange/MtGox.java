@@ -25,6 +25,19 @@ public class MtGox extends MtGoxBase {
         super(config, factory, curr);
     }
     
+    /**
+     * mtgox only has a trading fee if I
+     * am buying bitcoins on the exchange
+     */
+    public double getTradingFeeFor(CurrencyTrade trade){
+        if(trade.getFromExchange() == this){
+            // I am buying bitcoins from
+            // the exchange
+            return tradeFee;
+        }
+        return 0;
+    }
+    
     
     protected void processTradeData(JSONObject tradeMessage) throws JSONException, ExchangeException{
         synchronized(this){

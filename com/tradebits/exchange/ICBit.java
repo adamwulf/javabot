@@ -228,6 +228,10 @@ public class ICBit extends AExchange {
         return CURRENCY.USD;
     }
     
+    public double getTradingFeeFor(CurrencyTrade trade){
+        return 0;
+    }
+
     
     /** AExchange **/
     public boolean isCurrencySupported(CURRENCY curr){

@@ -40,7 +40,7 @@ public abstract class MtGoxBase extends AExchange {
     protected MtGoxCurrency cachedCurrencyData = null;
     protected Log rawDepthDataLog;
     protected Log rawSocketMessagesLog;
-    
+    protected double tradeFee;
     
     public MtGoxBase(JSONObject config, ASocketFactory factory, CURRENCY curr) throws ExchangeException{
         super("MtGox");
@@ -309,6 +309,7 @@ public abstract class MtGoxBase extends AExchange {
                     .getJSONObject(currencyEnum.toString()).getJSONObject("Balance").getLong("value_int");
                 walletBalanceBTC = ret.getJSONObject("return").getJSONObject("Wallets")
                     .getJSONObject("BTC").getJSONObject("Balance").getLong("value_int");
+                tradeFee = ret.getJSONObject("return").getDouble("Trade_Fee");
                 
                 hasLoadedWallet = true;
                 this.log("loaded balance of " + walletBalanceEXD + " " + currencyEnum + " and " + walletBalanceBTC + " BTC");

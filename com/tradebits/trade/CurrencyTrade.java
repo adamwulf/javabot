@@ -23,8 +23,15 @@ import org.json.*;
  */
 public class CurrencyTrade extends Trade{
  
+    JSONObject fromAsk;
+    JSONObject toBid;
+    double expectedPercentReturn;
+    
     public CurrencyTrade(AExchange from, AExchange to, OpenExchangeRates exchangeRateModel, Log tradeLog){
         super(from, to, exchangeRateModel, tradeLog);
+        fromAsk = fromEx.getAsk(0);
+        toBid = toEx.getBid(0);
+        this.prepTradeInformation();
     }
     
     
@@ -53,8 +60,6 @@ public class CurrencyTrade extends Trade{
      * money market
      */
     private double getBitcoinMarketExchangeRate() throws JSONException{
-        JSONObject fromAsk = fromEx.getAsk(0);
-        JSONObject toBid = toEx.getBid(0);
         //
         // first, let's find the exchange rate that we'll
         // be able to get by trading through the bitcoin
@@ -64,10 +69,9 @@ public class CurrencyTrade extends Trade{
         return priceIGet / priceIPay;
     }
     
-    public boolean prepTradeInformation(){
+    
+    private boolean prepTradeInformation(){
         try{
-            JSONObject fromAsk = fromEx.getAsk(0);
-            JSONObject toBid = toEx.getBid(0);
             if(fromAsk != null && toBid != null){
                 
                 // get bitcoin market rate
@@ -93,24 +97,23 @@ public class CurrencyTrade extends Trade{
                 //
                 // if trigger is positive, then i make that %
                 // by going through BTC
-                double trigger = throughBTCRate / actualRate - 1;
+                expectedPercentReturn = throughBTCRate / actualRate - 1;
                 
+                double toFee = toEx.getTradingFeeFor(this);
+                double fromFee = fromEx.getTradingFeeFor(this);
                 
                 //
                 // trigger will be positive if i can make money
                 // excluding fees
-                if(trigger > 0){
+                if(expectedPercentReturn > (toFee + fromFee) + 0.01 || tradeLog instanceof SysOutLog){
                     // only trade if trigger is > 0.3){
                     //
                     // only log if it's time to
                     tradeLog.log("exchange rate: " + throughRateType + ": " + throughBTCRate + " vs " + actualRate);
-                    tradeLog.log("   normalized to actual= " + (throughBTCRate/actualRate)+ " trigger=" + trigger + " vol= " + 
-                                 Math.min(fromAsk.getDouble("volume"),toBid.getDouble("volume")) );
-//                    if(trigger > .05 || trigger < -.05){
-                        // 5% difference in price
-                        tradeLog.log(" - " + fromEx.getName() + " ask: " + fromEx.getAsk(0));
-                        tradeLog.log(" - " + toEx.getName() + " bid: " + toEx.getBid(0));
-//                    }
+                    tradeLog.log("   normalized to actual= " + (throughBTCRate/actualRate) +  " expectedPercentReturn=" + 
+                                 expectedPercentReturn + " vol= " +  this.getAmountToTrade());
+                    tradeLog.log(" - " + fromEx.getName() + " ask: " + fromAsk);
+                    tradeLog.log(" - " + toEx.getName() + " bid: " + toBid);
                     return true;
                 }
             }else if(fromAsk == null){
@@ -125,8 +128,37 @@ public class CurrencyTrade extends Trade{
         return false;
     }
     
+    /**
+     * returns true if this potential trade
+     * expects a positive return
+     * (not including fees)
+     */
+    public boolean expectsToMakeProfit(){
+        return this.expectedPercentReturn() > 0;
+    }
     
+    /**
+     * returns the expected return of the trade
+     */
+    public double expectedPercentReturn(){
+        double toFee = toEx.getTradingFeeFor(this);
+        double fromFee = fromEx.getTradingFeeFor(this);
+        return expectedPercentReturn - toFee - fromFee;
+    }
     
+    /**
+     * returns the number of bitcoins that
+     * can be traded with this trade
+     */
+    public double getAmountToTrade() throws JSONException{
+        return Math.min(fromAsk.getDouble("volume"),toBid.getDouble("volume"));
+    }
     
+    public JSONObject getFromAsk(){
+        return fromAsk;
+    }
     
+    public JSONObject getToBid(){
+        return toBid;
+    }
 }

@@ -153,8 +153,11 @@ public class Intersango extends AExchange{
                 this.processDepthUpdate(msg);
 //            }else if(msg.getString("name").equals("tickers")){
 //                // ignore
-//            }else if(msg.getString("name").equals("trade")){
+            }else if(msg.getString("name").equals("trade")){
 //                // ignore
+            }else if(msg.getString("name").equals("ping")){
+                // heartbeat
+                this.notifyDidReceiveHeartbeat();
             }else{
                 this.log("UNKNOWN MESSAGE: " + messageText);
             }
@@ -182,6 +185,10 @@ public class Intersango extends AExchange{
         return currencyEnum;
     }
     
+    public double getTradingFeeFor(CurrencyTrade trade){
+        return 0;
+    }
+
     
     /**
      * to be used for currencyEnum balances only

@@ -178,7 +178,10 @@ public class BitFloor extends AExchange {
     }
     
     /** AExchange **/
-    
+
+    public double getTradingFeeFor(CurrencyTrade trade){
+        return 0;
+    }
     
     public boolean isCurrencySupported(CURRENCY curr){
         return curr == CURRENCY.BTC || curr == CURRENCY.USD;

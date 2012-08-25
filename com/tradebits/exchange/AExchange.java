@@ -80,6 +80,15 @@ public abstract class AExchange{
     
     abstract public boolean isConnecting();
     
+    
+    
+    /**
+     * mtgox only has a trading fee if I
+     * am buying bitcoins on the exchange
+     */
+    abstract public double getTradingFeeFor(CurrencyTrade trade);
+
+    
     private JSONObject getBidAskData(double price, TreeMap<Double, JSONObject> treeMap){
         return treeMap.get(price);
     }
@@ -287,4 +296,14 @@ public abstract class AExchange{
             }
         }
     }
+    
+    public void notifyDidReceiveHeartbeat(){
+        synchronized(listeners){
+            for(AExchangeListener listener : listeners){
+                listener.didReceiveHeartbeat(this);
+            }
+        }
+    }
+    
+    
 }

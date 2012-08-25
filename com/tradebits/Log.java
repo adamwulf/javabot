@@ -10,9 +10,12 @@ import java.util.*;
 
 public class Log{
     
+    protected String name;
+    
     LinkedList<String> logs = new LinkedList<String>();
     
     public Log(String name) throws IOException{
+        this.name = name;
         File logDir = new File(System.getProperty("logPath"));
         String logDirectory = logDir.getAbsolutePath();
         String logFilePath = logDirectory + File.separator + name + ".log";
@@ -53,6 +56,9 @@ public class Log{
             logs.notify();
         }
     }
-    
+ 
+    public String getName(){
+        return name;
+    }
     
 }

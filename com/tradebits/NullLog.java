@@ -9,6 +9,10 @@ public class NullLog extends Log{
         super(name);
     }
     
+    public NullLog() throws IOException{
+        super("null log");
+    }
+    
     public void log(String foo){
         // noop!
     }

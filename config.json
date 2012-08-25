@@ -5,6 +5,7 @@
     },
     "Intersango" : {
         "host" : "db.intersango.com",
-        "port": 1337
+        "port": 1337,
+        "key" : "f718069681c45c062bad68b35bcf9d00"
     }
 }

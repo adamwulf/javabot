@@ -127,9 +127,9 @@ public class Trader{
                         AExchange fromEx = mtGoxUSD;
                         AExchange toEx = ex;
                         CurrencyTrade possibleTrade1 = new CurrencyTrade(fromEx, toEx, exchangeRates, exchangeRatesFromUSDOverTimeLog);
-                        didLog = possibleTrade1.prepTradeInformation() || didLog;
+                        didLog = possibleTrade1.expectsToMakeProfit() || didLog;
                         CurrencyTrade possibleTrade2 = new CurrencyTrade(toEx, fromEx, exchangeRates, exchangeRatesToUSDOverTimeLog);
-                        didLog = possibleTrade2.prepTradeInformation() || didLog;
+                        didLog = possibleTrade2.expectsToMakeProfit() || didLog;
                         
                         if(mtGoxUSD.isConnected() && counter.intValue() == 0){
 //                            mtGoxUSD.executeOrderToBuyBTC(0.01);

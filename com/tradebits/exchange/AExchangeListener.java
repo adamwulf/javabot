@@ -21,4 +21,8 @@ abstract public class AExchangeListener{
         // default to noop
     }
     
+    public void didReceiveHeartbeat(AExchange exchange){
+        // default to noop
+    }
+    
 }
