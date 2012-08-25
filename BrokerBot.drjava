@@ -3,335 +3,340 @@
   <project autorefresh="false" build="build/" main="com.tradebits.Trader" root="" work="">
     <createjar file=""/>
     <source>
-      <file active="true" name="com/tradebits/exchange/MtGoxBase.java" package="com.tradebits.exchange" timestamp="23-Aug-2012 17:23:13">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+      <file active="true" name="com/tradebits/socket/RawSocketConnection.java" package="com.tradebits.socket" timestamp="25-Aug-2012 00:10:29">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
-      <file name="com/tradebits/Log.java" package="com.tradebits" timestamp="24-Aug-2012 04:08:24">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+      <file name="com/tradebits/Log.java" package="com.tradebits" timestamp="24-Aug-2012 23:46:46">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/BlockChain.java" package="com.tradebits" timestamp="23-Aug-2012 17:09:41">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/XMLTokener.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/util/Charsetfunctions.java" package="org.java_websocket.util" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/util/Base64.java" package="org.java_websocket.util" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/server/WebSocketServer.java" package="org.java_websocket.server" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/ServerHandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/ServerHandshake.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/HandshakedataImpl1.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/Handshakedata.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/HandshakeImpl1Server.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/HandshakeImpl1Client.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/HandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/ClientHandshakeBuilder.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/handshake/ClientHandshake.java" package="org.java_websocket.handshake" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/framing/FramedataImpl1.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/framing/Framedata.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/framing/FrameBuilder.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/framing/CloseFrameBuilder.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/framing/CloseFrame.java" package="org.java_websocket.framing" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/NotSendableException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/LimitExedeedException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/InvalidHandshakeException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/InvalidFrameException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/InvalidDataException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/exceptions/IncompleteHandshakeException.java" package="org.java_websocket.exceptions" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft_76.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft_75.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft_17.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft_10.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/drafts/Draft.java" package="org.java_websocket.drafts" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocketListener.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocketImpl.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocketFactory.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocketAdapter.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/WebSocket.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/SocketChannelIOHelper.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/SSLSocketChannel.java" package="org.java_websocket" timestamp="02-Aug-2012 13:38:28">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/aw/ad/util/InstallCert.java" package="com.aw.ad.util" timestamp="10-Aug-2012 05:11:16">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/java_websocket/client/WebSocketClient.java" package="org.java_websocket.client" timestamp="10-Aug-2012 22:27:31">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/exchange/ExchangeException.java" package="com.tradebits.exchange" timestamp="15-Aug-2012 15:18:51">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/socket/ASocketFactory.java" package="com.tradebits.socket" timestamp="17-Aug-2012 23:57:49">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/socket/StandardSocketFactory.java" package="com.tradebits.socket" timestamp="18-Aug-2012 00:17:46">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/tests/test.depth" package="" timestamp="18-Aug-2012 23:09:40">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/tests/currency.USD" package="" timestamp="19-Aug-2012 00:08:18">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/OpenExchangeRates.java" package="com.tradebits" timestamp="21-Aug-2012 01:25:01">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/NullLog.java" package="com.tradebits" timestamp="21-Aug-2012 22:54:24">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/trade/Trade.java" package="com.tradebits.trade" timestamp="22-Aug-2012 22:48:12">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="config.json" package="" timestamp="23-Aug-2012 00:03:54">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/URLHelper.java" package="com.tradebits" timestamp="23-Aug-2012 00:04:46">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/Trader.java" package="com.tradebits" timestamp="23-Aug-2012 02:46:03">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/exchange/ICBit.java" package="com.tradebits.exchange" timestamp="23-Aug-2012 15:53:21">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/exchange/BitFloor.java" package="com.tradebits.exchange" timestamp="23-Aug-2012 15:53:22">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/exchange/AExchange.java" package="com.tradebits.exchange" timestamp="23-Aug-2012 15:53:24">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/exchange/MtGox.java" package="com.tradebits.exchange" timestamp="23-Aug-2012 16:05:24">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/tests/TestHelper.java" package="com.tradebits.tests" timestamp="23-Aug-2012 16:09:58">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/tests/TestSocketHelper.java" package="com.tradebits.tests" timestamp="23-Aug-2012 16:17:15">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/socket/SocketHelper.java" package="com.tradebits.socket" timestamp="23-Aug-2012 16:18:48">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/tests/MtGoxTest.java" package="com.tradebits.tests" timestamp="23-Aug-2012 16:34:31">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="com/tradebits/tests/MtGoxDepthTest.java" package="com.tradebits.tests" timestamp="23-Aug-2012 17:01:32">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/XML.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/JSONWriter.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/JSONTokener.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/JSONStringer.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/JSONString.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/JSONObject.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/JSONML.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/JSONException.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/JSONArray.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/HTTPTokener.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/HTTP.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/CookieList.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/Cookie.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
       <file name="org/json/CDL.java" package="org.json" timestamp="23-Aug-2012 17:06:23">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
-      <file name="com/tradebits/trade/CurrencyTrade.java" package="com.tradebits.trade" timestamp="23-Aug-2012 17:33:44">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+      <file name="com/tradebits/socket/ASocketHelper.java" package="com.tradebits.socket" timestamp="24-Aug-2012 23:46:46">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
-      <file name="com/tradebits/exchange/Intersango2.java" package="com.tradebits.exchange" timestamp="24-Aug-2012 23:25:04">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+      <file name="com/tradebits/socket/ISocketHelperListener.java" package="com.tradebits.socket" timestamp="24-Aug-2012 23:46:46">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
-      <file name="com/tradebits/socket/ISocketHelper.java" package="com.tradebits.socket" timestamp="24-Aug-2012 23:36:37">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+      <file name="com/tradebits/exchange/MtGoxBase.java" package="com.tradebits.exchange" timestamp="24-Aug-2012 23:46:46">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
-      <file name="com/tradebits/socket/ASocketHelper.java" package="com.tradebits.socket" timestamp="24-Aug-2012 23:36:43">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+      <file name="com/tradebits/socket/ISocketHelper.java" package="com.tradebits.socket" timestamp="24-Aug-2012 23:46:46">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
-      <file name="com/tradebits/socket/ISocketHelperListener.java" package="com.tradebits.socket" timestamp="24-Aug-2012 23:36:50">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+      <file name="com/tradebits/trade/CurrencyTrade.java" package="com.tradebits.trade" timestamp="25-Aug-2012 00:02:13">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
-      <file name="com/tradebits/exchange/Intersango.java" package="com.tradebits.exchange" timestamp="24-Aug-2012 23:37:02">
-        <select from="8283" to="8283"/>
-        <scroll column="3052" row="0"/>
+      <file name="com/tradebits/tests/IntersangoTest.java" package="com.tradebits.tests" timestamp="25-Aug-2012 00:07:15">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="com/tradebits/exchange/Intersango.java" package="com.tradebits.exchange" timestamp="25-Aug-2012 00:08:42">
+        <select from="398" to="398"/>
+        <scroll column="0" row="0"/>
       </file>
     </source>
     <included/>
     <excluded/>
     <collapsed>
       <path name="./[ Source Files ]/org/java_websocket/"/>
+      <path name="./[ Source Files ]/org/json/"/>
     </collapsed>
     <classpath>
       <file absolute="false" name="ext/jetty-distribution-8.1.5.v20120716/lib/jetty-ajp-8.1.5.v20120716.jar"/>

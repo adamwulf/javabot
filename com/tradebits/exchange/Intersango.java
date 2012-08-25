@@ -68,7 +68,7 @@ public class Intersango extends AExchange{
             this.log("Connecting...");
             if(!this.isConnected()){
                 
-                socket = new RawSocketConnection(new ISocketHelperListener(){
+                socket = new RawSocketConnection("db.intersango.com", 1337, new ISocketHelperListener(){
                     
                     public void onOpen(ISocketHelper socket){
                         Intersango.this.log("OPEN");
@@ -115,7 +115,7 @@ public class Intersango extends AExchange{
                         // update our depth data as often as we heartbeat
 //                        Intersango.this.log("~h~");
                     }
-                });
+                }, rawSocketMessagesLog);
             }
             socket.connect();
             
@@ -298,128 +298,5 @@ public class Intersango extends AExchange{
             }
         }
         return null;
-    }
-    
-    
-    
-    
-    
-    
-    protected class RawSocketConnection implements ISocketHelper{
-        private boolean connected;
-        private boolean connecting;
-        private ISocketHelperListener listener;
-        private SocketThread socketThread;
-        
-        public RawSocketConnection(ISocketHelperListener listener){
-            connected = false;
-            connecting = true;
-            this.setListener(listener);
-        }
-        
-        
-        public boolean isConnected(){
-            return connected;
-        }
-        
-        public boolean isConnecting(){
-            return connecting && !connected;
-        }
-        
-        public void disconnect(){
-            socketThread.disconnect();
-        }
-        
-        public void connect(){
-            if(!this.isConnected()){
-                connecting = true;
-                socketThread = new SocketThread();
-                socketThread.start();
-            }
-        }
-        
-        public void send(String msg){
-            // noop
-        }
-        
-        /** Listener **/
-        
-        public void setListener(ISocketHelperListener listener){
-            this.listener = listener;
-        }
-        
-        public ISocketHelperListener getListener(){
-            return this.listener;
-        }
-        
-        
-        
-        
-        private class SocketThread extends Thread{
-            private BufferedReader stdIn;
-            public SocketThread(){
-                super(Intersango.this.getName() + " Socket Thread");
-            }
-            public void disconnect(){
-                try{
-                    stdIn.close();
-                }catch(IOException e){ }
-                connected = false;
-            }
-            public void run(){
-                Socket echoSocket = null;
-                BufferedReader in = null;
-                
-                try {
-                    echoSocket = new Socket("db.intersango.com", 1337);
-                    in = new BufferedReader(new InputStreamReader(
-                                                                  echoSocket.getInputStream()));
-                } catch (UnknownHostException e) {
-                    Intersango.this.log("Don't know about host: db.intersango.com.");
-                    connected = false;
-                    connecting = false;
-                    return;
-                } catch (IOException e) {
-                    Intersango.this.log("Couldn't get I/O for "
-                                           + "the connection to: db.intersango.com.");
-                    connected = false;
-                    connecting = false;
-                    return;
-                }
-                
-                stdIn = new BufferedReader(new InputStreamReader(System.in));
-                String jsonLine;
-                
-                connected = true;
-                connecting = false;
-                RawSocketConnection.this.getListener().onOpen(RawSocketConnection.this);
-                
-                try{
-                    while ((jsonLine = in.readLine()) != null) {
-                        try{
-                            // the 5::: is to fake the websocket response
-                            // and the json modification is to mimic the
-                            // intersango websocket, which i would prefer to use
-                            // but is unofficial and not stable
-                            JSONArray dataArr = new JSONArray(jsonLine);
-                            String name = dataArr.getString(0);
-                            JSONObject arg0 = dataArr.getJSONObject(1);
-                            JSONArray args = new JSONArray();
-                            args.put(arg0);
-                            RawSocketConnection.this.getListener().onMessage(RawSocketConnection.this, "5:::{ \"name\": \"" + name + "\", " +
-                                                                                 "\"args\":" + args.toString() + "}");
-                        }catch(JSONException e){
-                            RawSocketConnection.this.getListener().onError(RawSocketConnection.this, jsonLine);
-                        }
-                    }
-                }catch(IOException e){ }
-                try{ in.close(); }catch(IOException e){ }
-                try{ stdIn.close(); }catch(IOException e){ }
-                try{ echoSocket.close(); }catch(IOException e){ }
-
-                connected = false;
-                RawSocketConnection.this.getListener().onClose(RawSocketConnection.this, 0, null);
-            }
-        }
     }
 }
