@@ -20,6 +20,8 @@ public class IntersangoTest extends TestHelper{
     
     Intersango intersango;
     
+    JSONObject intersangoTestConfig;
+    
     @After @AfterClass
     protected void tearDown(){
         intersango.disconnect();
@@ -27,6 +29,10 @@ public class IntersangoTest extends TestHelper{
     }
     
     
+    @Before
+    protected void setUp() throws JSONException{
+        intersangoTestConfig = new JSONObject("{ \"host\":\"fakeHost\", \"port\":1337 }");
+    }
     
     
     /**
@@ -37,7 +43,7 @@ public class IntersangoTest extends TestHelper{
         
         final MutableInt count = new MutableInt();
         
-        intersango = new Intersango(new TestSocketFactory(){
+        intersango = new Intersango(intersangoTestConfig, new TestSocketFactory(){
             public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
@@ -79,7 +85,7 @@ public class IntersangoTest extends TestHelper{
         
         final MutableInt count = new MutableInt();
         
-        intersango = new Intersango(new TestSocketFactory(){
+        intersango = new Intersango(intersangoTestConfig, new TestSocketFactory(){
             public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
@@ -116,7 +122,7 @@ public class IntersangoTest extends TestHelper{
         
         final MutableInt count = new MutableInt();
         
-        intersango = new Intersango(new TestSocketFactory(){
+        intersango = new Intersango(intersangoTestConfig, new TestSocketFactory(){
             public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
@@ -163,7 +169,7 @@ public class IntersangoTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        intersango = new Intersango(new TestSocketFactory(){
+        intersango = new Intersango(intersangoTestConfig, new TestSocketFactory(){
             public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return noopSocket;
             }
@@ -200,7 +206,7 @@ public class IntersangoTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        intersango = new Intersango(new TestSocketFactory(){
+        intersango = new Intersango(intersangoTestConfig, new TestSocketFactory(){
             public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return noopSocket;
             }
@@ -236,7 +242,7 @@ public class IntersangoTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        intersango = new Intersango(new TestSocketFactory(){
+        intersango = new Intersango(intersangoTestConfig, new TestSocketFactory(){
             public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return noopSocket;
             }
@@ -246,7 +252,7 @@ public class IntersangoTest extends TestHelper{
         intersango.connect();
         
         // send close message
-        noopSocket.getListener().onMessage(noopSocket, "5:::{\"mumble\"}");
+        noopSocket.getListener().onMessage(noopSocket, "5:::{\"mumble\":\"foobar\"}");
         
         // confirm it goes offline
         assertEquals(1, count.intValue());
@@ -267,34 +273,23 @@ public class IntersangoTest extends TestHelper{
         //
         // initialize mtgox with a noop socket
         // and null data for the handshake
-        mtgox = new MtGox(mtgoxTestConfig, new StandardSocketFactory(){
-            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
-                return new SocketHelper(this, httpURL, wsURLFragment){
-                    public void connect() throws Exception{
+        intersango = new Intersango(intersangoTestConfig, new StandardSocketFactory(){
+            public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
+                return new RawSocketConnection(host, port, logFile){
+                    public void connect(){
                         count.increment();
                         super.connect();
-                    }
-                };
-            }
-            public URLHelper getURLHelper(){
-                return new URLHelper(){
-                    public String postSynchronousURL(URL foo, String bar) throws IOException{
-                        if(count.intValue() == 1){
-                            return null;
-                        }else{
-                            return super.postSynchronousURL(foo, bar);
-                        }
                     }
                 };
             }
         }, CURRENCY.USD);
         
         // initial connection
-        mtgox.connect();
+        intersango.connect();
         
         // confirm it goes offline
         assertEquals("websocket connects once", 1, count.intValue());
-        assertTrue("mtgox is offline", mtgox.isOffline());
+        assertTrue("mtgox is offline", intersango.isOffline());
     }
     
     

@@ -4,6 +4,7 @@ package com.tradebits.socket;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 import com.tradebits.*;
 import org.json.*;
 
@@ -76,7 +77,7 @@ public class RawSocketConnection implements ISocketHelper{
         }
         public void disconnect(){
             try{
-                in.close();
+                if(in !=null) in.close();
             }catch(IOException e){ }
             connected = false;
         }
@@ -87,15 +88,11 @@ public class RawSocketConnection implements ISocketHelper{
             try {
                 echoSocket = new Socket(host, port);
                 in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
-            } catch (UnknownHostException e) {
-                logFile.log("Don't know about host: " + host);
+            } catch (Exception e) {
+                logFile.log("Couldn't get connection to: " + host);
                 connected = false;
                 connecting = false;
-                return;
-            } catch (IOException e) {
-                logFile.log("Couldn't get I/O for the connection to: " + host);
-                connected = false;
-                connecting = false;
+                RawSocketConnection.this.getListener().onError(RawSocketConnection.this, Arrays.toString(e.getStackTrace()));
                 return;
             }
             

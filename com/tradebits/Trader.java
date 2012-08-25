@@ -84,7 +84,7 @@ public class Trader{
         final MtGox mtGoxUSD = new MtGox(config.getJSONObject("MtGox"), socketFactory, CURRENCY.USD);
         exchanges.add(mtGoxUSD);
         
-        exchanges.add(new Intersango(socketFactory, CURRENCY.USD));
+        exchanges.add(new Intersango(config.getJSONObject("Intersango"), socketFactory, CURRENCY.USD));
 //        exchanges.add(new MtGox(config.getJSONObject("MtGox"), socketFactory, CURRENCY.EUR));
 //        exchanges.add(new MtGox(config.getJSONObject("MtGox"), socketFactory, CURRENCY.AUD));
 //        exchanges.add(new MtGox(config.getJSONObject("MtGox"), socketFactory, CURRENCY.CAD));

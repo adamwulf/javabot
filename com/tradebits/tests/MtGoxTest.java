@@ -242,7 +242,7 @@ public class MtGoxTest extends TestHelper{
         mtgox.connect();
         
         // send close message
-        noopSocket.getListener().onMessage(noopSocket, "4::/mtgox:{\"mumble\"}");
+        noopSocket.getListener().onMessage(noopSocket, "4::/mtgox:{\"mumble\":\"foobar\"}");
         
         // confirm it goes offline
         assertEquals(1, count.intValue());

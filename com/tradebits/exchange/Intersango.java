@@ -15,6 +15,8 @@ import com.tradebits.trade.*;
 // backup plan: http://db.intersango.com:1337/a
 public class Intersango extends AExchange{
     
+    String configHost;
+    int configPort;
     CURRENCY currencyEnum;
     ISocketHelper socket;
     ASocketFactory socketFactory;
@@ -32,23 +34,29 @@ public class Intersango extends AExchange{
      * 3 = BTC:USD
      * 4 = BTC:PLN
      */
-    public Intersango(ASocketFactory factory, CURRENCY curr){
+    public Intersango(JSONObject config, ASocketFactory factory, CURRENCY curr) throws ExchangeException{
         super("Intersango");
-        this.currencyEnum = curr;
-        this.socketFactory = factory;
-        if(curr.equals(CURRENCY.GBP)){
-            intersangoCurrencyEnum = 1;
-        }else if(curr.equals(CURRENCY.EUR)){
-            intersangoCurrencyEnum = 2;
-        }else if(curr.equals(CURRENCY.USD)){
-            intersangoCurrencyEnum = 3;
-        }else if(curr.equals(CURRENCY.PLN)){
-            intersangoCurrencyEnum = 4;
-        }
         try{
-            rawDepthDataLog = new Log(this.getName() + " Depth");
-            rawSocketMessagesLog = new Log(this.getName() + " Socket");
-        }catch(IOException e){ }
+            this.configHost = config.getString("host");
+            this.configPort = config.getInt("port");
+            this.currencyEnum = curr;
+            this.socketFactory = factory;
+            if(curr.equals(CURRENCY.GBP)){
+                intersangoCurrencyEnum = 1;
+            }else if(curr.equals(CURRENCY.EUR)){
+                intersangoCurrencyEnum = 2;
+            }else if(curr.equals(CURRENCY.USD)){
+                intersangoCurrencyEnum = 3;
+            }else if(curr.equals(CURRENCY.PLN)){
+                intersangoCurrencyEnum = 4;
+            }
+            try{
+                rawDepthDataLog = new Log(this.getName() + " Depth");
+                rawSocketMessagesLog = new Log(this.getName() + " Socket");
+            }catch(IOException e){ }
+        }catch(JSONException e){
+            throw new ExchangeException(e);
+        }
     }
     
     
@@ -68,7 +76,7 @@ public class Intersango extends AExchange{
             this.log("Connecting...");
             if(!this.isConnected()){
                 
-                socket = socketFactory.getRawSocketTo("db.intersango.com", 1337, rawSocketMessagesLog);
+                socket = socketFactory.getRawSocketTo(configHost, configPort, rawSocketMessagesLog);
                 socket.setListener(new ISocketHelperListener(){
                     
                     public void onOpen(ISocketHelper socket){
