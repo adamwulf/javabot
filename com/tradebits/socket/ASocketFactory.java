@@ -12,7 +12,9 @@ abstract public class ASocketFactory{
      * return a new SocketHelper that handshakes with
      * the httpURL and connects to the socket at the wsURL
      */
-    abstract public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment);
+    abstract public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment);
+    
+    abstract public ISocketHelper getRawSocketTo(String host, int port, ISocketHelperListener listener, Log logFile);
     
     
     public URLHelper getURLHelper(){

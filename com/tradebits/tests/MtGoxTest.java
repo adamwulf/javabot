@@ -44,8 +44,8 @@ public class MtGoxTest extends TestHelper{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
                         super.connect();
@@ -74,8 +74,8 @@ public class MtGoxTest extends TestHelper{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
                         super.connect();
@@ -112,8 +112,8 @@ public class MtGoxTest extends TestHelper{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
                         super.connect();
@@ -159,8 +159,8 @@ public class MtGoxTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
         }, CURRENCY.USD);
@@ -196,8 +196,8 @@ public class MtGoxTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
         }, CURRENCY.USD);
@@ -232,8 +232,8 @@ public class MtGoxTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return noopSocket;
             }
         }, CURRENCY.USD);
@@ -264,7 +264,7 @@ public class MtGoxTest extends TestHelper{
         // initialize mtgox with a noop socket
         // and null data for the handshake
         mtgox = new MtGox(mtgoxTestConfig, new StandardSocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new SocketHelper(this, httpURL, wsURLFragment){
                     public void connect() throws Exception{
                         count.increment();
@@ -307,7 +307,7 @@ public class MtGoxTest extends TestHelper{
         // initialize mtgox with a noop socket
         // and null data for the handshake
         mtgox = new MtGox(mtgoxTestConfig, new StandardSocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new SocketHelper(this, httpURL, wsURLFragment){
                     public void connect() throws Exception{
                         count.increment();
@@ -365,7 +365,7 @@ public class MtGoxTest extends TestHelper{
         // initialize mtgox with a noop socket
         // and null data for the handshake
         mtgox = new MtGox(mtgoxTestConfig, new StandardSocketFactory(){
-            public ASocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
                     final ASocketHelper socket = this;
                     public void connect() throws Exception{

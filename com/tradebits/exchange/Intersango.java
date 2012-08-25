@@ -16,7 +16,7 @@ import com.tradebits.trade.*;
 public class Intersango extends AExchange{
     
     CURRENCY currencyEnum;
-    RawSocketConnection socket;
+    ISocketHelper socket;
     ASocketFactory socketFactory;
     Log rawDepthDataLog;
     Log rawSocketMessagesLog;
@@ -68,7 +68,7 @@ public class Intersango extends AExchange{
             this.log("Connecting...");
             if(!this.isConnected()){
                 
-                socket = new RawSocketConnection("db.intersango.com", 1337, new ISocketHelperListener(){
+                socket = socketFactory.getRawSocketTo("db.intersango.com", 1337, new ISocketHelperListener(){
                     
                     public void onOpen(ISocketHelper socket){
                         Intersango.this.log("OPEN");

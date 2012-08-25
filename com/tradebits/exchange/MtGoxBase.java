@@ -20,7 +20,7 @@ import sun.misc.BASE64Encoder;
 public abstract class MtGoxBase extends AExchange {
     
     // necessary connection properties
-    private ASocketHelper socket;
+    private ISocketHelper socket;
     private MtGoxRESTClient restClient;
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     private ASocketFactory socketFactory;
