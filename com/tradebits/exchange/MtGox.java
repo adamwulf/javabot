@@ -23,7 +23,6 @@ public class MtGox extends MtGoxBase {
     
     public MtGox(JSONObject config, ASocketFactory factory, CURRENCY curr) throws ExchangeException{
         super(config, factory, curr);
-        
     }
     
     
@@ -35,6 +34,7 @@ public class MtGox extends MtGoxBase {
             }else{
                 // noop, wrong currency
             }
+            this.notifyDidProcessTrade();
         }
     }
     
@@ -59,6 +59,7 @@ public class MtGox extends MtGoxBase {
                     }else{
                         throw new RuntimeException("unknown depth type: " + type);
                     }
+                    this.notifyDidProcessDepth();
                 }else{
                     this.cacheDepthMessageForLaterReplay(depthMessage);
                 }

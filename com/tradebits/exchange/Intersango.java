@@ -69,6 +69,7 @@ public class Intersango extends AExchange{
         this.socket = null;
         socketIsConnected = false;
         socketHasReceivedAnyMessage = false;
+        this.notifyDidChangeConnectionState();
     }
     
     public void connect(){
@@ -82,6 +83,7 @@ public class Intersango extends AExchange{
                     public void onOpen(ISocketHelper socket){
                         Intersango.this.log("OPEN");
                         socketIsConnected = true;
+                        Intersango.this.notifyDidChangeConnectionState();
                     }
                     
                     public void onClose(ISocketHelper socket, int closeCode, String message){
@@ -129,7 +131,8 @@ public class Intersango extends AExchange{
                 });
             }
             socket.connect();
-            
+            this.notifyDidChangeConnectionState();
+  
         }catch(Exception e){
             e.printStackTrace();
             if(socket != null){
@@ -148,10 +151,10 @@ public class Intersango extends AExchange{
                 this.processDepthData(msg);
             }else if(msg.getString("name").equals("depth")){
                 this.processDepthUpdate(msg);
-            }else if(msg.getString("name").equals("tickers")){
-                // ignore
-            }else if(msg.getString("name").equals("trade")){
-                // ignore
+//            }else if(msg.getString("name").equals("tickers")){
+//                // ignore
+//            }else if(msg.getString("name").equals("trade")){
+//                // ignore
             }else{
                 this.log("UNKNOWN MESSAGE: " + messageText);
             }
@@ -208,6 +211,7 @@ public class Intersango extends AExchange{
             }else if(depthData.get("type").equals("asks")){
                 this.updateAskData(cachableData);
             }
+            this.notifyDidProcessDepth();
         }else{
             // wrong currency
         }
@@ -238,6 +242,7 @@ public class Intersango extends AExchange{
                 cachableData.put("stamp",new Date());
                 this.setAskData(cachableData);
             }
+            this.notifyDidInitializeDepth();
         }
     }
     

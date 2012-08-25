@@ -10,6 +10,8 @@ import org.json.*;
 import com.tradebits.trade.*;
 
 public abstract class AExchange{
+    
+    private LinkedList<AExchangeListener> listeners = new LinkedList<AExchangeListener>();
 
     protected boolean hasLoadedWallet;
     protected Long walletBalanceEXD;
@@ -237,5 +239,52 @@ public abstract class AExchange{
             }
         }
         return null;
+    }
+    
+    
+    /**
+     * listeners
+     */
+    public void addListener(AExchangeListener listener){
+        synchronized(listeners){
+            listeners.add(listener);
+        }
+    }
+    public void removeListener(AExchangeListener listener){
+        synchronized(listeners){
+            listeners.remove(listener);
+        }
+    }
+    
+    public void notifyDidChangeConnectionState(){
+        synchronized(listeners){
+            for(AExchangeListener listener : listeners){
+                listener.didChangeConnectionState(this);
+            }
+        }
+    }
+    
+    public void notifyDidProcessTrade(){
+        synchronized(listeners){
+            for(AExchangeListener listener : listeners){
+                listener.didProcessTrade(this);
+            }
+        }
+    }
+    
+    public void notifyDidInitializeDepth(){
+        synchronized(listeners){
+            for(AExchangeListener listener : listeners){
+                listener.didInitializeDepth(this);
+            }
+        }
+    }
+    
+    public void notifyDidProcessDepth(){
+        synchronized(listeners){
+            for(AExchangeListener listener : listeners){
+                listener.didProcessDepth(this);
+            }
+        }
     }
 }

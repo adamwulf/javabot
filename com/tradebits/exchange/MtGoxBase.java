@@ -118,6 +118,7 @@ public abstract class MtGoxBase extends AExchange {
             cachedCurrencyData = null;
             lastRESTDepthCheck = null;
             super.disconnect();
+            this.notifyDidChangeConnectionState();
         }
     }
     
@@ -128,6 +129,7 @@ public abstract class MtGoxBase extends AExchange {
     public void connect(){
         wasToldToConnect = true;
         this.connectHelper();
+        this.notifyDidChangeConnectionState();
     }
     
     
@@ -164,6 +166,8 @@ public abstract class MtGoxBase extends AExchange {
                         MtGoxBase.this.log("OPEN");
                         if(!wasToldToConnect){
                             MtGoxBase.this.disconnectHelper();
+                        }else{
+                            MtGoxBase.this.notifyDidChangeConnectionState();
                         }
                     }
                     
@@ -506,6 +510,8 @@ public abstract class MtGoxBase extends AExchange {
                     e.printStackTrace();
                 }
                 
+                MtGoxBase.this.notifyDidInitializeDepth();
+                
                 synchronized(MtGoxBase.this){
                     try{
                         while(cachedDepthData.size() > 0){
@@ -518,6 +524,7 @@ public abstract class MtGoxBase extends AExchange {
                 }
                 
                 MtGoxBase.this.log("Done Processing Depth and Cache Data --");
+                MtGoxBase.this.notifyDidChangeConnectionState();
             }
         }).start();
     }
