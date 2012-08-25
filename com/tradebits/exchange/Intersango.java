@@ -396,10 +396,21 @@ public class Intersango extends AExchange{
                 
                 try{
                     while ((jsonLine = in.readLine()) != null) {
-                        // the 5::: is to fake the websocket response
-                        System.out.println(jsonLine);
-                        RawSocketConnection.this.getListener().onMessage(RawSocketConnection.this, "5:::{ \"return\": \"success\", " +
-                                                                             "\"args\":" + jsonLine + "}");
+                        try{
+                            // the 5::: is to fake the websocket response
+                            // and the json modification is to mimic the
+                            // intersango websocket, which i would prefer to use
+                            // but is unofficial and not stable
+                            JSONArray dataArr = new JSONArray(jsonLine);
+                            String name = dataArr.getString(0);
+                            JSONObject arg0 = dataArr.getJSONObject(1);
+                            JSONArray args = new JSONArray();
+                            args.put(arg0);
+                            RawSocketConnection.this.getListener().onMessage(RawSocketConnection.this, "5:::{ \"name\": \"" + name + "\", " +
+                                                                                 "\"args\":" + args.toString() + "}");
+                        }catch(JSONException e){
+                            RawSocketConnection.this.getListener().onError(RawSocketConnection.this, jsonLine);
+                        }
                     }
                 }catch(IOException e){ }
                 try{ in.close(); }catch(IOException e){ }
