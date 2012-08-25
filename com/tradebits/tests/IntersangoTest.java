@@ -111,12 +111,13 @@ public class IntersangoTest extends TestHelper{
     /**
      * This tests that mtgox retries the connection
      * if the connect() method throws an exception
+     */
     @Test public void testConnectTimeoutException() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        intersango = new Intersango(new TestSocketFactory(){
+            public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
                         super.connect();
@@ -136,18 +137,18 @@ public class IntersangoTest extends TestHelper{
             }
         }, CURRENCY.USD);
         
-        mtgox.connect();
+        intersango.connect();
         
         assertEquals(1, count.intValue());
-        assertTrue("mtgox is offline after failed connection", mtgox.isOffline());
+        assertTrue("mtgox is offline after failed connection", intersango.isOffline());
     }
-     */
     
     
     /**
      * This tests that mtgox tries to connec to 1::/mtgox
      * after the socket is connected
-    @Test public void testReconnectOnDisconnect() throws ExchangeException{
+     */
+    @Test public void testClosesOnDisconnect() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
@@ -162,28 +163,28 @@ public class IntersangoTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        intersango = new Intersango(new TestSocketFactory(){
+            public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return noopSocket;
             }
         }, CURRENCY.USD);
         
         // initial connection
-        mtgox.connect();
+        intersango.connect();
         
         // send close message
         noopSocket.getListener().onClose(noopSocket, 1, null);
         
         // confirm mtgox is offline after closing
         assertEquals(1, count.intValue());
-        assertTrue("mtgox is offline", mtgox.isOffline());
+        assertTrue("mtgox is offline", intersango.isOffline());
     }
-     */
     
     
     /**
      * This tests that mtgox tries to reconnect
      * after recieving a null message
+     */
     @Test public void testReconnectOnNullData() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
@@ -199,27 +200,27 @@ public class IntersangoTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        intersango = new Intersango(new TestSocketFactory(){
+            public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return noopSocket;
             }
         }, CURRENCY.USD);
         
         // initial connection
-        mtgox.connect();
+        intersango.connect();
         
         // send close message
         noopSocket.getListener().onMessage(noopSocket, null);
         
         // confirm it goes offline
         assertEquals(1, count.intValue());
-        assertTrue("mtgox is offline", mtgox.isOffline());
+        assertTrue("mtgox is offline", intersango.isOffline());
     }
-     */
     
     /**
      * This tests that mtgox tries to reconnect
      * after recieving a json message with incorrect data
+     */
     @Test public void testReconnectOnNonDataJSON() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
@@ -235,23 +236,22 @@ public class IntersangoTest extends TestHelper{
         
         //
         // initialize mtgox with a noop socket
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        intersango = new Intersango(new TestSocketFactory(){
+            public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return noopSocket;
             }
         }, CURRENCY.USD);
         
         // initial connection
-        mtgox.connect();
+        intersango.connect();
         
         // send close message
-        noopSocket.getListener().onMessage(noopSocket, "4::/mtgox:{\"mumble\"}");
+        noopSocket.getListener().onMessage(noopSocket, "5:::{\"mumble\"}");
         
         // confirm it goes offline
         assertEquals(1, count.intValue());
-        assertTrue("mtgox is offline", mtgox.isOffline());
+        assertTrue("intersango is offline", intersango.isOffline());
     }
-     */
     
     
     
@@ -259,6 +259,7 @@ public class IntersangoTest extends TestHelper{
     /**
      * This tests that mtgox tries to reconnect
      * after receiving a null response during the handshake
+     */
     @Test public void testNullWebSocketHandshake() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
@@ -295,7 +296,6 @@ public class IntersangoTest extends TestHelper{
         assertEquals("websocket connects once", 1, count.intValue());
         assertTrue("mtgox is offline", mtgox.isOffline());
     }
-     */
     
     
     

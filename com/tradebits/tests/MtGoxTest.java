@@ -144,7 +144,7 @@ public class MtGoxTest extends TestHelper{
      * This tests that mtgox tries to connec to 1::/mtgox
      * after the socket is connected
      */
-    @Test public void testReconnectOnDisconnect() throws ExchangeException{
+    @Test public void testClosesOnDisconnect() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
