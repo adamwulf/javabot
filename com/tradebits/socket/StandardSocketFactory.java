@@ -10,8 +10,8 @@ public class StandardSocketFactory extends ASocketFactory{
         return new SocketHelper(this, httpURL, wsURLFragment);
     }
     
-    public ISocketHelper getRawSocketTo(String host, int port, ISocketHelperListener listener, Log logFile){
-        return new RawSocketConnection(host, port, listener, logFile);
+    public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
+        return new RawSocketConnection(host, port, logFile);
     }
 
     

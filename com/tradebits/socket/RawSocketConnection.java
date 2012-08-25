@@ -18,13 +18,12 @@ public class RawSocketConnection implements ISocketHelper{
     private SocketThread socketThread;
     private Log logFile;
     
-    public RawSocketConnection(String host, int port, ISocketHelperListener listener, Log logFile){
+    public RawSocketConnection(String host, int port, Log logFile){
         this.host = host;
         this.port = port;
         this.logFile = logFile;
         connected = false;
-        connecting = true;
-        this.setListener(listener);
+        connecting = false;
     }
     
     public boolean isConnected(){
@@ -40,7 +39,7 @@ public class RawSocketConnection implements ISocketHelper{
     }
     
     public void connect(){
-        if(!this.isConnected()){
+        if(!this.isConnected() && !this.isConnecting()){
             connecting = true;
             socketThread = new SocketThread(host, port);
             socketThread.start();

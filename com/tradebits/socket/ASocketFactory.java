@@ -14,7 +14,7 @@ abstract public class ASocketFactory{
      */
     abstract public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment);
     
-    abstract public ISocketHelper getRawSocketTo(String host, int port, ISocketHelperListener listener, Log logFile);
+    abstract public ISocketHelper getRawSocketTo(String host, int port, Log logFile);
     
     
     public URLHelper getURLHelper(){

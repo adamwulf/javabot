@@ -9,10 +9,16 @@ import com.tradebits.socket.*;
 public class TestSocketHelper extends ASocketHelper{
     boolean connected = false;
     public void disconnect(){
-        connected = false;
+        if(connected){
+            connected = false;
+            if(getListener() != null) getListener().onClose(this, 0, null);
+        }
     }
     public void connect() throws Exception{
-        connected = true;
+        if(!connected){
+            connected = true;
+            if(getListener() != null) getListener().onOpen(this);
+        }
     }
     public void send(String message){
         // noop

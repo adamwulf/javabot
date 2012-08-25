@@ -68,7 +68,8 @@ public class Intersango extends AExchange{
             this.log("Connecting...");
             if(!this.isConnected()){
                 
-                socket = socketFactory.getRawSocketTo("db.intersango.com", 1337, new ISocketHelperListener(){
+                socket = socketFactory.getRawSocketTo("db.intersango.com", 1337, rawSocketMessagesLog);
+                socket.setListener(new ISocketHelperListener(){
                     
                     public void onOpen(ISocketHelper socket){
                         Intersango.this.log("OPEN");
@@ -115,7 +116,7 @@ public class Intersango extends AExchange{
                         // update our depth data as often as we heartbeat
 //                        Intersango.this.log("~h~");
                     }
-                }, rawSocketMessagesLog);
+                });
             }
             socket.connect();
             

@@ -15,7 +15,7 @@ public class TestSocketFactory extends ASocketFactory{
         return null;
     }
     
-    public ISocketHelper getRawSocketTo(String host, int port, ISocketHelperListener listener, Log logFile){
+    public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
         return null;
     }
 }

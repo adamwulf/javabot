@@ -18,19 +18,12 @@ import org.json.*;
 
 public class IntersangoTest extends TestHelper{
     
-    Intersango mtgox;
-    
-    JSONObject mtgoxTestConfig;
-    
-    @Before
-    protected void setUp() throws JSONException{
-        mtgoxTestConfig = new JSONObject("{ \"key\":\"aFakeKey\", \"secret\":\"aFakeSecret\" }");
-    }
+    Intersango intersango;
     
     @After @AfterClass
     protected void tearDown(){
-        mtgox.disconnect();
-        mtgox = null;
+        intersango.disconnect();
+        intersango = null;
     }
     
     
@@ -44,8 +37,8 @@ public class IntersangoTest extends TestHelper{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new Intersango(new TestSocketFactory(){
-            public ISocketHelper getRawSocketTo(String host, int port, ISocketHelperListener listener, Log logFile){
+        intersango = new Intersango(new TestSocketFactory(){
+            public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
                         super.connect();
@@ -58,7 +51,7 @@ public class IntersangoTest extends TestHelper{
             }
         }, CURRENCY.USD);
         
-        mtgox.connect();
+        intersango.connect();
         
         //
         // wait till we skip the gibberish URL
@@ -70,7 +63,10 @@ public class IntersangoTest extends TestHelper{
                 }catch(InterruptedException e){}
             }
         }
+
         assertEquals(1, count.intValue());
+        assertTrue("should be connecting since socket is ok but no messages yet", intersango.isConnecting());
+        System.out.println("checking");
     }
 
     
@@ -78,12 +74,13 @@ public class IntersangoTest extends TestHelper{
     /**
      * This tests that mtgox retries the connection
      * if the connect() method throws an exception
+     */
     @Test public void testConnectException() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
         
-        mtgox = new MtGox(mtgoxTestConfig, new ASocketFactory(){
-            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
+        intersango = new Intersango(new TestSocketFactory(){
+            public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
                 return new TestSocketHelper(){
                     public void connect() throws Exception{
                         super.connect();
@@ -103,13 +100,11 @@ public class IntersangoTest extends TestHelper{
             }
         }, CURRENCY.USD);
         
-        mtgox.connect();
+        intersango.connect();
         
-        assertEquals("connect twice and disconnect twice (including tearDown)", 1, count.intValue());
-        assertTrue("mtgox is offline if there is an exception thrown during connect", mtgox.isOffline());
+        assertEquals("connect only once, but it fails", 1, count.intValue());
+        assertTrue("mtgox is offline if there is an exception thrown during connect", intersango.isOffline());
     }
-     */
-    
     
     
     
