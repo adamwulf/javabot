@@ -52,7 +52,7 @@ public class MtGoxDepthTest extends TestHelper{
         mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
             public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
-                    final ASocketHelper socket = this;
+                    final ISocketHelper socket = this;
                     public void connect() throws Exception{
                         super.connect();
                         // open the socket
@@ -206,7 +206,7 @@ public class MtGoxDepthTest extends TestHelper{
         mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
             public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
-                    final ASocketHelper socket = this;
+                    final ISocketHelper socket = this;
                     public void connect() throws Exception{
                         super.connect();
                         // open the socket

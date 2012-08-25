@@ -108,6 +108,7 @@ public class RawSocketConnection implements ISocketHelper{
             
             try{
                 while ((jsonLine = in.readLine()) != null) {
+                    System.out.println("GOT: " + jsonLine);
                     try{
                         // the 5::: is to fake the websocket response
                         // and the json modification is to mimic the

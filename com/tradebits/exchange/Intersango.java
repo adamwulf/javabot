@@ -95,6 +95,8 @@ public class Intersango extends AExchange{
                     
                     public void onError(ISocketHelper socket, String message){
                         // noop
+                        Intersango.this.log("ERROR: " + message);
+                        Intersango.this.disconnect();
                     }
                     
                     public void onMessage(ISocketHelper aSocket, String data){

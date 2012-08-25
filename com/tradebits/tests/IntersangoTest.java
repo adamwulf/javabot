@@ -38,7 +38,7 @@ public class IntersangoTest extends TestHelper{
     /**
      * This tests that the socket connect()
      * method is called when connecting to mtgox
-         */
+     */
     @Test public void testConnect() throws ExchangeException{
         
         final MutableInt count = new MutableInt();
@@ -160,7 +160,7 @@ public class IntersangoTest extends TestHelper{
         
         //
         // record how often mtgox tries to connect
-        final ASocketHelper noopSocket = new TestSocketHelper(){
+        final ISocketHelper noopSocket = new TestSocketHelper(){
             public void connect() throws Exception{
                 super.connect();
                 count.increment();
@@ -197,7 +197,7 @@ public class IntersangoTest extends TestHelper{
         
         //
         // record how often mtgox tries to connect
-        final ASocketHelper noopSocket = new TestSocketHelper(){
+        final ISocketHelper noopSocket = new TestSocketHelper(){
             public void connect() throws Exception{
                 super.connect();
                 count.increment();
@@ -233,7 +233,7 @@ public class IntersangoTest extends TestHelper{
         
         //
         // record how often mtgox tries to connect
-        final ASocketHelper noopSocket = new TestSocketHelper(){
+        final ISocketHelper noopSocket = new TestSocketHelper(){
             public void connect() throws Exception{
                 super.connect();
                 count.increment();
@@ -294,136 +294,60 @@ public class IntersangoTest extends TestHelper{
     
     
     
-    /**
-     * This tests that mtgox tries to reconnect
-     * after receiving a null response during the handshake
-    @Test public void testInvalidWebSocketHandshake() throws ExchangeException{
-        
-        final MutableInt count = new MutableInt();
-
-        //
-        // initialize mtgox with a noop socket
-        // and null data for the handshake
-        mtgox = new MtGox(mtgoxTestConfig, new StandardSocketFactory(){
-            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
-                return new SocketHelper(this, httpURL, wsURLFragment){
-                    public void connect() throws Exception{
-                        count.increment();
-                        super.connect();
-                    }
-                };
-            }
-            public URLHelper getURLHelper(){
-                return new URLHelper(){
-                    public String postSynchronousURL(URL foo, String bar) throws IOException{
-                        if(count.intValue() == 1){
-                            return "gibberish:";
-                        }else{
-                            synchronized(count){
-                                count.notify();
-                            }
-                            return super.postSynchronousURL(foo, bar);
-                        }
-                    }
-                };
-            }
-        }, CURRENCY.USD);
-        
-        // initial connection
-        mtgox.connect();
-        
-        //
-        // wait till we skip the gibberish URL
-        // and load the real URL
-        synchronized(count){
-            while(count.intValue() < 1){
-                try{
-                    count.wait();
-                }catch(InterruptedException e){}
-            }
-        }
-        
-        
-        // confirm it tried to reconnect
-        assertEquals("make sure to reconnect if failed websocket handshake", 1, count.intValue());
-        
-    }
-     */
-    
     
     
     /**
      * This test is for parsing depth data
-    @Test public void testValidDepthDataToCache() throws ExchangeException{
+     */
+    
+    
+    /**
+     * This test is to make sure we load the initial depth data correctly.
+     * 
+     * the realtime data that is pulled in before the depth data adjusts
+     * the bid/ask data that is not the zero'th index. so the bid(0) and ask(0)
+     * are the ones from the full depth data.
+     * 
+     * we then verify that the price/volume is correct for these.
+     */
+    @Test public void testValidDepthWithRealtimeUpdatesOnNonZeroBidAsk() throws Exception{
         
         final MutableInt count = new MutableInt();
         
+        final ServerSocket testSocketServer = new ServerSocket(2338);
         
+        JSONObject testConfig = new JSONObject();
+        testConfig.put("port", 2338);
+        testConfig.put("host", testSocketServer.getInetAddress().getHostName());
+        System.out.println(testConfig);
+        
+        (new Thread(){
+            public void run(){
+                Socket clientSocket = null;
+                try {
+                    clientSocket = testSocketServer.accept();
+                    System.out.println("Accept wins");
+                    PrintWriter os = new PrintWriter(clientSocket.getOutputStream());
+                    
+                    String orderbook = TestHelper.loadTestResource("intersango.orderbook");
+                    os.println(orderbook);
+                    os.flush();
+                    
+                } 
+                catch (IOException e) {
+                    System.out.println("Accept failed: 4444");
+                    System.exit(-1);
+                }
+            }
+        }).start();
+
         //
         // initialize mtgox with a noop socket
         // and null data for the handshake
-        mtgox = new MtGox(mtgoxTestConfig, new StandardSocketFactory(){
-            public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
-                return new TestSocketHelper(){
-                    final ASocketHelper socket = this;
-                    public void connect() throws Exception{
-                        super.connect();
-                        // open the socket
-                        (new Timer()).schedule(new TimerTask(){
-                            public void run(){
-                                socket.getListener().onOpen(socket);
-                            }
-                        }, 30);
-                        // send the depth data
-                        (new Timer()).schedule(new TimerTask(){
-                            public void run(){
-                                socket.getListener().onMessage(socket, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
-                                                                   + "\"op\":\"private\",\"origin\":\"broadcast\",\"private\":\"depth\""
-                                                                   + ",\"depth\":{\"price\":\"11.88326\",\"type\":2,\"type_str\":\"bid\""
-                                                                   + ",\"volume\":\"-0.01014437\",\"price_int\":\"1188326\",\"volume_int\""
-                                                                   + ":\"-1014437\",\"item\":\"BTC\",\"currency\":\"USD\",\"now\":"
-                                                                   + "\"1345278624831147\",\"total_volume_int\":\"0\"}}");
-                            }
-                        }, 60);
-                        // finish the test
-                        (new Timer()).schedule(new TimerTask(){
-                            public void run(){
-                                synchronized(count){
-                                    count.increment();
-                                    count.notify();
-                                }
-                            }
-                        }, 90);
-                        // send the depth data
-                        (new Timer()).schedule(new TimerTask(){
-                            public void run(){
-                                socket.getListener().onMessage(socket, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
-                                                                   + "\"op\":\"private\",\"origin\":\"broadcast\",\"private\":\"depth\""
-                                                                   + ",\"depth\":{\"price\":\"11.88326\",\"type\":2,\"type_str\":\"bid\""
-                                                                   + ",\"volume\":\"-0.01014437\",\"price_int\":\"1188326\",\"volume_int\""
-                                                                   + ":\"-1014437\",\"item\":\"BTC\",\"currency\":\"USD\",\"now\":"
-                                                                   + "\"1345278624831147\",\"total_volume_int\":\"0\"}}");
-                            }
-                        }, 120);
-                        // finish the test
-                        (new Timer()).schedule(new TimerTask(){
-                            public void run(){
-                                synchronized(count){
-                                    count.increment();
-                                    count.notify();
-                                }
-                            }
-                        }, 150);
-                    }
-                    public void send(String message){
-                        // noop
-                    }
-                };
-            }
-        }, CURRENCY.USD);
+        intersango = new Intersango(testConfig, new StandardSocketFactory(), CURRENCY.USD);
         
         // initial connection
-        mtgox.connect();
+        intersango.connect();
         
         //
         // wait
@@ -435,13 +359,27 @@ public class IntersangoTest extends TestHelper{
             }
         }
         
+        // now we've loaded the default orderbook,
+        // so check our low/high bid/ask are correct
+        
+        JSONObject highestBid = intersango.getBid(0);
+        JSONObject lowestAsk = intersango.getAsk(0);
+        
+        System.out.println("bid: " + highestBid);
+        System.out.println("ask: " + lowestAsk);
+        
         // confirm it cached the depth data
         // since it hasn't yet loaded full depth
         // from mtgox servers
-        assertEquals("the depth data was cached", 1, mtgox.numberOfCachedDepthData());
+        assertEquals("ask price is correct", 11.91003, lowestAsk.getDouble("price"));
+        assertEquals("ask volume is correct", 0.01, lowestAsk.getDouble("volume"));
+        assertEquals("ask date is correct", 1345278624831148L / 1000, ((Date)lowestAsk.get("stamp")).getTime());
+        assertEquals("bid price is correct", 11.91002, highestBid.getDouble("price"));
+        assertEquals("bid volume is correct", 0.2054, highestBid.getDouble("volume"));
+        assertEquals("bid date is correct", 1345278624831148L / 1000, ((Date)highestBid.get("stamp")).getTime());
         
         //
-        // wait
+        // now lets wait for the realtime updates
         synchronized(count){
             while(count.intValue() < 2){
                 try{
@@ -450,12 +388,23 @@ public class IntersangoTest extends TestHelper{
             }
         }
         
-        // confirm it cached the depth data
-        // since it hasn't yet loaded full depth
-        // from mtgox servers
-        assertEquals("the depth data was cached", 2, mtgox.numberOfCachedDepthData());
+        
+        highestBid = intersango.getBid(0);
+        lowestAsk = intersango.getAsk(0);
+        
+        System.out.println("bid: " + highestBid);
+        System.out.println("ask: " + lowestAsk);
+        
+        // confirm the low/high bid/ask updated correctly
+        assertEquals("ask price is correct", 11.91003, lowestAsk.getDouble("price"));
+        assertEquals("ask volume is correct", 0.01, lowestAsk.getDouble("volume"));
+        assertEquals("ask date is correct", 1345278624831148L / 1000, ((Date)lowestAsk.get("stamp")).getTime());
+        assertEquals("bid price is correct", 11.91002, highestBid.getDouble("price"));
+        assertEquals("bid volume is correct", 0.2054, highestBid.getDouble("volume"));
+        assertEquals("bid date is correct", 1345278624831148L / 1000, ((Date)highestBid.get("stamp")).getTime());
+        
     }
-     */
+    
     
     
     /**
