@@ -29,4 +29,5 @@ public class MtGoxCurrency{
         // 10^8 comes from https://en.bitcoin.it/wiki/MtGox/API/HTTP/v1#Multi_currency_trades
         return volume / Math.pow(10, 8);
     }
+    
 }

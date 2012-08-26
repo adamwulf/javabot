@@ -86,7 +86,10 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
      * 3. that the socket is still connected
      */
     public boolean isConnected(){
-        return wasToldToConnect && this.getAsk(0) != null && this.getBid(0) != null && socket.isConnected() && depthLoader.isConnected();
+        return wasToldToConnect && 
+            this.getAsk(0) != null && this.getBid(0) != null && 
+            socket.isConnected() && 
+            depthLoader.isConnected();
     }
     
     public boolean isConnecting(){

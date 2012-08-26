@@ -9,6 +9,20 @@ import java.util.*;
 import java.net.*;
 import org.json.*;
 
+
+/**
+ * This class is responsible for loading depth
+ * information from the mtgox REST api.
+ * 
+ * it will try to load initial depth data in
+ * intervals of 30s until the data is loaded.
+ * this will give it a 30s failover time
+ * if the first request fails.
+ * 
+ * after a successful load, it will load
+ * depth data once an hour, so that its listener
+ * can validate the depth data
+ */
 public class MtGoxDepthLoader{
     
     private String name;
@@ -22,20 +36,35 @@ public class MtGoxDepthLoader{
     }
     
     
-    // the mess that hopefully can be cleaned
+    // this is the timer we'll use to run the REST calls
     private Timer depthListingTimer;
+    // set to true when we've loaded the data once
     private boolean hasLoadedDepthDataAtLeastOnce = false;
+    // the date that we last checked for depthd data
     private Date lastRESTDepthCheck = null;
     
-    
+    /**
+     * return true only if we have loaded depth
+     * data successfully at least once during this
+     * round
+     */
     public boolean hasLoadedDepthData(){
         return hasLoadedDepthDataAtLeastOnce;
     }
     
+    /**
+     * return true only if we have successfully
+     * loaded data, and if we're still requesting data
+     * once an hour
+     */
     public boolean isConnected(){
         return depthListingTimer != null && hasLoadedDepthDataAtLeastOnce;
     }
     
+    /**
+     * this will start the connection to request
+     * depth data, if we're not already.
+     */
     public void connect(){
         if(depthListingTimer == null){
             depthListingTimer = new Timer();
@@ -46,7 +75,6 @@ public class MtGoxDepthLoader{
                     // only load once each hour - yikes!
                     // this is b/c mtgox has an extremely aggressive anti DDOS in place
                     if(lastRESTDepthCheck == null || now.after(new Date(lastRESTDepthCheck.getTime() + 1000*60*60))){
-                        hasLoadedDepthDataAtLeastOnce = true;
                         lastRESTDepthCheck = now;
                         MtGoxDepthLoader.this.loadInitialDepthData();
                     }
@@ -55,6 +83,10 @@ public class MtGoxDepthLoader{
         }
     }
     
+    /**
+     * this will cancel any pending requests on our Timer,
+     * and will reset us to default unconnected state
+     */
     public void disconnect(){
         hasLoadedDepthDataAtLeastOnce = false;
         if(depthListingTimer != null) depthListingTimer.cancel();
@@ -62,13 +94,17 @@ public class MtGoxDepthLoader{
         lastRESTDepthCheck = null;
     }
     
-    public void stayConnectedButReloadDepthData(){
+    
+    /**
+     * This is called if our REST request fails for
+     * some reason. we still want to stay connected,
+     * and will reset our values so that our next Timer
+     * tick will cause another REST request
+     */
+    protected void stayConnectedButReloadDepthData(){
         lastRESTDepthCheck = null;
         hasLoadedDepthDataAtLeastOnce = false;
     }
-    
-    
-    
     
     
     /**
@@ -79,7 +115,7 @@ public class MtGoxDepthLoader{
      * consistent depth data, this will continue to run
      * and validate our depth data
      */
-    public void loadInitialDepthData(){
+    protected void loadInitialDepthData(){
         (new Thread(this.name + " First Depth Fetch"){
             public void run(){
                 //
@@ -132,6 +168,7 @@ public class MtGoxDepthLoader{
                         return;
                     }
                 }
+                hasLoadedDepthDataAtLeastOnce = true;
                 listener.didLoadFullMarketDepthData(depthData);
             }
         }).start();
@@ -141,7 +178,11 @@ public class MtGoxDepthLoader{
     
     
     
-    
+    /**
+     * This is our listener interface.
+     * whoever wants updates on our depth data
+     * needs to implement this iterface
+     */
     public interface Listener{
         
         public void didLoadFullMarketDepthData(JSONObject depthData);
