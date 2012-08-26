@@ -37,7 +37,7 @@ public class MtGoxCurrencyLoader{
      * @param connectedIntervalTimeout the interval in seconds that we should wait between REST calls if we're /connected/
      */
     public MtGoxCurrencyLoader(String name, CURRENCY curr, Listener listener, 
-                            long unconnectedIntervalTimeoutInSeconds, long connectedIntervalTimeoutInSeconds){
+                               long unconnectedIntervalTimeoutInSeconds, long connectedIntervalTimeoutInSeconds){
         this.name = name;
         this.currency = curr;
         this.listener = listener;

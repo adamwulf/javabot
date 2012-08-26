@@ -19,7 +19,7 @@ import sun.misc.BASE64Encoder;
  * a class to connect to mtgox exchange
  */
 public class MtGox extends MtGoxBase{
-
+    
     /********************************************************************************************************
       * DEPTH Properties
       * 
@@ -27,15 +27,6 @@ public class MtGox extends MtGoxBase{
       * until we've loaded the entire depth data first
       */
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
-    
-    /********************************************************************************************************
-      * CURRENCY Properties
-      * 
-      * MtGox has tons of properties per currency,
-      * so cache that info here
-      */
-    protected MtGoxCurrency cachedCurrencyData = null;
-
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // Constructor
@@ -218,23 +209,7 @@ public class MtGox extends MtGoxBase{
         MtGox.this.notifyDidChangeConnectionState();
     }
     
-     
     
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // CURRENCY
-    //
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    public void didLoadCurrencyData(MtGoxCurrency currencyData){
-        cachedCurrencyData = currencyData;
-    }
-    
-    public void didUnloadCurrencyData(){
-        cachedCurrencyData = null;
-    }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -271,86 +246,5 @@ public class MtGox extends MtGoxBase{
     }
     
     
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // AExchange
-    //
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
-    
-    public boolean isCurrencySupported(CURRENCY curr){
-        return curr == CURRENCY.BTC ||
-            curr == CURRENCY.USD ||
-            curr == CURRENCY.AUD ||
-            curr == CURRENCY.CAD ||
-            curr == CURRENCY.CHF ||
-            curr == CURRENCY.CNY ||
-            curr == CURRENCY.DKK ||
-            curr == CURRENCY.EUR ||
-            curr == CURRENCY.GBP ||
-            curr == CURRENCY.HKD ||
-            curr == CURRENCY.JPY ||
-            curr == CURRENCY.NZD ||
-            curr == CURRENCY.PLN ||
-            curr == CURRENCY.RUB ||
-            curr == CURRENCY.SEK ||
-            curr == CURRENCY.SGD ||
-            curr == CURRENCY.THB;
-    }
-    
-    
-    /**
-     * a zero index is closest to the trade window
-     * and increases as prices move away.
-     * 
-     * so an index 0 is the highest bid or
-     * lowest ask
-     */
-    public JSONObject getBid(int index){
-        JSONObject bid = super.getBid(index);
-        if(bid != null){
-            try{
-                // format int values as proper values
-                double price = bid.getDouble("price");
-                Long volumeL = bid.getLong("volume_int");
-                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
-                
-                JSONObject ret = new JSONObject();
-                ret.put("price", price);
-                ret.put("volume", volume);
-                ret.put("currency", currencyEnum);
-                ret.put("stamp", bid.get("stamp"));
-                return ret;
-            }catch(Exception e){
-                return null;
-            }
-        }
-        return null;
-    }
-    
-    public JSONObject getAsk(int index){
-        JSONObject ask = super.getAsk(index);
-        if(ask != null){
-            try{
-                // format int values as proper values
-                double price = ask.getDouble("price");
-                Long volumeL = ask.getLong("volume_int");
-                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
-                
-                JSONObject ret = new JSONObject();
-                ret.put("price", price);
-                ret.put("volume", volume);
-                ret.put("currency", currencyEnum);
-                ret.put("stamp", ask.get("stamp"));
-                return ret;
-            }catch(Exception e){
-                return null;
-            }
-        }
-        return null;
-    }
     
 }

@@ -28,18 +28,27 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     private MtGoxDepthLoader depthLoader;
     private MtGoxCurrencyLoader currencyLoader;
     
-
+    
     // settings for the personal feed
     private Timer personalFeedListingTimer;
     private Date lastRESTPersonalFeedCheck;
     private boolean hasLoadedPersonalFeedDataAtLeastOnce;
-
+    
     // necessary config/state properties
     protected CURRENCY currencyEnum;
     protected JSONObject config;
     protected Log rawDepthDataLog;
     protected Log rawSocketMessagesLog;
     protected double tradeFee;
+    
+    /********************************************************************************************************
+      * CURRENCY Properties
+      * 
+      * MtGox has tons of properties per currency,
+      * so cache that info here
+      */
+    protected MtGoxCurrency cachedCurrencyData = null;
+    
     
     public MtGoxBase(JSONObject config, ASocketFactory factory, CURRENCY curr) throws ExchangeException{
         super("MtGox");
@@ -148,7 +157,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
                 
                 currencyLoader = new MtGoxCurrencyLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
                 currencyLoader.connect();
-
+                
                 
                 
                 //
@@ -243,7 +252,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
         }
     }
     
-        
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -252,7 +261,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-
+    
     protected void loadWalletData(){
         try{
             //
@@ -338,7 +347,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
         }
     }
     
-        
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -346,7 +355,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     //
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    
     /**
      * we have finished the handshake with the socket,
      * and are now awaiting our first realtime data
@@ -423,7 +432,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     
     
     
-        
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -432,7 +441,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-
+    
     
     
     public void getCurrentOrderStatus(){
@@ -517,5 +526,102 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
         }
     }
     
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // CURRENCY
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    public void didLoadCurrencyData(MtGoxCurrency currencyData){
+        cachedCurrencyData = currencyData;
+    }
+    
+    public void didUnloadCurrencyData(){
+        cachedCurrencyData = null;
+    }
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // AExchange
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    public boolean isCurrencySupported(CURRENCY curr){
+        return curr == CURRENCY.BTC ||
+            curr == CURRENCY.USD ||
+            curr == CURRENCY.AUD ||
+            curr == CURRENCY.CAD ||
+            curr == CURRENCY.CHF ||
+            curr == CURRENCY.CNY ||
+            curr == CURRENCY.DKK ||
+            curr == CURRENCY.EUR ||
+            curr == CURRENCY.GBP ||
+            curr == CURRENCY.HKD ||
+            curr == CURRENCY.JPY ||
+            curr == CURRENCY.NZD ||
+            curr == CURRENCY.PLN ||
+            curr == CURRENCY.RUB ||
+            curr == CURRENCY.SEK ||
+            curr == CURRENCY.SGD ||
+            curr == CURRENCY.THB;
+    }
+    
+    
+    /**
+     * a zero index is closest to the trade window
+     * and increases as prices move away.
+     * 
+     * so an index 0 is the highest bid or
+     * lowest ask
+     */
+    public JSONObject getBid(int index){
+        JSONObject bid = super.getBid(index);
+        if(bid != null){
+            try{
+                // format int values as proper values
+                double price = bid.getDouble("price");
+                Long volumeL = bid.getLong("volume_int");
+                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
+                
+                JSONObject ret = new JSONObject();
+                ret.put("price", price);
+                ret.put("volume", volume);
+                ret.put("currency", currencyEnum);
+                ret.put("stamp", bid.get("stamp"));
+                return ret;
+            }catch(Exception e){
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    public JSONObject getAsk(int index){
+        JSONObject ask = super.getAsk(index);
+        if(ask != null){
+            try{
+                // format int values as proper values
+                double price = ask.getDouble("price");
+                Long volumeL = ask.getLong("volume_int");
+                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
+                
+                JSONObject ret = new JSONObject();
+                ret.put("price", price);
+                ret.put("volume", volume);
+                ret.put("currency", currencyEnum);
+                ret.put("stamp", ask.get("stamp"));
+                return ret;
+            }catch(Exception e){
+                return null;
+            }
+        }
+        return null;
+    }
     
 }
