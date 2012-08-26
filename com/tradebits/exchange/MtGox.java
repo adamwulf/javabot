@@ -19,44 +19,43 @@ import sun.misc.BASE64Encoder;
  * a class to connect to mtgox exchange
  */
 public class MtGox extends MtGoxBase{
-    
+
+    /********************************************************************************************************
+      * DEPTH Properties
+      * 
+      * store the realtime depth updates
+      * until we've loaded the entire depth data first
+      */
     private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     
-    
+    /********************************************************************************************************
+      * CURRENCY Properties
+      * 
+      * MtGox has tons of properties per currency,
+      * so cache that info here
+      */
+    protected MtGoxCurrency cachedCurrencyData = null;
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Constructor
+    //
     public MtGox(JSONObject config, ASocketFactory factory, CURRENCY curr) throws ExchangeException{
         super(config, factory, curr);
     }
     
     
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // DEPTH
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     public int numberOfCachedDepthData(){
         return cachedDepthData.size();
-    }
-    
-    
-    /**
-     * mtgox only has a trading fee if I
-     * am buying bitcoins on the exchange
-     */
-    public double getTradingFeeFor(CurrencyTrade trade){
-        if(trade.getFromExchange() == this){
-            // I am buying bitcoins from
-            // the exchange
-            return tradeFee;
-        }
-        return 0;
-    }
-    
-    
-    protected void processTradeData(JSONObject tradeMessage) throws JSONException, ExchangeException{
-        synchronized(this){
-            CURRENCY curr = CURRENCY.valueOf(tradeMessage.getJSONObject("trade").getString("price_currency"));
-            if(curr.equals(currencyEnum)){
-                rawSocketMessagesLog.log(tradeMessage.toString());
-            }else{
-                // noop, wrong currency
-            }
-            this.notifyDidProcessTrade();
-        }
     }
     
     protected void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException{
@@ -218,4 +217,140 @@ public class MtGox extends MtGoxBase{
         MtGox.this.log("Done Processing Depth and Cache Data --");
         MtGox.this.notifyDidChangeConnectionState();
     }
+    
+     
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // CURRENCY
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    public void didLoadCurrencyData(MtGoxCurrency currencyData){
+        cachedCurrencyData = currencyData;
+    }
+    
+    public void didUnloadCurrencyData(){
+        cachedCurrencyData = null;
+    }
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // TRADES
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * mtgox only has a trading fee if I
+     * am buying bitcoins on the exchange
+     */
+    public double getTradingFeeFor(CurrencyTrade trade){
+        if(trade.getFromExchange() == this){
+            // I am buying bitcoins from
+            // the exchange
+            return tradeFee;
+        }
+        return 0;
+    }
+    
+    
+    protected void processTradeData(JSONObject tradeMessage) throws JSONException, ExchangeException{
+        synchronized(this){
+            CURRENCY curr = CURRENCY.valueOf(tradeMessage.getJSONObject("trade").getString("price_currency"));
+            if(curr.equals(currencyEnum)){
+                rawSocketMessagesLog.log(tradeMessage.toString());
+            }else{
+                // noop, wrong currency
+            }
+            this.notifyDidProcessTrade();
+        }
+    }
+    
+    
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // AExchange
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+    
+    public boolean isCurrencySupported(CURRENCY curr){
+        return curr == CURRENCY.BTC ||
+            curr == CURRENCY.USD ||
+            curr == CURRENCY.AUD ||
+            curr == CURRENCY.CAD ||
+            curr == CURRENCY.CHF ||
+            curr == CURRENCY.CNY ||
+            curr == CURRENCY.DKK ||
+            curr == CURRENCY.EUR ||
+            curr == CURRENCY.GBP ||
+            curr == CURRENCY.HKD ||
+            curr == CURRENCY.JPY ||
+            curr == CURRENCY.NZD ||
+            curr == CURRENCY.PLN ||
+            curr == CURRENCY.RUB ||
+            curr == CURRENCY.SEK ||
+            curr == CURRENCY.SGD ||
+            curr == CURRENCY.THB;
+    }
+    
+    
+    /**
+     * a zero index is closest to the trade window
+     * and increases as prices move away.
+     * 
+     * so an index 0 is the highest bid or
+     * lowest ask
+     */
+    public JSONObject getBid(int index){
+        JSONObject bid = super.getBid(index);
+        if(bid != null){
+            try{
+                // format int values as proper values
+                double price = bid.getDouble("price");
+                Long volumeL = bid.getLong("volume_int");
+                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
+                
+                JSONObject ret = new JSONObject();
+                ret.put("price", price);
+                ret.put("volume", volume);
+                ret.put("currency", currencyEnum);
+                ret.put("stamp", bid.get("stamp"));
+                return ret;
+            }catch(Exception e){
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    public JSONObject getAsk(int index){
+        JSONObject ask = super.getAsk(index);
+        if(ask != null){
+            try{
+                // format int values as proper values
+                double price = ask.getDouble("price");
+                Long volumeL = ask.getLong("volume_int");
+                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
+                
+                JSONObject ret = new JSONObject();
+                ret.put("price", price);
+                ret.put("volume", volume);
+                ret.put("currency", currencyEnum);
+                ret.put("stamp", ask.get("stamp"));
+                return ret;
+            }catch(Exception e){
+                return null;
+            }
+        }
+        return null;
+    }
+    
 }

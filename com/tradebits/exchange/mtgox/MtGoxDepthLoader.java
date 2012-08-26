@@ -28,11 +28,21 @@ public class MtGoxDepthLoader{
     private String name;
     private CURRENCY currency;
     private Listener listener;
+    private long unconnectedIntervalTimeoutInMilliseconds;
+    private long connectedIntervalTimeoutInMilliseconds;
     
-    public MtGoxDepthLoader(String name, CURRENCY curr, Listener listener){
+    /**
+     * create a new depth loader
+     * @param unconnectedIntervalTimeout the interval in seconds that we should wait between REST calls if we're /unconnected/
+     * @param connectedIntervalTimeout the interval in seconds that we should wait between REST calls if we're /connected/
+     */
+    public MtGoxDepthLoader(String name, CURRENCY curr, Listener listener, 
+                            long unconnectedIntervalTimeoutInSeconds, long connectedIntervalTimeoutInSeconds){
         this.name = name;
         this.currency = curr;
         this.listener = listener;
+        this.unconnectedIntervalTimeoutInMilliseconds = unconnectedIntervalTimeoutInSeconds * 1000;
+        this.connectedIntervalTimeoutInMilliseconds = connectedIntervalTimeoutInSeconds * 1000;
     }
     
     
@@ -43,14 +53,6 @@ public class MtGoxDepthLoader{
     // the date that we last checked for depthd data
     private Date lastRESTDepthCheck = null;
     
-    /**
-     * return true only if we have loaded depth
-     * data successfully at least once during this
-     * round
-     */
-    public boolean hasLoadedDepthData(){
-        return hasLoadedDepthDataAtLeastOnce;
-    }
     
     /**
      * return true only if we have successfully
@@ -74,12 +76,12 @@ public class MtGoxDepthLoader{
                     //
                     // only load once each hour - yikes!
                     // this is b/c mtgox has an extremely aggressive anti DDOS in place
-                    if(lastRESTDepthCheck == null || now.after(new Date(lastRESTDepthCheck.getTime() + 1000*60*60))){
+                    if(lastRESTDepthCheck == null || now.after(new Date(lastRESTDepthCheck.getTime() + connectedIntervalTimeoutInMilliseconds))){
                         lastRESTDepthCheck = now;
                         MtGoxDepthLoader.this.loadInitialDepthData();
                     }
                 }
-            }, 15000, 30000);
+            }, 0, unconnectedIntervalTimeoutInMilliseconds);
         }
     }
     

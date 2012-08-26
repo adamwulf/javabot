@@ -14,7 +14,7 @@ import java.net.HttpURLConnection;
 /**
  * a class to connect to mtgox exchange
  */
-public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Listener{
+public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Listener, MtGoxCurrencyLoader.Listener{
     
     // necessary connection properties
     private ISocketHelper socket;
@@ -24,19 +24,19 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     // if the user manually disconnects, then we shouldn't try to reconnect
     private boolean wasToldToConnect = false;
     
+    // Loaders for MtGox profile / market data
     private MtGoxDepthLoader depthLoader;
+    private MtGoxCurrencyLoader currencyLoader;
+    
 
     // settings for the personal feed
     private Timer personalFeedListingTimer;
     private Date lastRESTPersonalFeedCheck;
     private boolean hasLoadedPersonalFeedDataAtLeastOnce;
 
-        private Timer currencyInformationTimer;
-
     // necessary config/state properties
     protected CURRENCY currencyEnum;
     protected JSONObject config;
-    protected MtGoxCurrency cachedCurrencyData = null;
     protected Log rawDepthDataLog;
     protected Log rawSocketMessagesLog;
     protected double tradeFee;
@@ -89,7 +89,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
         return wasToldToConnect && 
             this.getAsk(0) != null && this.getBid(0) != null && 
             socket.isConnected() && 
-            depthLoader.isConnected();
+            depthLoader.isConnected() &&
+            currencyLoader.isConnected();
     }
     
     public boolean isConnecting(){
@@ -111,11 +112,11 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             socket = null;
             if(depthLoader != null) depthLoader.disconnect();
             depthLoader = null;
-            if(currencyInformationTimer != null) currencyInformationTimer.cancel();
+            if(currencyLoader != null) currencyLoader.disconnect();
+            currencyLoader = null;
+            
             if(personalFeedListingTimer != null) personalFeedListingTimer.cancel();
-            currencyInformationTimer = null;
             personalFeedListingTimer = null;
-            cachedCurrencyData = null;
             lastRESTPersonalFeedCheck = null;
             hasLoadedPersonalFeedDataAtLeastOnce = false;
             super.disconnect();
@@ -142,18 +143,12 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
                 //
                 // force loading currency information for USD
                 // this will block until done
-                MtGoxBase.this.loadCurrencyDataFor(this.currencyEnum);
                 MtGoxBase.this.loadWalletData();
-                depthLoader = new MtGoxDepthLoader(this.getName(), this.getCurrency(), this);
+                depthLoader = new MtGoxDepthLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
                 
-                //
-                // setup a timer to refresh the currency data
-                currencyInformationTimer = new Timer();
-                currencyInformationTimer.scheduleAtFixedRate(new TimerTask(){
-                    public void run(){
-                        MtGoxBase.this.loadCurrencyDataFor(MtGoxBase.this.currencyEnum);
-                    }
-                }, 1000*60*60, 1000*60*60);
+                currencyLoader = new MtGoxCurrencyLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
+                currencyLoader.connect();
+
                 
                 
                 //
@@ -247,43 +242,6 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             this.disconnect();
         }
     }
-    
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // LOADING CURRENCY
-    //
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-
-    private void loadCurrencyDataFor(CURRENCY currency){
-        do{
-            try{
-                URLHelper urlHelper = socketFactory.getURLHelper();
-                URL url = new URL("https://mtgox.com/api/1/generic/currency?currency=" + currency);
-                String currencyJSON = urlHelper.getSynchronousURL(url);
-                
-                //
-                // ok, we have the string data,
-                // now parse it
-                if(currencyJSON != null && currencyJSON.length() > 0){
-                    JSONObject parsedCurrencyData = new JSONObject(currencyJSON);
-                    if(parsedCurrencyData != null &&
-                       parsedCurrencyData.getString("result").equals("success")){
-                        parsedCurrencyData = parsedCurrencyData.getJSONObject("return");;
-                        MtGoxCurrency currObj = new MtGoxCurrency(currency, parsedCurrencyData);
-                        MtGoxBase.this.log("loaded currency information for " + currency);
-                        cachedCurrencyData = currObj;
-                    }
-                }
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-        }while(cachedCurrencyData == null);
-    }
-    
     
         
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -558,91 +516,6 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             e.printStackTrace();
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    /** AExchange **/
-    
-    public boolean isCurrencySupported(CURRENCY curr){
-        return curr == CURRENCY.BTC ||
-            curr == CURRENCY.USD ||
-            curr == CURRENCY.AUD ||
-            curr == CURRENCY.CAD ||
-            curr == CURRENCY.CHF ||
-            curr == CURRENCY.CNY ||
-            curr == CURRENCY.DKK ||
-            curr == CURRENCY.EUR ||
-            curr == CURRENCY.GBP ||
-            curr == CURRENCY.HKD ||
-            curr == CURRENCY.JPY ||
-            curr == CURRENCY.NZD ||
-            curr == CURRENCY.PLN ||
-            curr == CURRENCY.RUB ||
-            curr == CURRENCY.SEK ||
-            curr == CURRENCY.SGD ||
-            curr == CURRENCY.THB;
-    }
-    
-    
-    /**
-     * a zero index is closest to the trade window
-     * and increases as prices move away.
-     * 
-     * so an index 0 is the highest bid or
-     * lowest ask
-     */
-    public JSONObject getBid(int index){
-        JSONObject bid = super.getBid(index);
-        if(bid != null){
-            try{
-                // format int values as proper values
-                double price = bid.getDouble("price");
-                Long volumeL = bid.getLong("volume_int");
-                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
-                
-                JSONObject ret = new JSONObject();
-                ret.put("price", price);
-                ret.put("volume", volume);
-                ret.put("currency", currencyEnum);
-                ret.put("stamp", bid.get("stamp"));
-                return ret;
-            }catch(Exception e){
-                return null;
-            }
-        }
-        return null;
-    }
-    
-    public JSONObject getAsk(int index){
-        JSONObject ask = super.getAsk(index);
-        if(ask != null){
-            try{
-                // format int values as proper values
-                double price = ask.getDouble("price");
-                Long volumeL = ask.getLong("volume_int");
-                double volume = cachedCurrencyData.parseVolumeFromLong(volumeL);
-                
-                JSONObject ret = new JSONObject();
-                ret.put("price", price);
-                ret.put("volume", volume);
-                ret.put("currency", currencyEnum);
-                ret.put("stamp", ask.get("stamp"));
-                return ret;
-            }catch(Exception e){
-                return null;
-            }
-        }
-        return null;
-    }
-    
-    
-    
-    
-    
     
     
 }
