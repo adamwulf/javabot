@@ -1,6 +1,7 @@
 package com.tradebits.socket;
 
 import com.tradebits.*;
+import com.tradebits.exchange.mtgox.*;
 
 public class StandardSocketFactory extends ASocketFactory{
     
@@ -12,6 +13,10 @@ public class StandardSocketFactory extends ASocketFactory{
     
     public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
         return new RawSocketConnection(host, port, logFile);
+    }
+    
+    public MtGoxRESTClient getMtGoxRESTClient(String key, String secret, Log rawSocketMessagesLog){
+        return new MtGoxRESTClient(key, secret, rawSocketMessagesLog);
     }
 
     

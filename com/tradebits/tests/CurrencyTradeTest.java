@@ -32,7 +32,7 @@ public class CurrencyTradeTest extends TestHelper{
      * This tests that the socket connect()
      * method is called when connecting to mtgox
      */
-    @Test public void testConnect() throws IOException{
+    @Test public void testUnprofitableTrade() throws IOException{
         
         TestExchange fromEx = new TestExchange("Fake MtGox", CURRENCY.USD, fakeMtGoxSellingFee){
             public JSONObject getAsk(int index){

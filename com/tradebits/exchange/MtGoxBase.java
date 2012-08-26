@@ -6,40 +6,33 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 import com.tradebits.*;
 import com.tradebits.socket.*;
+import com.tradebits.exchange.mtgox.*;
 import org.json.*;
 import com.tradebits.trade.*;
 import java.net.HttpURLConnection;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 /**
  * a class to connect to mtgox exchange
  */
-public abstract class MtGoxBase extends AExchange {
+public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Listener{
     
     // necessary connection properties
     private ISocketHelper socket;
     private MtGoxRESTClient restClient;
-    private LinkedList<JSONObject> cachedDepthData = new LinkedList<JSONObject>();
     private ASocketFactory socketFactory;
     // a boolean for if the user expects us to stay connected or not
     // if the user manually disconnects, then we shouldn't try to reconnect
     private boolean wasToldToConnect = false;
     
-    // the mess that hopefully can be cleaned
-    private Timer depthListingTimer;
-    private Timer currencyInformationTimer;
-    private boolean hasLoadedDepthDataAtLeastOnce = false;
-    private Date lastRESTDepthCheck = null;
-    
+    private MtGoxDepthLoader depthLoader;
+
     // settings for the personal feed
     private Timer personalFeedListingTimer;
     private Date lastRESTPersonalFeedCheck;
     private boolean hasLoadedPersonalFeedDataAtLeastOnce;
 
-    
+        private Timer currencyInformationTimer;
+
     // necessary config/state properties
     protected CURRENCY currencyEnum;
     protected JSONObject config;
@@ -58,7 +51,7 @@ public abstract class MtGoxBase extends AExchange {
             rawSocketMessagesLog = new Log(this.getName() + " Socket");
             String key = config.getString("key");
             String secret = config.getString("secret");
-            restClient = new MtGoxRESTClient(key, secret, rawSocketMessagesLog);
+            restClient = factory.getMtGoxRESTClient(key, secret, rawSocketMessagesLog);
         }
         catch(IOException e){ }
         catch(JSONException e){
@@ -74,14 +67,12 @@ public abstract class MtGoxBase extends AExchange {
         return this.currencyEnum;
     }
     
-    public int numberOfCachedDepthData(){
-        return cachedDepthData.size();
+    public ASocketFactory getSocketFactory(){
+        return socketFactory;
     }
     
-    protected void cacheDepthMessageForLaterReplay(JSONObject depthMessage) throws JSONException{
-        String type = depthMessage.getJSONObject("depth").getString("type_str");
-        cachedDepthData.add(depthMessage);
-        this.log("caching " + type + " (" + cachedDepthData.size() + ")");
+    public Log getRawDepthDataLog(){
+        return rawDepthDataLog;
     }
     
     /**
@@ -95,7 +86,7 @@ public abstract class MtGoxBase extends AExchange {
      * 3. that the socket is still connected
      */
     public boolean isConnected(){
-        return wasToldToConnect && this.getAsk(0) != null && this.getBid(0) != null && socket.isConnected();
+        return wasToldToConnect && this.getAsk(0) != null && this.getBid(0) != null && socket.isConnected() && depthLoader.isConnected();
     }
     
     public boolean isConnecting(){
@@ -115,16 +106,13 @@ public abstract class MtGoxBase extends AExchange {
         if(socket == null ||  socket.isConnected()){
             if(socket != null) socket.disconnect();
             socket = null;
-            hasLoadedDepthDataAtLeastOnce = false;
-            cachedDepthData = new LinkedList<JSONObject>();
-            if(depthListingTimer != null) depthListingTimer.cancel();
+            if(depthLoader != null) depthLoader.disconnect();
+            depthLoader = null;
             if(currencyInformationTimer != null) currencyInformationTimer.cancel();
             if(personalFeedListingTimer != null) personalFeedListingTimer.cancel();
-            depthListingTimer = null;
             currencyInformationTimer = null;
             personalFeedListingTimer = null;
             cachedCurrencyData = null;
-            lastRESTDepthCheck = null;
             lastRESTPersonalFeedCheck = null;
             hasLoadedPersonalFeedDataAtLeastOnce = false;
             super.disconnect();
@@ -153,7 +141,7 @@ public abstract class MtGoxBase extends AExchange {
                 // this will block until done
                 MtGoxBase.this.loadCurrencyDataFor(this.currencyEnum);
                 MtGoxBase.this.loadWalletData();
-                
+                depthLoader = new MtGoxDepthLoader(this.getName(), this.getCurrency(), this);
                 
                 //
                 // setup a timer to refresh the currency data
@@ -311,6 +299,10 @@ public abstract class MtGoxBase extends AExchange {
             String queryURL = "1/generic/private/info";
             HashMap<String, String> args = new HashMap<String, String>();
             String response = restClient.query(queryURL, args);
+            
+            System.out.println("wallet");
+            System.out.println(response);
+            
             if(response != null){
                 JSONObject ret = new JSONObject(response);
                 //
@@ -332,6 +324,7 @@ public abstract class MtGoxBase extends AExchange {
     
     
     protected void beginTimerForPersonalFeedData(){
+        this.log("beginning personal feed");
         personalFeedListingTimer = new Timer();
         personalFeedListingTimer.scheduleAtFixedRate(new TimerTask(){
             public void run(){
@@ -346,11 +339,12 @@ public abstract class MtGoxBase extends AExchange {
                     if(lastRESTPersonalFeedCheck == null || now.after(new Date(lastRESTPersonalFeedCheck.getTime() + 1000*60*60))){
                         hasLoadedPersonalFeedDataAtLeastOnce = true;
                         lastRESTPersonalFeedCheck = now;
+                        MtGoxBase.this.log("requesting personal feed");
                         MtGoxBase.this.subscribeToPersonalFeed();
                     }
                 }
             }
-        }, 15000, 30000);
+        }, 0, 30000);
     }
     /**
      * get our websocket connected to our private API feed
@@ -360,7 +354,7 @@ public abstract class MtGoxBase extends AExchange {
             String queryURL = "1/generic/private/idkey";
             HashMap<String, String> args = new HashMap<String, String>();
             String response = restClient.query(queryURL, args);
-            this.log(response);
+            this.log("personal feed response: " + response);
             if(response != null){
                 JSONObject ret = new JSONObject(response);
                 this.log("personal feed info " + ret);
@@ -382,217 +376,6 @@ public abstract class MtGoxBase extends AExchange {
             this.log(e.toString());
         }
     }
-    
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // LOADING DEPTH
-    //
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    protected void beginTimerForDepthData(){
-        depthListingTimer = new Timer();
-        depthListingTimer.scheduleAtFixedRate(new TimerTask(){
-            public void run(){
-                //
-                // only allowed to initialize depth data
-                // after we start receiving realtime data
-                if(MtGoxBase.this.isConnected() || !hasLoadedDepthDataAtLeastOnce){
-                    Date now = new Date();
-                    //
-                    // only load once each hour - yikes!
-                    // this is b/c mtgox has an extremely aggressive anti DDOS in place
-                    if(lastRESTDepthCheck == null || now.after(new Date(lastRESTDepthCheck.getTime() + 1000*60*60))){
-                        hasLoadedDepthDataAtLeastOnce = true;
-                        lastRESTDepthCheck = now;
-                        MtGoxBase.this.loadInitialDepthData(MtGoxBase.this.currencyEnum);
-                    }
-                }
-            }
-        }, 15000, 30000);
-    }
-    
-    /**
-     * This methos is responsible for loading
-     * the initial depth data for the market.
-     * 
-     * after the socket is connected and we have
-     * consistent depth data, this will continue to run
-     * and validate our depth data
-     */
-    public void loadInitialDepthData(final CURRENCY curr){
-        (new Thread(this.getName() + " First Depth Fetch"){
-            public void run(){
-                //
-                // ok
-                // we're going to download the depth data
-                //
-                // and only after that we're going to re-run the
-                // realtime data on top of it
-                //
-                // track how many times we try to load
-                JSONObject depthData = null;
-                while(depthData == null){
-                    try {
-                        String depthString = "";
-                        URLHelper urlHelper = socketFactory.getURLHelper();
-                        // Send data
-                        URL url = new URL("https://mtgox.com/api/1/BTC" + curr + "/depth");
-                        depthString = urlHelper.getSynchronousURL(url);
-                        
-                        //
-                        // ok, we have the string data,
-                        // now parse it
-                        if(depthString != null && depthString.length() > 0){
-                            JSONObject parsedDepthData = new JSONObject(depthString);
-                            if(parsedDepthData != null &&
-                               parsedDepthData.getString("result").equals("success")){
-                                depthData = parsedDepthData;
-                                rawDepthDataLog.log(depthString);
-                            }else if(parsedDepthData != null &&
-                                     parsedDepthData.getString("result").equals("error")){
-                                MtGoxBase.this.log("ERROR LOADING DEPTH: " + depthString);
-                                MtGoxBase.this.log("Sleeping and will try again later");
-                                return;
-                            }else{
-                                MtGoxBase.this.log("UNKNOWN ERROR LOADING DEPTH: " + depthString);
-                                MtGoxBase.this.log("Sleeping and will try again later");
-                                return;
-                            }
-                        }
-                        
-                        MtGoxBase.this.log("-- Loading from " + url);
-                    }catch (Exception e) {
-                        //
-                        // something went terribly wrong
-                        // so log the error and mark our
-                        // last depth load as never so that 
-                        // the next timer cycle will try again in 30s
-                        e.printStackTrace();
-                        lastRESTDepthCheck = null;
-                        MtGoxBase.this.log("Fetching depth failed");
-                        return;
-                    }
-                }
-                
-                MtGoxBase.this.log("-- Processing Depth and Cache Data");
-                
-                /**
-                 * now that we've downloaded the depth data,
-                 * it's time to process the asks/bids and store
-                 * the results
-                 */
-                try{
-                    
-                    JSONArray asks = depthData.getJSONObject("return").getJSONArray("asks");
-                    JSONArray bids = depthData.getJSONObject("return").getJSONArray("bids");
-                    
-                    synchronized(MtGoxBase.this){
-                        for(int i=0;i<asks.length();i++){
-                            JSONObject ask = asks.getJSONObject(i);
-                            JSONObject cachedData = new JSONObject();
-                            cachedData.put("price", ask.getDouble("price"));
-                            cachedData.put("volume_int", ask.getDouble("amount_int"));
-                            cachedData.put("stamp",new Date(ask.getLong("stamp") / 1000));
-                            JSONObject formerlyCached = MtGoxBase.this.getAskData(ask.getDouble("price"));
-                            if(formerlyCached == null){
-                                MtGoxBase.this.setAskData(cachedData);
-                            }else{
-                                JSONArray log = formerlyCached.getJSONArray("log");
-                                JSONObject logItem = new JSONObject();
-                                logItem.put("volume_int", cachedData.getDouble("volume_int"));
-                                logItem.put("stamp", cachedData.get("stamp"));
-                                logItem.put("check", true);
-                                log.put(logItem);
-                                formerlyCached.put("log", log);
-                            }
-                            /////////////////////////////////////////////////////////////////////////////////////////////
-                            //
-                            // Log to see if we're staying in sync with the depth or not
-                            //
-                            // this should probably show some errors sometimes, and if we're getting out of sync
-                            // then the # of errors will continue to increase.
-                            //
-                            // right now, i'm only logging this, but not doing anything programatically to check
-                            // and verify the error rate. TODO future improvement to check this
-                            //
-                            // this is strictly a sanity check that the MtGox API is working properly and sending all
-                            // depth data back to me
-                            //
-                            // check to see if anything has changed or not
-                            if(formerlyCached != null){
-                                if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
-                                    MtGoxBase.this.log("Different volume for " + cachedData.getDouble("price")
-                                                           + ": " + formerlyCached.getDouble("volume_int")
-                                                           + " vs " + cachedData.getDouble("volume_int") + " with log "
-                                                           + formerlyCached.get("log"));
-                                }
-                            }
-                            //
-                            /////////////////////////////////////////////////////////////////////////////////////////////
-                        }
-                        
-                        
-                        
-                        for(int i=0;i<bids.length();i++){
-                            JSONObject bid = bids.getJSONObject(i);
-                            JSONObject cachedData = new JSONObject();
-                            cachedData.put("price", bid.getDouble("price"));
-                            cachedData.put("volume_int", bid.getDouble("amount_int"));
-                            cachedData.put("stamp",new Date(bid.getLong("stamp") / 1000));
-                            JSONObject formerlyCached = MtGoxBase.this.getBidData(bid.getDouble("price"));
-                            if(formerlyCached == null){
-                                MtGoxBase.this.setBidData(cachedData);
-                            }else{
-                                JSONArray log = formerlyCached.getJSONArray("log");
-                                JSONObject logItem = new JSONObject();
-                                logItem.put("volume_int", cachedData.getDouble("volume_int"));
-                                logItem.put("stamp", cachedData.get("stamp"));
-                                logItem.put("check", true);
-                                log.put(logItem);
-                                formerlyCached.put("log", log);
-                            }
-                            /////////////////////////////////////////////////////////////////////////////////////////////
-                            //
-                            // Another check
-                            //
-                            if(formerlyCached != null){
-                                if(formerlyCached.getDouble("volume_int") != cachedData.getDouble("volume_int")){
-                                    MtGoxBase.this.log("Different volume for " + cachedData.getDouble("price")
-                                                           + ": " + formerlyCached.getDouble("volume_int")
-                                                           + " vs " + cachedData.getDouble("volume_int") + " with log "
-                                                           + formerlyCached.get("log"));
-                                }
-                            }
-                            //
-                            /////////////////////////////////////////////////////////////////////////////////////////////
-                        }
-                    }  
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
-                
-                MtGoxBase.this.notifyDidInitializeDepth();
-                
-                synchronized(MtGoxBase.this){
-                    try{
-                        while(cachedDepthData.size() > 0){
-                            JSONObject obj = cachedDepthData.removeFirst();
-                            MtGoxBase.this.processDepthData(obj);
-                        }
-                    }catch(Exception e){
-                        e.printStackTrace();
-                    }
-                }
-                
-                MtGoxBase.this.log("Done Processing Depth and Cache Data --");
-                MtGoxBase.this.notifyDidChangeConnectionState();
-            }
-        }).start();
-    }
-    
     
         
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -625,7 +408,7 @@ public abstract class MtGoxBase extends AExchange {
      */
     private void didFinishConnectToPersonalFeedNowWaitingOnRealtimeData(){
         MtGoxBase.this.log("Socket connection complete");
-        MtGoxBase.this.beginTimerForDepthData();
+        depthLoader.connect();
     }
     
     /**
@@ -879,83 +662,5 @@ public abstract class MtGoxBase extends AExchange {
     
     
     
-    public class MtGoxRESTClient {
-        protected Log logFile;
-        protected String key;
-        protected String secret;
-        
-        /**
-         * @param args the command line arguments
-         public static void main(String[] args) {
-         MtGoxRESTClient client = new MtGoxRESTClient(
-         "your key here",
-         "your secret here"
-         );
-         HashMap<String, String> query_args = new HashMap<String, String>();
-         query_args.put("currency", "BTC");
-         query_args.put("amount", "5.0");
-         query_args.put("return_success", "https://mtgox.com/success");
-         query_args.put("return_failure", "https://mtgox.com/failure");
-         
-         client.query("1/generic/private/merchant/order/create", query_args);
-         }
-         */
-        
-        public MtGoxRESTClient(String key, String secret, Log logFile) {
-            this.key = key;
-            this.secret = secret;
-            this.logFile = logFile;
-        }
-        
-        public String query(String path, HashMap<String, String> args) {
-            try {
-                // add nonce and build arg list
-                args.put("nonce", String.valueOf(System.currentTimeMillis()));
-                String post_data = this.buildQueryString(args);
-                
-                // args signature
-                Mac mac = Mac.getInstance("HmacSHA512");
-                SecretKeySpec secret_spec = new SecretKeySpec((new BASE64Decoder()).decodeBuffer(this.secret), "HmacSHA512");
-                mac.init(secret_spec);
-                String signature = (new BASE64Encoder()).encode(mac.doFinal(post_data.getBytes()));
-                
-                
-                // build URL
-                URL queryUrl = new URL("https://mtgox.com/api/" + path);
-                
-                // create connection
-                HttpURLConnection connection = (HttpURLConnection)queryUrl.openConnection();
-                connection.setDoOutput(true);
-                // set signature
-                connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; Java Test client)");
-                connection.setRequestProperty("Rest-Key", this.key);
-                connection.setRequestProperty("Rest-Sign", signature.replaceAll("\n", ""));
-                
-                // write post
-                connection.getOutputStream().write(post_data.getBytes());
-                
-                // read info
-                byte buffer[] = new byte[16384];
-                int len = connection.getInputStream().read(buffer, 0, 16384);
-                return new String(buffer, 0, len, "UTF-8");
-            } catch (Exception ex) {
-                logFile.log(ex.toString());
-            }
-            return null;
-        }
-        
-        protected String buildQueryString(HashMap<String, String> args) {
-            String result = new String();
-            for (String hashkey : args.keySet()) {
-                if (result.length() > 0) result += '&';
-                try {
-                    result += URLEncoder.encode(hashkey, "UTF-8") + "="
-                        + URLEncoder.encode(args.get(hashkey), "UTF-8");
-                } catch (Exception ex) {
-                    logFile.log(Arrays.toString(ex.getStackTrace()));
-                }
-            }
-            return result;
-        }
-    }
+    
 }

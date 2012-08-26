@@ -3,7 +3,7 @@ package com.tradebits.tests;
 
 import com.tradebits.*;
 import com.tradebits.socket.*;
-
+import com.tradebits.exchange.mtgox.*;
 
 public class TestSocketFactory extends ASocketFactory{
     
@@ -16,6 +16,10 @@ public class TestSocketFactory extends ASocketFactory{
     }
     
     public ISocketHelper getRawSocketTo(String host, int port, Log logFile){
+        return null;
+    }
+    
+    public MtGoxRESTClient getMtGoxRESTClient(String key, String secret, Log rawSocketMessagesLog){
         return null;
     }
 }

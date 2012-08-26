@@ -2,7 +2,7 @@ package com.tradebits.socket;
 
 
 import com.tradebits.*;
-
+import com.tradebits.exchange.mtgox.*;
 
 
 abstract public class ASocketFactory{
@@ -16,6 +16,7 @@ abstract public class ASocketFactory{
     
     abstract public ISocketHelper getRawSocketTo(String host, int port, Log logFile);
     
+    abstract public MtGoxRESTClient getMtGoxRESTClient(String key, String secret, Log rawSocketMessagesLog);
     
     public URLHelper getURLHelper(){
         return new URLHelper();

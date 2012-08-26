@@ -4,6 +4,7 @@ import com.tradebits.*;
 import com.tradebits.exchange.*;
 import com.tradebits.socket.*;
 import com.tradebits.tests.*;
+import com.tradebits.exchange.mtgox.*;
 import org.junit.*;
 import junit.framework.TestCase;
 import static org.junit.Assert.*;
@@ -52,13 +53,13 @@ public class MtGoxDepthTest extends TestHelper{
         mtgox = new MtGox(mtgoxTestConfig, new TestSocketFactory(){
             public ISocketHelper getSocketHelperFor(String httpURL, String wsURLFragment){
                 return new TestSocketHelper(){
-                    final ISocketHelper socket = this;
+                    final ISocketHelper that = this;
                     public void connect() throws Exception{
                         super.connect();
                         // open the socket
                         (new Timer()).schedule(new TimerTask(){
                             public void run(){
-                                socket.getListener().onOpen(socket);
+                                that.getListener().onOpen(that);
                             }
                         }, 30);
                         
@@ -68,8 +69,8 @@ public class MtGoxDepthTest extends TestHelper{
                         // from the test file
                         (new Timer()).schedule(new TimerTask(){
                             public void run(){
-                                socket.getListener().onMessage(socket, "1::/mtgox");
-                                socket.getListener().onMessage(socket, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
+                                that.getListener().onMessage(that, "1::/mtgox");
+                                that.getListener().onMessage(that, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
                                                                    + "\"op\":\"private\",\"origin\":\"broadcast\",\"private\":\"depth\""
                                                                    + ",\"depth\":{\"price\":\"11.91003\",\"type\":2,\"type_str\":\"ask\""
                                                                    + ",\"volume\":\"-0.01014437\",\"price_int\":\"1188326\",\"volume_int\""
@@ -79,7 +80,7 @@ public class MtGoxDepthTest extends TestHelper{
                         }, 60);
                         (new Timer()).schedule(new TimerTask(){
                             public void run(){
-                                socket.getListener().onMessage(socket, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
+                                that.getListener().onMessage(that, "4::/mtgox:{\"channel\":\"24e67e0d-1cad-4cc0-9e7a-f8523ef460fe\","
                                                                    + "\"op\":\"private\",\"origin\":\"broadcast\",\"private\":\"depth\""
                                                                    + ",\"depth\":{\"price\":\"11.91002\",\"type\":2,\"type_str\":\"bid\""
                                                                    + ",\"volume\":\"-0.01014437\",\"price_int\":\"1191002\",\"volume_int\""
@@ -125,6 +126,25 @@ public class MtGoxDepthTest extends TestHelper{
                             url = MtGoxDepthTest.this.getClass().getResource("test.depth");
                         }else{
                             return "";
+                        }
+                        File testDepthData = new File(url.getFile());
+                        String foo2 = MtGoxDepthTest.this.fileToString(testDepthData);
+                        return foo2;
+                    }
+                };
+            }
+            
+            public MtGoxRESTClient getMtGoxRESTClient(String key, String secret, Log rawSocketMessagesLog){
+                return new MtGoxRESTClient(key,secret,rawSocketMessagesLog){
+                    public String query(String path, HashMap<String, String> args) {
+                        URL url;
+                        if(path.indexOf("private/idkey") != -1){
+                            url = MtGoxDepthTest.this.getClass().getResource("mtgox.idkey");
+                        }else if(path.indexOf("private/info") != -1){
+                            url = MtGoxDepthTest.this.getClass().getResource("mtgox.info");
+                        }else{
+                            System.out.println(path);
+                            return null;
                         }
                         File testDepthData = new File(url.getFile());
                         String foo2 = MtGoxDepthTest.this.fileToString(testDepthData);
@@ -277,8 +297,25 @@ public class MtGoxDepthTest extends TestHelper{
                         }else if(url.toString().indexOf("/depth") != -1){
                             // set to our local depth file
                             url = MtGoxDepthTest.this.getClass().getResource("test.depth");
+                        }
+                        File testDepthData = new File(url.getFile());
+                        String foo2 = MtGoxDepthTest.this.fileToString(testDepthData);
+                        return foo2;
+                    }
+                };
+            }
+            
+            public MtGoxRESTClient getMtGoxRESTClient(String key, String secret, Log rawSocketMessagesLog){
+                return new MtGoxRESTClient(key,secret,rawSocketMessagesLog){
+                    public String query(String path, HashMap<String, String> args) {
+                        URL url;
+                        if(path.indexOf("private/idkey") != -1){
+                            url = MtGoxDepthTest.this.getClass().getResource("mtgox.idkey");
+                        }else if(path.indexOf("private/info") != -1){
+                            url = MtGoxDepthTest.this.getClass().getResource("mtgox.info");
                         }else{
-                            return "";
+                            System.out.println(path);
+                            return null;
                         }
                         File testDepthData = new File(url.getFile());
                         String foo2 = MtGoxDepthTest.this.fileToString(testDepthData);
