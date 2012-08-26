@@ -434,6 +434,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             long walletBalanceBTC = walletJSON.getJSONObject("return").getJSONObject("Wallets")
                 .getJSONObject("BTC").getJSONObject("Balance").getLong("value_int");
             double tradeFee = walletJSON.getJSONObject("return").getDouble("Trade_Fee");
+            this.walletJSON = walletJSON;
             this.log("loaded balance of " + walletBalanceEXD + " " + currencyEnum + " and " + walletBalanceBTC + " BTC");
         }catch(Exception e){
             this.log("problem with wallet");
@@ -457,6 +458,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             this.log("error with wallet");
             this.log(e.toString());
             this.disconnect();
+        }catch(NullPointerException e){
+            this.log(walletJSON == null ? "wallet is null" : walletJSON.toString());
         }
         return 0;
     }
