@@ -12,35 +12,7 @@ import com.tradebits.trade.*;
 public abstract class AExchange{
     
     private LinkedList<AExchangeListener> listeners = new LinkedList<AExchangeListener>();
-
-    protected boolean hasLoadedWallet;
-    protected Long walletBalanceEXD;
-    protected Long walletBalanceBTC;
-    
-    public boolean hasLoadedWalletData(){
-        return hasLoadedWallet;
-    }
-    
-    /**
-     * returns the balance held by 
-     * the user in this exchanges currency
-     * 
-     * this is the balance * 10^5
-     */
-    public Long getWalletBalanceEXD(){
-        return walletBalanceEXD;
-    }
-    
-    /**
-     * returns the bitcoin balance
-     * of the user in this exchange
-     * 
-     * this is the balance * 10^8
-     */
-    public Long getWalletBalanceBTC(){
-        return walletBalanceBTC;
-    }
-    
+  
     
     TreeMap<Double, JSONObject> bidDepthData = new TreeMap<Double, JSONObject>();
     TreeMap<Double, JSONObject> askDepthData = new TreeMap<Double, JSONObject>();

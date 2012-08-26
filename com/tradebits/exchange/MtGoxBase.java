@@ -15,7 +15,7 @@ import java.net.HttpURLConnection;
  * a class to connect to mtgox exchange
  */
 public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Listener, 
-    MtGoxCurrencyLoader.Listener, MtGoxProfileChannelLoader.Listener{
+    MtGoxCurrencyLoader.Listener, MtGoxProfileChannelLoader.Listener, MtGoxWalletLoader.Listener{
     
     // necessary connection properties
     private ISocketHelper socket;
@@ -28,6 +28,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     // Loaders for MtGox profile / market data
     private MtGoxDepthLoader depthLoader;
     private MtGoxCurrencyLoader currencyLoader;
+    private MtGoxWalletLoader walletLoader;
     private MtGoxProfileChannelLoader profileChannelLoader;
     
     // necessary config/state properties
@@ -35,7 +36,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     protected JSONObject config;
     protected Log rawDepthDataLog;
     protected Log rawSocketMessagesLog;
-    protected double tradeFee;
+    protected JSONObject walletJSON;
     
     /********************************************************************************************************
       * CURRENCY Properties
@@ -96,7 +97,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             socket.isConnected() && 
             depthLoader.isConnected() &&
             currencyLoader.isConnected() &&
-            profileChannelLoader.isConnected();
+            profileChannelLoader.isConnected() &&
+            walletLoader.isConnected();
     }
     
     public boolean isConnecting(){
@@ -122,6 +124,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             currencyLoader = null;
             if(profileChannelLoader != null) profileChannelLoader.disconnect();
             profileChannelLoader = null;
+            if(walletLoader != null) walletLoader.disconnect();
+            walletLoader = null;
             
             super.disconnect();
             this.notifyDidChangeConnectionState();
@@ -147,13 +151,19 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
                 //
                 // force loading currency information for USD
                 // this will block until done
-                MtGoxBase.this.loadWalletData();
-                depthLoader = new MtGoxDepthLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
-                
+                //
+                // currency and wallet should load immediately
                 currencyLoader = new MtGoxCurrencyLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
                 currencyLoader.connect();
-                
+                walletLoader = new MtGoxWalletLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
+                walletLoader.connect();
+                //
+                // depth and profile should wait until
+                // the socket is connected and alive
+                depthLoader = new MtGoxDepthLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
                 profileChannelLoader = new MtGoxProfileChannelLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
+
+                
                 
                 //
                 // now, connect to the realtime feed
@@ -249,44 +259,6 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
         }
     }
     
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // LOADING WALLET
-    //
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    
-    protected void loadWalletData(){
-        try{
-            //
-            // only send 1 trade
-            String queryURL = "1/generic/private/info";
-            HashMap<String, String> args = new HashMap<String, String>();
-            String response = restClient.query(queryURL, args);
-            
-            System.out.println("wallet");
-            System.out.println(response);
-            
-            if(response != null){
-                JSONObject ret = new JSONObject(response);
-                //
-                // the USD balance is
-                walletBalanceEXD = ret.getJSONObject("return").getJSONObject("Wallets")
-                    .getJSONObject(currencyEnum.toString()).getJSONObject("Balance").getLong("value_int");
-                walletBalanceBTC = ret.getJSONObject("return").getJSONObject("Wallets")
-                    .getJSONObject("BTC").getJSONObject("Balance").getLong("value_int");
-                tradeFee = ret.getJSONObject("return").getDouble("Trade_Fee");
-                
-                hasLoadedWallet = true;
-                this.log("loaded balance of " + walletBalanceEXD + " " + currencyEnum + " and " + walletBalanceBTC + " BTC");
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -441,6 +413,52 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // LOADING WALLET
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    public void didLoadWalletData(JSONObject walletJSON){
+        try{
+            this.log("WALLET: " + walletJSON);
+            //
+            // the USD balance is
+            long walletBalanceEXD = walletJSON.getJSONObject("return").getJSONObject("Wallets")
+                .getJSONObject(currencyEnum.toString()).getJSONObject("Balance").getLong("value_int");
+            long walletBalanceBTC = walletJSON.getJSONObject("return").getJSONObject("Wallets")
+                .getJSONObject("BTC").getJSONObject("Balance").getLong("value_int");
+            double tradeFee = walletJSON.getJSONObject("return").getDouble("Trade_Fee");
+            this.log("loaded balance of " + walletBalanceEXD + " " + currencyEnum + " and " + walletBalanceBTC + " BTC");
+        }catch(Exception e){
+            this.log("problem with wallet");
+            this.log(e.toString());
+            this.disconnect();
+        }
+    }
+    
+    /**
+     * mtgox only has a trading fee if I
+     * am buying bitcoins on the exchange
+     */
+    public double getTradingFeeFor(CurrencyTrade trade){
+        try{
+            if(trade.getFromExchange() == this && walletLoader.isConnected()){
+                // I am buying bitcoins from
+                // the exchange
+                return walletJSON.getJSONObject("return").getDouble("Trade_Fee");
+            }
+        }catch(JSONException e){
+            this.log("error with wallet");
+            this.log(e.toString());
+            this.disconnect();
+        }
+        return 0;
     }
     
     
