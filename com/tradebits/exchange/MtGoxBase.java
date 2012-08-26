@@ -426,7 +426,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     
     public void didLoadWalletData(JSONObject walletJSON){
         try{
-            this.log("WALLET: " + walletJSON);
+            this.log("WALLET: " + walletJSON.toString().substring(0, Math.min(200, walletJSON.toString().length())));
             //
             // the USD balance is
             long walletBalanceEXD = walletJSON.getJSONObject("return").getJSONObject("Wallets")

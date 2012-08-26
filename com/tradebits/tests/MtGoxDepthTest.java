@@ -22,10 +22,28 @@ public class MtGoxDepthTest extends TestHelper{
     MtGox mtgox;
     
     JSONObject mtgoxTestConfig;
+    MtGoxRESTClient testRESTClient;
     
-    @Before
-    protected void setUp() throws JSONException{
+    @BeforeClass
+    protected void setUp() throws JSONException, IOException{
         mtgoxTestConfig = new JSONObject("{ \"key\":\"aFakeKey\", \"secret\":\"aFakeSecret\" }");
+        testRESTClient = new MtGoxRESTClient("","",new NullLog()){
+            public String query(String path, HashMap<String, String> args) {
+                URL url;
+                System.out.println("fetching: " + path);
+                if(path.indexOf("private/idkey") != -1){
+                    url = MtGoxDepthTest.this.getClass().getResource("mtgox.idkey");
+                }else if(path.indexOf("private/info") != -1){
+                    url = MtGoxDepthTest.this.getClass().getResource("mtgox.info");
+                }else{
+                    System.out.println(path);
+                    return null;
+                }
+                File testDepthData = new File(url.getFile());
+                String foo2 = MtGoxDepthTest.this.fileToString(testDepthData);
+                return foo2;
+            }
+        };
     }
     
     @After @AfterClass
@@ -135,22 +153,7 @@ public class MtGoxDepthTest extends TestHelper{
             }
             
             public MtGoxRESTClient getMtGoxRESTClient(String key, String secret, Log rawSocketMessagesLog){
-                return new MtGoxRESTClient(key,secret,rawSocketMessagesLog){
-                    public String query(String path, HashMap<String, String> args) {
-                        URL url;
-                        if(path.indexOf("private/idkey") != -1){
-                            url = MtGoxDepthTest.this.getClass().getResource("mtgox.idkey");
-                        }else if(path.indexOf("private/info") != -1){
-                            url = MtGoxDepthTest.this.getClass().getResource("mtgox.info");
-                        }else{
-                            System.out.println(path);
-                            return null;
-                        }
-                        File testDepthData = new File(url.getFile());
-                        String foo2 = MtGoxDepthTest.this.fileToString(testDepthData);
-                        return foo2;
-                    }
-                };
+                return testRESTClient;
             }
         }, CURRENCY.USD);
         
@@ -306,22 +309,7 @@ public class MtGoxDepthTest extends TestHelper{
             }
             
             public MtGoxRESTClient getMtGoxRESTClient(String key, String secret, Log rawSocketMessagesLog){
-                return new MtGoxRESTClient(key,secret,rawSocketMessagesLog){
-                    public String query(String path, HashMap<String, String> args) {
-                        URL url;
-                        if(path.indexOf("private/idkey") != -1){
-                            url = MtGoxDepthTest.this.getClass().getResource("mtgox.idkey");
-                        }else if(path.indexOf("private/info") != -1){
-                            url = MtGoxDepthTest.this.getClass().getResource("mtgox.info");
-                        }else{
-                            System.out.println(path);
-                            return null;
-                        }
-                        File testDepthData = new File(url.getFile());
-                        String foo2 = MtGoxDepthTest.this.fileToString(testDepthData);
-                        return foo2;
-                    }
-                };
+                return testRESTClient;
             }
         }, CURRENCY.USD);
         

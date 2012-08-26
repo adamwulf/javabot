@@ -149,9 +149,6 @@ public class MtGoxWalletLoader{
                     HashMap<String, String> args = new HashMap<String, String>();
                     String response = listener.getRESTClient().query(queryURL, args);
                     
-                    System.out.println("wallet");
-                    System.out.println(response);
-                    
                     if(response != null){
                         JSONObject walletJSON = new JSONObject(response);
                         hasLoadedDataAtLeastOnce = true;
