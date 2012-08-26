@@ -11,19 +11,19 @@ import org.json.*;
 
 
 /**
- * This class is responsible for loading depth
+ * This class is responsible for loading currency
  * information from the mtgox REST api.
  * 
- * it will try to load initial depth data in
+ * it will try to load initial currency data in
  * intervals of 30s until the data is loaded.
  * this will give it a 30s failover time
  * if the first request fails.
  * 
  * after a successful load, it will load
- * depth data once an hour, so that its listener
- * can validate the depth data
+ * currency data once an hour, so that its listener
+ * can validate the currency data
  */
-public class MtGoxDepthLoader{
+public class MtGoxProfileChannelLoader{
     /********************************************************************************************************
       * Loader Properties
       * 
@@ -42,7 +42,7 @@ public class MtGoxDepthLoader{
     private Timer requestTimer;
     // set to true when we've loaded the data once
     private boolean hasLoadedDataAtLeastOnce = false;
-    // the date that we last checked for depth data
+    // the date that we last checked for currency data
     private Date lastRESTRequestCheck = null;
     // the number of milliseconds to retry the data load if
     // we don't have any data loaded ever
@@ -51,14 +51,13 @@ public class MtGoxDepthLoader{
     // we do already have data loaded
     private long connectedIntervalTimeoutInMilliseconds;
     
-    
     /**
-     * create a new depth loader
+     * create a new currency loader
      * @param unconnectedIntervalTimeout the interval in seconds that we should wait between REST calls if we're /unconnected/
      * @param connectedIntervalTimeout the interval in seconds that we should wait between REST calls if we're /connected/
      */
-    public MtGoxDepthLoader(String name, CURRENCY curr, Listener listener, 
-                            long unconnectedIntervalTimeoutInSeconds, long connectedIntervalTimeoutInSeconds){
+    public MtGoxProfileChannelLoader(String name, CURRENCY curr, Listener listener, 
+                               long unconnectedIntervalTimeoutInSeconds, long connectedIntervalTimeoutInSeconds){
         this.name = name;
         this.currency = curr;
         this.listener = listener;
@@ -66,7 +65,6 @@ public class MtGoxDepthLoader{
         this.connectedIntervalTimeoutInMilliseconds = connectedIntervalTimeoutInSeconds * 1000;
     }
     
-   
     
         
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +74,7 @@ public class MtGoxDepthLoader{
     //
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+    
     /**
      * return true only if we have successfully
      * loaded data, and if we're still requesting data
@@ -88,7 +86,7 @@ public class MtGoxDepthLoader{
     
     /**
      * this will start the connection to request
-     * depth data, if we're not already.
+     * currency data, if we're not already.
      */
     public void connect(){
         if(requestTimer == null){
@@ -101,7 +99,7 @@ public class MtGoxDepthLoader{
                     // this is b/c mtgox has an extremely aggressive anti DDOS in place
                     if(lastRESTRequestCheck == null || now.after(new Date(lastRESTRequestCheck.getTime() + connectedIntervalTimeoutInMilliseconds))){
                         lastRESTRequestCheck = now;
-                        MtGoxDepthLoader.this.loadInitialData();
+                        MtGoxProfileChannelLoader.this.loadProfileChannelData();
                     }
                 }
             }, 0, unconnectedIntervalTimeoutInMilliseconds);
@@ -119,6 +117,7 @@ public class MtGoxDepthLoader{
         lastRESTRequestCheck = null;
     }
     
+    
         
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,85 +128,37 @@ public class MtGoxDepthLoader{
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
  
     /**
-     * This is called if our REST request fails for
-     * some reason. we still want to stay connected,
-     * and will reset our values so that our next Timer
-     * tick will cause another REST request
-     */
-    protected void stayConnectedButReloadData(){
-        lastRESTRequestCheck = null;
-        hasLoadedDataAtLeastOnce = false;
-    }
-    
-    
-    /**
      * This methos is responsible for loading
-     * the initial depth data for the market.
+     * the initial currency data for the market.
      * 
      * after the socket is connected and we have
-     * consistent depth data, this will continue to run
-     * and validate our depth data
+     * consistent currency data, this will continue to run
+     * and validate our currency data
      */
-    protected void loadInitialData(){
-        (new Thread(this.name + " First Depth Fetch"){
+    protected void loadProfileChannelData(){
+        (new Thread(this.name + " Profile Channel Fetch"){
             public void run(){
-                //
-                // ok
-                // we're going to download the depth data
-                //
-                // and only after that we're going to re-run the
-                // realtime data on top of it
-                //
-                // track how many times we try to load
-                JSONObject depthData = null;
-                while(depthData == null){
-                    try {
-                        String depthString = "";
-                        URLHelper urlHelper = listener.getSocketFactory().getURLHelper();
-                        // Send data
-                        URL url = new URL("https://mtgox.com/api/1/BTC" + currency + "/depth");
-                        depthString = urlHelper.getSynchronousURL(url);
-                        
-                        //
-                        // ok, we have the string data,
-                        // now parse it
-                        if(depthString != null && depthString.length() > 0){
-                            JSONObject parsedDepthData = new JSONObject(depthString);
-                            if(parsedDepthData != null &&
-                               parsedDepthData.getString("result").equals("success")){
-                                depthData = parsedDepthData;
-                            }else if(parsedDepthData != null &&
-                                     parsedDepthData.getString("result").equals("error")){
-                                listener.getRawDepthDataLog().log("ERROR LOADING DEPTH: " + depthString);
-                                listener.getRawDepthDataLog().log("Sleeping and will try again later");
-                                return;
-                            }else{
-                                listener.getRawDepthDataLog().log("UNKNOWN ERROR LOADING DEPTH: " + depthString);
-                                listener.getRawDepthDataLog().log("Sleeping and will try again later");
-                                return;
-                            }
-                        }
-                        
-                        listener.getRawDepthDataLog().log("-- Loading from " + url);
-                    }catch (Exception e) {
-                        //
-                        // something went terribly wrong
-                        // so log the error and mark our
-                        // last depth load as never so that 
-                        // the next timer cycle will try again in 30s
-                        e.printStackTrace();
-                        MtGoxDepthLoader.this.stayConnectedButReloadData();
-                        listener.getRawDepthDataLog().log("Fetching depth failed");
-                        return;
+                try{
+                    String queryURL = "1/generic/private/idkey";
+                    HashMap<String, String> args = new HashMap<String, String>();
+                    String response = listener.getRESTClient().query(queryURL, args);
+                    listener.getRawDepthDataLog().log("personal feed response: " + response);
+                    if(response != null){
+                        JSONObject ret = new JSONObject(response);
+                        listener.getRawDepthDataLog().log("personal feed info " + ret);
+                        String feedID = ret.getString("return");
+                        hasLoadedDataAtLeastOnce = true;
+                        listener.didLoadProfileChannelData(feedID);
                     }
+                }catch(Exception e){
+                    // noop
+                    listener.getRawDepthDataLog().log(e.toString());
                 }
-                hasLoadedDataAtLeastOnce = true;
-                listener.didLoadFullMarketDepthData(depthData);
             }
         }).start();
     }
     
-        
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -218,14 +169,16 @@ public class MtGoxDepthLoader{
  
     /**
      * This is our listener interface.
-     * whoever wants updates on our data
+     * whoever wants updates on our currency data
      * needs to implement this iterface
      */
     public interface Listener{
         
-        public void didLoadFullMarketDepthData(JSONObject depthData);
+        public void didLoadProfileChannelData(String profileChannelID);
         
         public ASocketFactory getSocketFactory();
+        
+        public MtGoxRESTClient getRESTClient();
         
         public Log getRawDepthDataLog();
         

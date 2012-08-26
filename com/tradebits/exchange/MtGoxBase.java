@@ -14,7 +14,8 @@ import java.net.HttpURLConnection;
 /**
  * a class to connect to mtgox exchange
  */
-public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Listener, MtGoxCurrencyLoader.Listener{
+public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Listener, 
+    MtGoxCurrencyLoader.Listener, MtGoxProfileChannelLoader.Listener{
     
     // necessary connection properties
     private ISocketHelper socket;
@@ -27,12 +28,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     // Loaders for MtGox profile / market data
     private MtGoxDepthLoader depthLoader;
     private MtGoxCurrencyLoader currencyLoader;
-    
-    
-    // settings for the personal feed
-    private Timer personalFeedListingTimer;
-    private Date lastRESTPersonalFeedCheck;
-    private boolean hasLoadedPersonalFeedDataAtLeastOnce;
+    private MtGoxProfileChannelLoader profileChannelLoader;
     
     // necessary config/state properties
     protected CURRENCY currencyEnum;
@@ -99,7 +95,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             this.getAsk(0) != null && this.getBid(0) != null && 
             socket.isConnected() && 
             depthLoader.isConnected() &&
-            currencyLoader.isConnected();
+            currencyLoader.isConnected() &&
+            profileChannelLoader.isConnected();
     }
     
     public boolean isConnecting(){
@@ -116,18 +113,16 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     }
     
     protected void disconnectHelper(){
-        if(socket == null ||  socket.isConnected()){
+        if(socket == null || socket.isConnected()){
             if(socket != null) socket.disconnect();
             socket = null;
             if(depthLoader != null) depthLoader.disconnect();
             depthLoader = null;
             if(currencyLoader != null) currencyLoader.disconnect();
             currencyLoader = null;
+            if(profileChannelLoader != null) profileChannelLoader.disconnect();
+            profileChannelLoader = null;
             
-            if(personalFeedListingTimer != null) personalFeedListingTimer.cancel();
-            personalFeedListingTimer = null;
-            lastRESTPersonalFeedCheck = null;
-            hasLoadedPersonalFeedDataAtLeastOnce = false;
             super.disconnect();
             this.notifyDidChangeConnectionState();
         }
@@ -158,7 +153,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
                 currencyLoader = new MtGoxCurrencyLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
                 currencyLoader.connect();
                 
-                
+                profileChannelLoader = new MtGoxProfileChannelLoader(this.getName(), this.getCurrency(), this, 30, 60*60);
                 
                 //
                 // now, connect to the realtime feed
@@ -203,7 +198,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
                                 //
                                 // we are now confirmed connected to the socket,
                                 // and are awaiting our first realtime message
-                                MtGoxBase.this.didFinishConnectToSocketNowWaitingOnPersonalFeed();
+                                MtGoxBase.this.log("Socket connection complete");
+                                profileChannelLoader.connect();
                                 return;
                             }else if(data.equals("2::")){
                                 // just heartbeat from the server
@@ -216,6 +212,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
                             MtGoxBase.this.log(data);
                         }catch(Exception e){
                             aSocket.disconnect();
+                            aSocket = null;
                             MtGoxBase.this.disconnect();
                         }
                     }
@@ -292,62 +289,6 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     }
     
     
-    
-    protected void beginTimerForPersonalFeedData(){
-        this.log("beginning personal feed");
-        personalFeedListingTimer = new Timer();
-        personalFeedListingTimer.scheduleAtFixedRate(new TimerTask(){
-            public void run(){
-                //
-                // only allowed to initialize depth data
-                // after we start receiving realtime data
-                if(MtGoxBase.this.isConnected() || !hasLoadedPersonalFeedDataAtLeastOnce){
-                    Date now = new Date();
-                    //
-                    // only load once each hour - yikes!
-                    // this is b/c mtgox has an extremely aggressive anti DDOS in place
-                    if(lastRESTPersonalFeedCheck == null || now.after(new Date(lastRESTPersonalFeedCheck.getTime() + 1000*60*60))){
-                        hasLoadedPersonalFeedDataAtLeastOnce = true;
-                        lastRESTPersonalFeedCheck = now;
-                        MtGoxBase.this.log("requesting personal feed");
-                        MtGoxBase.this.subscribeToPersonalFeed();
-                    }
-                }
-            }
-        }, 0, 30000);
-    }
-    /**
-     * get our websocket connected to our private API feed
-     */
-    protected void subscribeToPersonalFeed(){
-        try{
-            String queryURL = "1/generic/private/idkey";
-            HashMap<String, String> args = new HashMap<String, String>();
-            String response = restClient.query(queryURL, args);
-            this.log("personal feed response: " + response);
-            if(response != null){
-                JSONObject ret = new JSONObject(response);
-                this.log("personal feed info " + ret);
-                String feedID = ret.getString("return");
-                
-                JSONObject subscribeOp = new JSONObject();
-                subscribeOp.put("op","mtgox.subscribe");
-                subscribeOp.put("key", feedID);
-                
-                if(socket != null){
-                    this.log("subscribing..." + ret);
-                    socket.send("4::/mtgox:" + subscribeOp.toString());
-                }
-                
-                this.didFinishConnectToPersonalFeedNowWaitingOnRealtimeData();
-            }
-        }catch(Exception e){
-            // noop
-            this.log(e.toString());
-        }
-    }
-    
-    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -355,32 +296,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     //
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    /**
-     * we have finished the handshake with the socket,
-     * and are now awaiting our first realtime data
-     * 
-     * we're going to start a timer for the depth data,
-     * once it loads we should have some realtime data
-     * ready
-     */
-    private void didFinishConnectToSocketNowWaitingOnPersonalFeed(){
-        MtGoxBase.this.log("Socket connection complete");
-        MtGoxBase.this.beginTimerForPersonalFeedData();
-    }
-    /**
-     * we have finished the handshake with the socket,
-     * and are now awaiting our first realtime data
-     * 
-     * we're going to start a timer for the depth data,
-     * once it loads we should have some realtime data
-     * ready
-     */
-    private void didFinishConnectToPersonalFeedNowWaitingOnRealtimeData(){
-        MtGoxBase.this.log("Socket connection complete");
-        depthLoader.connect();
-    }
-    
+        
     /**
      * process a socket message
      * 
@@ -418,6 +334,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             }
         }catch(Exception e){
             socket.disconnect();
+            socket = null;
             this.disconnect();
             e.printStackTrace();
         }
@@ -536,11 +453,48 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     public void didLoadCurrencyData(MtGoxCurrency currencyData){
+        this.log("done loading currency data: " + currencyData);
         cachedCurrencyData = currencyData;
+        if(profileChannelLoader.isConnected()){
+            depthLoader.connect();
+        }
     }
     
     public void didUnloadCurrencyData(){
         cachedCurrencyData = null;
+    }
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // PROFILE STREAM
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+   
+    public void didLoadProfileChannelData(String profileChannelID){
+        try{
+            JSONObject subscribeOp = new JSONObject();
+            subscribeOp.put("op","mtgox.subscribe");
+            subscribeOp.put("key", profileChannelID);
+            
+            if(socket != null){
+                this.log("subscribing to personal channel...");
+                socket.send("4::/mtgox:" + subscribeOp.toString());
+            }else{
+                throw new ExchangeException("socket not connected when trying to subscribe to personal channel");
+            }
+            if(currencyLoader.isConnected()){
+                depthLoader.connect();
+            }
+
+        }catch(Exception e){
+            this.disconnect();
+        }
+    }
+    
+    public MtGoxRESTClient getRESTClient(){
+        return restClient;
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -24,11 +24,31 @@ import org.json.*;
  * can validate the currency data
  */
 public class MtGoxCurrencyLoader{
-    
+    /********************************************************************************************************
+      * Loader Properties
+      * 
+      * these properties help manage the timer and state
+      */
     private String name;
     private CURRENCY currency;
     private Listener listener;
+    
+    /********************************************************************************************************
+      * Timer Properties
+      * 
+      * these properties help manage the timer and state
+      */
+    // this is the timer we'll use to run the REST calls
+    private Timer requestTimer;
+    // set to true when we've loaded the data once
+    private boolean hasLoadedDataAtLeastOnce = false;
+    // the date that we last checked for currency data
+    private Date lastRESTRequestCheck = null;
+    // the number of milliseconds to retry the data load if
+    // we don't have any data loaded ever
     private long unconnectedIntervalTimeoutInMilliseconds;
+    // the number of milliseconds to retry the data load if
+    // we do already have data loaded
     private long connectedIntervalTimeoutInMilliseconds;
     
     /**
@@ -46,13 +66,14 @@ public class MtGoxCurrencyLoader{
     }
     
     
-    // this is the timer we'll use to run the REST calls
-    private Timer currencyInformationTimer;
-    // set to true when we've loaded the data once
-    private boolean hasLoadedCurrencyDataAtLeastOnce = false;
-    // the date that we last checked for currency data
-    private Date lastRESTCurrencyCheck = null;
-    
+        
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // PUBLIC
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /**
      * return true only if we have successfully
@@ -60,7 +81,7 @@ public class MtGoxCurrencyLoader{
      * once an hour
      */
     public boolean isConnected(){
-        return currencyInformationTimer != null && hasLoadedCurrencyDataAtLeastOnce;
+        return requestTimer != null && hasLoadedDataAtLeastOnce;
     }
     
     /**
@@ -68,16 +89,16 @@ public class MtGoxCurrencyLoader{
      * currency data, if we're not already.
      */
     public void connect(){
-        if(currencyInformationTimer == null){
-            currencyInformationTimer = new Timer();
-            currencyInformationTimer.scheduleAtFixedRate(new TimerTask(){
+        if(requestTimer == null){
+            requestTimer = new Timer();
+            requestTimer.scheduleAtFixedRate(new TimerTask(){
                 public void run(){
                     Date now = new Date();
                     //
                     // only load once each hour - yikes!
                     // this is b/c mtgox has an extremely aggressive anti DDOS in place
-                    if(lastRESTCurrencyCheck == null || now.after(new Date(lastRESTCurrencyCheck.getTime() + connectedIntervalTimeoutInMilliseconds))){
-                        lastRESTCurrencyCheck = now;
+                    if(lastRESTRequestCheck == null || now.after(new Date(lastRESTRequestCheck.getTime() + connectedIntervalTimeoutInMilliseconds))){
+                        lastRESTRequestCheck = now;
                         MtGoxCurrencyLoader.this.loadInitialCurrencyData();
                     }
                 }
@@ -90,15 +111,23 @@ public class MtGoxCurrencyLoader{
      * and will reset us to default unconnected state
      */
     public void disconnect(){
-        hasLoadedCurrencyDataAtLeastOnce = false;
-        if(currencyInformationTimer != null) currencyInformationTimer.cancel();
-        currencyInformationTimer = null;
-        lastRESTCurrencyCheck = null;
+        hasLoadedDataAtLeastOnce = false;
+        if(requestTimer != null) requestTimer.cancel();
+        requestTimer = null;
+        lastRESTRequestCheck = null;
         listener.didUnloadCurrencyData();
     }
     
     
-    
+        
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // PROTECTED
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
     /**
      * This methos is responsible for loading
      * the initial currency data for the market.
@@ -127,7 +156,7 @@ public class MtGoxCurrencyLoader{
                                 parsedCurrencyData = parsedCurrencyData.getJSONObject("return");;
                                 cachedCurrencyData = new MtGoxCurrency(currency, parsedCurrencyData);
                                 listener.getRawDepthDataLog().log("loaded currency information for " + currency);
-                                hasLoadedCurrencyDataAtLeastOnce = true;
+                                hasLoadedDataAtLeastOnce = true;
                                 listener.didLoadCurrencyData(cachedCurrencyData);
                             }
                         }
@@ -143,7 +172,14 @@ public class MtGoxCurrencyLoader{
     }
     
     
-    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // LISTENER
+    //
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
     /**
      * This is our listener interface.
      * whoever wants updates on our currency data
