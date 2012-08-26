@@ -637,27 +637,6 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     }
     
     
-    /**
-     * currency info
-     */
-    protected class MtGoxCurrency{
-        
-        CURRENCY currency;
-        JSONObject properties;
-        
-        public MtGoxCurrency(CURRENCY currency, JSONObject properties){
-            this.properties = properties;
-        }
-        
-        public CURRENCY getKey(){
-            return currency;
-        }
-        
-        public double parseVolumeFromLong(Long volume){
-            // 10^8 comes from https://en.bitcoin.it/wiki/MtGox/API/HTTP/v1#Multi_currency_trades
-            return volume / Math.pow(10, 8);
-        }
-    }
     
     
     
