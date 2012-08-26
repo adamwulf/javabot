@@ -132,8 +132,8 @@ public class Trader{
                         didLog = possibleTrade2.expectsToMakeProfit() || didLog;
                         
                         if(mtGoxUSD.isConnected() && counter.intValue() == 0){
-//                            mtGoxUSD.executeOrderToBuyBTC(0.01);
-//                            mtGoxUSD.executeOrderToSellBTC(0.01);
+                            mtGoxUSD.executeOrderToBuyBTC(0.01);
+                            mtGoxUSD.executeOrderToSellBTC(0.01);
 //                            mtGoxUSD.getCurrentOrderStatus();
                             counter.increment();
                         }

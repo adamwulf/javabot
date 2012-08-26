@@ -25,6 +25,8 @@ public class Intersango extends AExchange{
     boolean socketIsConnected = false;
     boolean socketHasReceivedAnyMessage = false;
     Integer intersangoCurrencyEnum;
+    boolean didInitializeDepthData = false;
+    Timer depthCheckTimer;
     
     /**
      * https://intersango.com/api.php
@@ -69,6 +71,7 @@ public class Intersango extends AExchange{
         this.socket = null;
         socketIsConnected = false;
         socketHasReceivedAnyMessage = false;
+        didInitializeDepthData = false;
         this.notifyDidChangeConnectionState();
     }
     
@@ -143,10 +146,64 @@ public class Intersango extends AExchange{
         }
     }
     
+    
+    protected void checkDepthBook(){
+        final ISocketHelper checkSocket = socketFactory.getRawSocketTo(configHost, configPort, rawSocketMessagesLog);
+        try{
+            checkSocket.setListener(new ISocketHelperListener(){
+                
+                public void onOpen(ISocketHelper socket){
+                    Intersango.this.log("CHECK OPEN");
+                }
+                
+                public void onClose(ISocketHelper socket, int closeCode, String message){
+                    Intersango.this.log("CHECK CLOSE");
+                }
+                
+                public void onError(ISocketHelper socket, String message){
+                    Intersango.this.log("CHECK ERROR: " + message);
+                    checkSocket.disconnect();
+                }
+                
+                public void onMessage(ISocketHelper aSocket, String data){
+                    try{
+                        String dataPrefix = "5:::";
+                        if(data.startsWith(dataPrefix)){
+                            data = data.substring(dataPrefix.length());
+                            Intersango.this.processMessage(data);
+                            checkSocket.disconnect();
+                            return;
+                        }
+                    }catch(Exception e){
+                        checkSocket.disconnect();
+                    }
+                }
+                
+                public void onHeartbeatSent(ISocketHelper socket){
+                    // noop
+                }
+            });
+            checkSocket.connect();
+            
+            
+        }catch(Exception e){
+            e.printStackTrace();
+            if(checkSocket != null){
+                checkSocket.setListener(null);
+            }
+            checkSocket.disconnect();
+        }
+    }
+    
+    
+    
     protected void processMessage(String messageText){
         try{
             JSONObject msg = new JSONObject(messageText);
             socketHasReceivedAnyMessage = true;
+            if(msg.getString("name").equals("orderbook")){
+                rawDepthDataLog.log(messageText);
+            }
             if(msg.getString("name").equals("orderbook")){
                 this.processDepthData(msg);
             }else if(msg.getString("name").equals("depth")){
@@ -200,8 +257,8 @@ public class Intersango extends AExchange{
     //
     // returns an int, assuming 5 places
     // after the decimal
-    private int doubleToInt(double number){
-        return (int) (number * Math.pow(10, 5));
+    private long doubleToInt(double number){
+        return (long) (number * Math.pow(10, 5));
     }
     
     
@@ -219,6 +276,7 @@ public class Intersango extends AExchange{
                 this.updateAskData(cachableData);
             }
             this.notifyDidProcessDepth();
+            rawSocketMessagesLog.log(depthMessage.toString());
         }else{
             // wrong currency
         }
@@ -238,7 +296,22 @@ public class Intersango extends AExchange{
                 cachableData.put("price", new Double(price));
                 cachableData.put("volume_int", this.doubleToInt(bids.getDouble(price)));
                 cachableData.put("stamp",new Date());
-                this.setBidData(cachableData);
+                if(!didInitializeDepthData){
+                    this.setBidData(cachableData);
+                }else{
+                    //
+                    // check the depth data is correct
+                    JSONObject data = this.getBidData(new Double(price));
+                    if(data == null){
+                        System.out.println("ERROR IN CHECK FOR BID " + price + ". no cached data.");
+                    }else if(!new Long(this.doubleToInt(bids.getDouble(price))).equals(data.getLong("volume_int"))){
+                        System.out.println("ERROR IN CHECK FOR BID " + price + ". is " + data.getLong("volume_int") + 
+                                           " and should be " + this.doubleToInt(bids.getDouble(price)));
+                        System.out.println(cachableData);
+                        System.out.println("vs");
+                        System.out.println(data);
+                    }
+                }
             }
             
             for(Iterator i = asks.keys(); i.hasNext();){
@@ -247,8 +320,32 @@ public class Intersango extends AExchange{
                 cachableData.put("price", new Double(price));
                 cachableData.put("volume_int", this.doubleToInt(asks.getDouble(price)));
                 cachableData.put("stamp",new Date());
-                this.setAskData(cachableData);
+                if(!didInitializeDepthData){
+                    this.setAskData(cachableData);
+                }else{
+                    //
+                    // check the depth data is correct
+                    JSONObject data = this.getAskData(new Double(price));
+                    if(data == null){
+                        System.out.println("ERROR IN CHECK FOR ASK " + price + ". no cached data.");
+                    }else if(!new Long(this.doubleToInt(asks.getDouble(price))).equals(data.getLong("volume_int"))){
+                        System.out.println("ERROR IN CHECK FOR ASK " + price + ". is " + data.getLong("volume_int") + 
+                                           " and should be " + this.doubleToInt(asks.getDouble(price)));
+                        System.out.println(cachableData);
+                        System.out.println("vs");
+                        System.out.println(data);
+                    }
+                }
             }
+            if(!didInitializeDepthData){
+                depthCheckTimer = new Timer();
+                depthCheckTimer.scheduleAtFixedRate(new TimerTask(){
+                    public void run(){
+                        Intersango.this.checkDepthBook();
+                    }
+                }, 1000*60, 1000*60);
+            }
+            didInitializeDepthData = true;
             this.notifyDidInitializeDepth();
         }
     }

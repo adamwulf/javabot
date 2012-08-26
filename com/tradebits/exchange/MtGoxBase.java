@@ -34,6 +34,12 @@ public abstract class MtGoxBase extends AExchange {
     private boolean hasLoadedDepthDataAtLeastOnce = false;
     private Date lastRESTDepthCheck = null;
     
+    // settings for the personal feed
+    private Timer personalFeedListingTimer;
+    private Date lastRESTPersonalFeedCheck;
+    private boolean hasLoadedPersonalFeedDataAtLeastOnce;
+
+    
     // necessary config/state properties
     protected CURRENCY currencyEnum;
     protected JSONObject config;
@@ -113,10 +119,14 @@ public abstract class MtGoxBase extends AExchange {
             cachedDepthData = new LinkedList<JSONObject>();
             if(depthListingTimer != null) depthListingTimer.cancel();
             if(currencyInformationTimer != null) currencyInformationTimer.cancel();
+            if(personalFeedListingTimer != null) personalFeedListingTimer.cancel();
             depthListingTimer = null;
             currencyInformationTimer = null;
+            personalFeedListingTimer = null;
             cachedCurrencyData = null;
             lastRESTDepthCheck = null;
+            lastRESTPersonalFeedCheck = null;
+            hasLoadedPersonalFeedDataAtLeastOnce = false;
             super.disconnect();
             this.notifyDidChangeConnectionState();
         }
@@ -198,7 +208,7 @@ public abstract class MtGoxBase extends AExchange {
                                 //
                                 // we are now confirmed connected to the socket,
                                 // and are awaiting our first realtime message
-                                MtGoxBase.this.didFinishConnectToSocketNowWaitingOnRealtimeData();
+                                MtGoxBase.this.didFinishConnectToSocketNowWaitingOnPersonalFeed();
                                 return;
                             }else if(data.equals("2::")){
                                 // just heartbeat from the server
@@ -319,6 +329,59 @@ public abstract class MtGoxBase extends AExchange {
         }
     }
     
+    
+    
+    protected void beginTimerForPersonalFeedData(){
+        personalFeedListingTimer = new Timer();
+        personalFeedListingTimer.scheduleAtFixedRate(new TimerTask(){
+            public void run(){
+                //
+                // only allowed to initialize depth data
+                // after we start receiving realtime data
+                if(MtGoxBase.this.isConnected() || !hasLoadedPersonalFeedDataAtLeastOnce){
+                    Date now = new Date();
+                    //
+                    // only load once each hour - yikes!
+                    // this is b/c mtgox has an extremely aggressive anti DDOS in place
+                    if(lastRESTPersonalFeedCheck == null || now.after(new Date(lastRESTPersonalFeedCheck.getTime() + 1000*60*60))){
+                        hasLoadedPersonalFeedDataAtLeastOnce = true;
+                        lastRESTPersonalFeedCheck = now;
+                        MtGoxBase.this.subscribeToPersonalFeed();
+                    }
+                }
+            }
+        }, 15000, 30000);
+    }
+    /**
+     * get our websocket connected to our private API feed
+     */
+    protected void subscribeToPersonalFeed(){
+        try{
+            String queryURL = "1/generic/private/idkey";
+            HashMap<String, String> args = new HashMap<String, String>();
+            String response = restClient.query(queryURL, args);
+            this.log(response);
+            if(response != null){
+                JSONObject ret = new JSONObject(response);
+                this.log("personal feed info " + ret);
+                String feedID = ret.getString("return");
+                
+                JSONObject subscribeOp = new JSONObject();
+                subscribeOp.put("op","mtgox.subscribe");
+                subscribeOp.put("key", feedID);
+                
+                if(socket != null){
+                    this.log("subscribing..." + ret);
+                    socket.send("4::/mtgox:" + subscribeOp.toString());
+                }
+                
+                this.didFinishConnectToPersonalFeedNowWaitingOnRealtimeData();
+            }
+        }catch(Exception e){
+            // noop
+            this.log(e.toString());
+        }
+    }
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -548,7 +611,19 @@ public abstract class MtGoxBase extends AExchange {
      * once it loads we should have some realtime data
      * ready
      */
-    private void didFinishConnectToSocketNowWaitingOnRealtimeData(){
+    private void didFinishConnectToSocketNowWaitingOnPersonalFeed(){
+        MtGoxBase.this.log("Socket connection complete");
+        MtGoxBase.this.beginTimerForPersonalFeedData();
+    }
+    /**
+     * we have finished the handshake with the socket,
+     * and are now awaiting our first realtime data
+     * 
+     * we're going to start a timer for the depth data,
+     * once it loads we should have some realtime data
+     * ready
+     */
+    private void didFinishConnectToPersonalFeedNowWaitingOnRealtimeData(){
         MtGoxBase.this.log("Socket connection complete");
         MtGoxBase.this.beginTimerForDepthData();
     }
@@ -569,6 +644,7 @@ public abstract class MtGoxBase extends AExchange {
                 this.disconnect();
             }else if(msg.getString("op").equals("subscribe")){
                 // ignore
+                this.log(msg.toString());
             }else if(msg.getString("op").equals("private")){
                 // ok, we got a valid message from the socket,
                 // so remeber that fact. we'll use this info
@@ -582,6 +658,7 @@ public abstract class MtGoxBase extends AExchange {
                     this.processTradeData(msg);
                 }else{
                     this.log("unknown feed type: " + msg.getString("private"));
+                    this.log(msg.toString());
                 }
             }else{
                 this.log("UNKNOWN MESSAGE: " + messageText);
