@@ -186,6 +186,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
                         // if this flag is still true,
                         // then MtGox disconnect() has
                         // not been called
+                        socket.disconnect();
+                        socket = null;
                         MtGoxBase.this.disconnect();
                     }
                     
