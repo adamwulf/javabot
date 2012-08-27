@@ -382,8 +382,12 @@ public class IntersangoTest extends TestHelper{
         JSONObject highestBid = intersango.getBid(0);
         JSONObject lowestAsk = intersango.getAsk(0);
         
+        JSONObject roundingErrorBid = intersango.getBidData(1.00000);
+        
+        
         System.out.println("bid: " + highestBid);
         System.out.println("ask: " + lowestAsk);
+        System.out.println("fix for rounding error: " + roundingErrorBid);
         
         // confirm it cached the depth data
         // since it hasn't yet loaded full depth
@@ -392,6 +396,7 @@ public class IntersangoTest extends TestHelper{
         assertEquals("ask volume is correct", 0.18240, lowestAsk.getDouble("volume"));
         assertEquals("bid price is correct", 10.18748, highestBid.getDouble("price"));
         assertEquals("bid volume is correct", 0.02803, highestBid.getDouble("volume"));
+        assertEquals("no rounding error when converting double to long", roundingErrorBid.getLong("volume_int"), 30892);
         
         //
         // now lets wait for the realtime updates

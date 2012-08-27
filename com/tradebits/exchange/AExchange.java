@@ -123,7 +123,13 @@ public abstract class AExchange{
     
     
     
-    
+    //
+    //
+    // TODO:
+    //
+    // i have updated this method to properly preserve the log of the item.
+    // now i need to run the test again until intersango goes out of sync.
+    // last time, it happened when it was ~20 hours into it.
     private void updateBidAskData(JSONObject obj, TreeMap<Double, JSONObject> treeMap) throws ExchangeException{
         synchronized(treeMap){
             try{
@@ -150,6 +156,7 @@ public abstract class AExchange{
                         newCachedObj.put("price", price);
                         newCachedObj.put("volume_int", newVolumeInt);
                         newCachedObj.put("stamp", obj.get("stamp"));
+                        newCachedObj.put("log", cachedObj.get("log"));
                         
                         //
                         // update the data

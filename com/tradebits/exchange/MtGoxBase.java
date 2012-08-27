@@ -353,6 +353,11 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     }
     
     
+    protected Long doubleToLongWithPow(double number, int pow){
+        return (long) (Math.round(number * Math.pow(10, pow)));
+    }
+    
+    
     /**
      * Fees:
      * the fee will always keep the transaction exactly as
@@ -379,8 +384,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             String queryURL = "1/BTC" + currencyEnum + "/private/order/add";
             HashMap<String, String> args = new HashMap<String, String>();
             args.put("type","bid");
-            args.put("amount_int", (new Long((long)(amount * Math.pow(10, 8))).toString()));
-            args.put("price_int", (new Long((long)((lowAsk.getDouble("price")) * Math.pow(10, 5))).toString()));
+            args.put("amount_int", doubleToLongWithPow(amount, 8).toString());
+            args.put("price_int", doubleToLongWithPow(lowAsk.getDouble("price"), 5).toString());
             
             String response = restClient.query(queryURL, args);
             if(response != null){
@@ -402,8 +407,8 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
             String queryURL = "1/BTC" + currencyEnum + "/private/order/add";
             HashMap<String, String> args = new HashMap<String, String>();
             args.put("type","ask");
-            args.put("amount_int", (new Long((long)(amount * Math.pow(10, 8))).toString()));
-            args.put("price_int", (new Long((long)((highBid.getDouble("price")) * Math.pow(10, 5))).toString()));
+            args.put("amount_int", doubleToLongWithPow(amount, 8).toString());
+            args.put("price_int", doubleToLongWithPow(highBid.getDouble("price"), 5).toString());
             
             String response = restClient.query(queryURL, args);
             if(response != null){

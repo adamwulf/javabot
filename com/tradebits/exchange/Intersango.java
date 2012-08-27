@@ -250,15 +250,26 @@ public class Intersango extends AExchange{
     /**
      * to be used for currencyEnum balances only
      */
-    private double intToDouble(int number){
+    private double intToDouble(long number){
         return (double) number / Math.pow(10, 5);
     }
     
     //
     // returns an int, assuming 5 places
     // after the decimal
+    //
+    // TODO
+    // should be (long)(Math.round(0.30892 * Math.pow(10, 5)))
+    //
+    // test case:
+    //> 0.30892 * Math.pow(10, 5)
+    //30891.999999999996
+    //> (long)(0.30892 * Math.pow(10, 5))
+    //30891
+    //> (long)(Math.round(0.30892 * Math.pow(10, 5)))
+    //30892
     private long doubleToInt(double number){
-        return (long) (number * Math.pow(10, 5));
+        return (long) (Math.round(number * Math.pow(10, 5)));
     }
     
     
