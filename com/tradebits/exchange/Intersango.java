@@ -12,7 +12,12 @@ import com.tradebits.trade.*;
 
 
 //
-// backup plan: http://db.intersango.com:1337/a
+// backup plan: http://db.intersango.com:1337/api.php
+//
+// Intersango connects to the above socket (db.intersango.com:1337)
+// to stream the data. when the socket opens, its first message
+// is the full orderbook. every message after that is an update
+// to the book
 public class Intersango extends AExchange{
     
     String configHost;
@@ -75,6 +80,13 @@ public class Intersango extends AExchange{
         this.notifyDidChangeConnectionState();
     }
     
+    /**
+     * this will connect to the host/port and begin
+     * streaming down data. the first message will be
+     * the entire book, then updates after that.
+     * 
+     * the RawSocket will mimic a websocket for us
+     */
     public void connect(){
         try{
             this.log("Connecting to: " + configHost + ":" + configPort + "...");
@@ -83,27 +95,39 @@ public class Intersango extends AExchange{
                 socket = socketFactory.getRawSocketTo(configHost, configPort, rawSocketMessagesLog);
                 socket.setListener(new ISocketHelperListener(){
                     
+                    //
+                    // open is pretty boring for intersango.
+                    // we don't get data until a message happens
+                    // soon after open
                     public void onOpen(ISocketHelper socket){
                         Intersango.this.log("OPEN");
                         socketIsConnected = true;
                         Intersango.this.notifyDidChangeConnectionState();
                     }
                     
+                    // our socket connection to intersango died
                     public void onClose(ISocketHelper socket, int closeCode, String message){
                         Intersango.this.log("CLOSE");
                         socketIsConnected = false;
                         // if this flag is still true,
-                        // then MtGox disconnect() has
+                        // then Intersango disconnect() has
                         // not been called
                         Intersango.this.disconnect();
                     }
                     
+                    // something very unexpected happened...
                     public void onError(ISocketHelper socket, String message){
                         // noop
                         Intersango.this.log("ERROR: " + message);
                         Intersango.this.disconnect();
                     }
                     
+                    //
+                    // these messages are faked from the raw socket
+                    // backing the intersango api.
+                    //
+                    // most will be the data prefix messages for either
+                    // the entire depth book or an incremental update
                     public void onMessage(ISocketHelper aSocket, String data){
                         try{
                             String dataPrefix = "5:::";
@@ -146,31 +170,49 @@ public class Intersango extends AExchange{
         }
     }
     
-    
+    /**
+     * this funciton creates a 2nd socket to Intersango
+     * for the sole purpose of confirming the book data
+     * that we have on file.
+     * 
+     * the goal is to download the entire book again,
+     * and compare it to what we've been incrementally building
+     * over the past hours.
+     * 
+     * once we've confirmed the book is correct, immediately close
+     * this 2nd socket
+     */
     protected void checkDepthBook(){
         final ISocketHelper checkSocket = socketFactory.getRawSocketTo(configHost, configPort, rawSocketMessagesLog);
         try{
             checkSocket.setListener(new ISocketHelperListener(){
-                
+                // tell everyone that we've begun to check our orderbook
                 public void onOpen(ISocketHelper socket){
-                    Intersango.this.log("CHECK OPEN");
+                    // Intersango.this.log("CHECK OPEN");
                 }
-                
+                // ok, we're done with the orderbook validation
                 public void onClose(ISocketHelper socket, int closeCode, String message){
-                    Intersango.this.log("CHECK CLOSE");
+                    // Intersango.this.log("CHECK CLOSE");
                 }
-                
+                // something unexpected happen, log it
                 public void onError(ISocketHelper socket, String message){
                     Intersango.this.log("CHECK ERROR: " + message);
                     checkSocket.disconnect();
                 }
-                
+                //
+                // since we're only checking teh orderbook and we
+                // don't care about updates, we should immediately
+                // disconnect this socket after the first message
                 public void onMessage(ISocketHelper aSocket, String data){
                     try{
                         String dataPrefix = "5:::";
                         if(data.startsWith(dataPrefix)){
                             data = data.substring(dataPrefix.length());
                             Intersango.this.processMessage(data);
+                            //
+                            // ok, we checked the orderbook, now we
+                            // should immediately disconnect this 2nd
+                            // socket
                             checkSocket.disconnect();
                             return;
                         }
@@ -196,7 +238,10 @@ public class Intersango extends AExchange{
     }
     
     
-    
+    /**
+     * this will process any input message from intersango
+     * and update our backing store appropriately.
+     */
     protected void processMessage(String messageText){
         try{
             JSONObject msg = new JSONObject(messageText);
@@ -205,7 +250,7 @@ public class Intersango extends AExchange{
                 rawDepthDataLog.log(messageText);
             }
             if(msg.getString("name").equals("orderbook")){
-                this.processDepthData(msg);
+                this.processOrderBookData(msg);
             }else if(msg.getString("name").equals("depth")){
                 this.processDepthUpdate(msg);
 //            }else if(msg.getString("name").equals("tickers")){
@@ -272,7 +317,12 @@ public class Intersango extends AExchange{
         return (long) (Math.round(number * Math.pow(10, 5)));
     }
     
-    
+    /**
+     * this function will process any changes to our depth data backing store.
+     * 
+     * if we've received an update from the socket, then this method
+     * will update our store to reflect the new input data.
+     */
     protected void processDepthUpdate(JSONObject depthMessage) throws JSONException, ExchangeException{
         JSONObject depthData = depthMessage.getJSONArray("args").getJSONObject(0);
         if(intersangoCurrencyEnum.intValue() == depthData.getInt("currency_pair_id")){
@@ -293,7 +343,12 @@ public class Intersango extends AExchange{
         }
     }
     
-    protected void processDepthData(JSONObject depthMessage) throws JSONException, ExchangeException{
+    /**
+     * this will entirely overwrite the depth data for the input data.
+     * this is not an update method, this is an initialization method
+     * for our data store.
+     */
+    protected void processOrderBookData(JSONObject depthMessage) throws JSONException, ExchangeException{
         synchronized(this){
             JSONObject orderBooks = depthMessage.getJSONArray("args").getJSONObject(0);
             JSONObject orderBook = orderBooks.getJSONObject(intersangoCurrencyEnum.toString());
@@ -301,6 +356,8 @@ public class Intersango extends AExchange{
             JSONObject bids = orderBook.getJSONObject("bids");
             JSONObject asks = orderBook.getJSONObject("asks");
             
+            //
+            // first, process all bids
             for(Iterator i = bids.keys(); i.hasNext();){
                 String price = (String)i.next();
                 JSONObject cachableData = new JSONObject();
@@ -308,10 +365,14 @@ public class Intersango extends AExchange{
                 cachableData.put("volume_int", this.doubleToInt(bids.getDouble(price)));
                 cachableData.put("stamp",new Date());
                 if(!didInitializeDepthData){
+                    //
+                    // have never initialized, so just
+                    // blindly set the data
                     this.setBidData(cachableData);
                 }else{
                     //
-                    // check the depth data is correct
+                    // check the depth data is correct, but don't
+                    // update anything
                     JSONObject data = this.getBidData(new Double(price));
                     if(data == null){
                         System.out.println("ERROR IN CHECK FOR BID " + price + ". no cached data.");
@@ -325,6 +386,9 @@ public class Intersango extends AExchange{
                 }
             }
             
+            //
+            // ok, bid data is done, now we need to
+            // set ask data
             for(Iterator i = asks.keys(); i.hasNext();){
                 String price = (String)i.next();
                 JSONObject cachableData = new JSONObject();
@@ -332,10 +396,13 @@ public class Intersango extends AExchange{
                 cachableData.put("volume_int", this.doubleToInt(asks.getDouble(price)));
                 cachableData.put("stamp",new Date());
                 if(!didInitializeDepthData){
+                    // we've never intiailized, so just set
+                    // the data
                     this.setAskData(cachableData);
                 }else{
                     //
-                    // check the depth data is correct
+                    // check the depth data is correct,
+                    // but don't overwrite anything
                     JSONObject data = this.getAskData(new Double(price));
                     if(data == null){
                         System.out.println("ERROR IN CHECK FOR ASK " + price + ". no cached data.");
@@ -349,6 +416,10 @@ public class Intersango extends AExchange{
                 }
             }
             if(!didInitializeDepthData){
+                // if this is my first time processing
+                // the orderbook, then set up a recurring
+                // timer that will periodically re-check the
+                // orderbook with a new raw connection
                 depthCheckTimer = new Timer();
                 depthCheckTimer.scheduleAtFixedRate(new TimerTask(){
                     public void run(){

@@ -8,6 +8,15 @@ import java.util.*;
 import com.tradebits.*;
 import org.json.*;
 
+/**
+ * this class connects to a socket
+ * and posts each line of input it recieves
+ * as a message as if it were a proper websocket.
+ * 
+ * this lets us connect to a 'normal' socket and
+ * maintain websocket interface as every other
+ * exchange
+ */
 public class RawSocketConnection implements ISocketHelper{
     
     private String host;
@@ -64,6 +73,7 @@ public class RawSocketConnection implements ISocketHelper{
     /**
      * this thread will connect to the intersango
      * realtime API https://intersango.com/api.php
+     * (or similar socket data)
      */
     protected class SocketThread extends Thread{
         String host;
@@ -75,12 +85,22 @@ public class RawSocketConnection implements ISocketHelper{
             this.host = host;
             this.port = port;
         }
+        /**
+         * when disconnecting, just close
+         * the socket. the processInputStream()
+         * below will handle the notifications
+         */
         public void disconnect(){
             try{
                 if(in !=null) in.close();
             }catch(IOException e){ }
             connected = false;
         }
+        /**
+         * open the socket and read into a buffered stream.
+         * then each line will be sent out as a 'websocket'
+         * message to our listeners
+         */
         public void run(){
             echoSocket = null;
             in = null;
@@ -98,7 +118,14 @@ public class RawSocketConnection implements ISocketHelper{
             
             processInputStream();
         }
-        
+        /**
+         * handles the entire lifecycle of the socket
+         * 
+         * first, send the open message. then read
+         * each line and send it as a websocket message
+         * until the socket is closed. then
+         * send the close message
+         */
         protected void processInputStream(){
             String jsonLine;
             
@@ -128,6 +155,9 @@ public class RawSocketConnection implements ISocketHelper{
             try{ in.close(); }catch(IOException e){ }
             try{ echoSocket.close(); }catch(IOException e){ }
             
+            //
+            // ok, our socket is dead somehow, so notify our listener
+            // that we're closed off
             connected = false;
             RawSocketConnection.this.getListener().onClose(RawSocketConnection.this, 0, null);
         }

@@ -33,6 +33,11 @@ public abstract class AExchange{
     
     abstract public CURRENCY getCurrency();
     
+    /**
+     * right now, each exchange will log to std out prefixed
+     * by that exchanges name. other file logs exist as well
+     * with the Log class
+     */
     public void log(String log){
         System.out.println(this.getName() + " " + (new Date()) + ": " + log + "\n");
     }
@@ -60,7 +65,14 @@ public abstract class AExchange{
      */
     abstract public double getTradingFeeFor(CurrencyTrade trade);
 
-    
+    /**
+     * all bid/ask data is stored in one of two maps. the map
+     * key is the price, and the value is the volumn and history
+     * for that price.
+     * 
+     * when the volume of an price goes to zero, it is deleted from
+     * the map entirely
+     */
     private JSONObject getBidAskData(double price, TreeMap<Double, JSONObject> treeMap){
         return treeMap.get(price);
     }
@@ -101,8 +113,11 @@ public abstract class AExchange{
                 }
                 
                 if(obj.getLong("volume_int") > 0){
+                    // only store the value if there actually
+                    // is a volume
                     treeMap.put(obj.getDouble("price"), obj);
                 }else{
+                    // if no volume, delete it entirely
                     treeMap.remove(obj.getDouble("price"));
                 }
 //                this.log("set data for " + obj.getDouble("price") + " to vol " + obj.getDouble("volume_int"));
