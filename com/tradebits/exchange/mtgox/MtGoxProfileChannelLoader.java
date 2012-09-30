@@ -139,6 +139,7 @@ public class MtGoxProfileChannelLoader{
         (new Thread(this.name + " Profile Channel Fetch"){
             public void run(){
                 try{
+                    System.out.println(this.getName() + ": loading profile data");
                     String queryURL = "1/generic/private/idkey";
                     HashMap<String, String> args = new HashMap<String, String>();
                     String response = listener.getRESTClient().query(queryURL, args);
@@ -149,9 +150,11 @@ public class MtGoxProfileChannelLoader{
                         String feedID = ret.getString("return");
                         hasLoadedDataAtLeastOnce = true;
                         listener.didLoadProfileChannelData(feedID);
+                        System.out.println(this.getName() + ": finished loading profile data");
                     }
                 }catch(Exception e){
                     // noop
+                    lastRESTRequestCheck = null;
                     listener.getRawDepthDataLog().log(e.toString());
                 }
             }

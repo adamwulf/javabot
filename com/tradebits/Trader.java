@@ -106,7 +106,7 @@ public class Trader{
             Thread.sleep(5000);
         }
         
-        
+        // this counter is used purely for debugging
         final MutableInt counter = new MutableInt();
         
         final Date lastRun = new Date();

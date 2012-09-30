@@ -196,6 +196,7 @@ public class MtGoxDepthLoader{
                         // last depth load as never so that 
                         // the next timer cycle will try again in 30s
                         e.printStackTrace();
+                        lastRESTRequestCheck = null;
                         MtGoxDepthLoader.this.stayConnectedButReloadData();
                         listener.getRawDepthDataLog().log("Fetching depth failed");
                         return;

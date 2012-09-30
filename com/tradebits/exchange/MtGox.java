@@ -53,7 +53,19 @@ public class MtGox extends MtGoxBase{
         synchronized(this){
             CURRENCY curr = CURRENCY.valueOf(depthMessage.getJSONObject("depth").getString("currency"));
             if(curr.equals(currencyEnum)){
-                if(this.isConnected()){
+                //
+                // if my depth loader is connected,
+                // then i'm allowed to update my depth data
+                //
+                // if i were to key off of this.isConnected() instead,
+                // then i would get into an infinite loop because
+                // depthLoader.isConnected might be true (loading initial depth data)
+                // but wallet/currency/etc may be false, leading to this.isConnected()
+                // being false, which would send us to cacheDepthMessageForLaterReply() below.
+                //
+                // all that would mean that the initial depth data load could never
+                // empty the cached data because non-depth data isn't yet connected.
+                if(depthLoader.isConnected()){
                     String type = depthMessage.getJSONObject("depth").getString("type_str");
                     rawSocketMessagesLog.log(depthMessage.toString());
                     JSONObject depthData = depthMessage.getJSONObject("depth");

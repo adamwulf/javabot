@@ -142,6 +142,7 @@ public class MtGoxCurrencyLoader{
                 MtGoxCurrency cachedCurrencyData = null;
                 do{
                     try{
+                        System.out.println(this.getName() + ": loading currency data");
                         URLHelper urlHelper = listener.getSocketFactory().getURLHelper();
                         URL url = new URL("https://mtgox.com/api/1/generic/currency?currency=" + currency);
                         String currencyJSON = urlHelper.getSynchronousURL(url);
@@ -158,9 +159,11 @@ public class MtGoxCurrencyLoader{
                                 listener.getRawDepthDataLog().log("loaded currency information for " + currency);
                                 hasLoadedDataAtLeastOnce = true;
                                 listener.didLoadCurrencyData(cachedCurrencyData);
+                                System.out.println(this.getName() + ": finished loading currency data");
                             }
                         }
                     }catch(Exception e){
+                        lastRESTRequestCheck = null;
                         e.printStackTrace();
                         try{
                             Thread.sleep(unconnectedIntervalTimeoutInMilliseconds);

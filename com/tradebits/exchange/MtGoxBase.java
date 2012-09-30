@@ -26,7 +26,7 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
     private boolean wasToldToConnect = false;
     
     // Loaders for MtGox profile / market data
-    private MtGoxDepthLoader depthLoader;
+    protected MtGoxDepthLoader depthLoader;
     private MtGoxCurrencyLoader currencyLoader;
     private MtGoxWalletLoader walletLoader;
     private MtGoxProfileChannelLoader profileChannelLoader;
@@ -92,6 +92,12 @@ public abstract class MtGoxBase extends AExchange implements MtGoxDepthLoader.Li
      * 3. that the socket is still connected
      */
     public boolean isConnected(){
+        if(!wasToldToConnect) System.out.println("wasn't told to connect");
+        if(socket != null && !socket.isConnected()) System.out.println("socket isn't connected");
+        if(depthLoader != null && !depthLoader.isConnected()) System.out.println("depthLoader isn't connected");
+        if(currencyLoader != null && !currencyLoader.isConnected()) System.out.println("currencyLoader isn't connected");
+        if(profileChannelLoader != null && !profileChannelLoader.isConnected()) System.out.println("profileChannelLoader isn't connected");
+        if(walletLoader != null && !walletLoader.isConnected()) System.out.println("walletLoader isn't connected");
         return wasToldToConnect && 
             this.getAsk(0) != null && this.getBid(0) != null && 
             socket.isConnected() && 

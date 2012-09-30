@@ -138,7 +138,7 @@ public class MtGoxWalletLoader{
     protected void loadInitialWalletData(){
         (new Thread(this.name + " Wallet Fetch"){
             public void run(){
-                
+                System.out.println(this.getName() + ": loading wallet data.");
                 Long walletBalanceEXD;
                 Long walletBalanceBTC;
                 
@@ -153,8 +153,12 @@ public class MtGoxWalletLoader{
                         JSONObject walletJSON = new JSONObject(response);
                         hasLoadedDataAtLeastOnce = true;
                         listener.didLoadWalletData(walletJSON);
+                        System.out.println(this.getName() + ": finished loading wallet data.");
+                    }else{
+                        throw new ExchangeException("null mtgox wallet data");
                     }
                 }catch(Exception e){
+                    lastRESTRequestCheck = null;
                     e.printStackTrace();
                 }
             }
